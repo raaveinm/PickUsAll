@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import org.jetbrains.compose.resources.painterResource
+import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 
 import pickusall.shared.generated.resources.Res
 import pickusall.shared.generated.resources.compose_multiplatform
@@ -22,7 +23,7 @@ import pickusall.shared.generated.resources.compose_multiplatform
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
+    PicassoTheme {
         var showContent by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier

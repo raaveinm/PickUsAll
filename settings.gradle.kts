@@ -1,5 +1,9 @@
 @file:Suppress("UnstableApiUsage")
 
+include(":features:colorpicker")
+include(":core:designsystem")
+
+
 rootProject.name = "PickUsAll"
 
 pluginManagement {
