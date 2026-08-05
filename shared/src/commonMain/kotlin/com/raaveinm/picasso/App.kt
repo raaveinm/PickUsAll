@@ -1,33 +1,37 @@
 package com.raaveinm.picasso
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
+import androidx.compose.ui.unit.dp
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
-
-import pickusall.shared.generated.resources.Res
-import pickusall.shared.generated.resources.compose_multiplatform
+import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
+import com.raaveinm.pickusall.core.designsystem.utils.ImageUtility
 
 @Composable
 @Preview
 fun App() {
+    CoilInitializer()
     PicassoTheme {
         var showContent by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(MaterialTheme.colorScheme.surface)
                 .safeContentPadding()
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -41,8 +45,12 @@ fun App() {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+                    ImageUtility(
+                        imageUrl = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1808500/library_600x900.jpg",
+                        enableGlowEffect = true,
+                        modifier = Modifier.size(300.dp,450.dp)
+                    )
+                    Text("Compose: $greeting",color = MaterialTheme.colorScheme.onSurface)
                 }
             }
         }
