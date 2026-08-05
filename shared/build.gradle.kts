@@ -7,6 +7,12 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
 kotlin {
     listOf(
         iosArm64(),
