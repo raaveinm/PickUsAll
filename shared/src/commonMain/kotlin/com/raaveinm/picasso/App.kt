@@ -3,6 +3,7 @@ package com.raaveinm.picasso
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeContentPadding
@@ -19,13 +20,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.raaveinm.pickusall.core.designsystem.components.GameCard
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
 import com.raaveinm.pickusall.core.designsystem.utils.ImageUtility
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 
 @Composable
 @Preview
 fun App() {
+    val hazeState = rememberHazeState()
     CoilInitializer()
     PicassoTheme {
         var showContent by remember { mutableStateOf(false) }
@@ -33,7 +38,8 @@ fun App() {
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surface)
                 .safeContentPadding()
-                .fillMaxSize(),
+                .fillMaxSize()
+                .hazeSource(state = hazeState),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Button(onClick = { showContent = !showContent }) {
@@ -45,11 +51,11 @@ fun App() {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    ImageUtility(
-                        imageUrl = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1808500/library_600x900.jpg",
-                        enableGlowEffect = true,
-                        modifier = Modifier.size(300.dp,450.dp)
-                    )
+                    Row {
+                        GameCard(gameId = 1808500,hazeState = hazeState)
+                        GameCard(gameId = 1091500,hazeState = hazeState)
+                        GameCard(gameId = -1,hazeState = hazeState)
+                    }
                     Text("Compose: $greeting",color = MaterialTheme.colorScheme.onSurface)
                 }
             }

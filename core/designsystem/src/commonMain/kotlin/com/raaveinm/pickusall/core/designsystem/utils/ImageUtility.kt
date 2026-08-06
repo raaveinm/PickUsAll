@@ -1,23 +1,33 @@
 package com.raaveinm.pickusall.core.designsystem.utils
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -38,19 +48,25 @@ fun ImageUtility(
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
     enableGlowEffect: Boolean = false,
     blurPadding: Dp = 12.dp,
-    fadeEdgeWidth: Dp = 24.dp
+    fadeEdgeWidth: Dp = 24.dp,
+    errorColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    cornerRadius: Dp = 0.dp
 ) {
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
         if (enableGlowEffect) {
+            val desaturatedMatrix = remember { ColorMatrix().apply { setToSaturation(0.4f) } }
             AsyncImage(
                 model = imageUrl,
                 contentDescription = null,
                 contentScale = contentScale,
                 alignment = Alignment.Center,
                 filterQuality = filterQuality,
+                colorFilter = ColorFilter.colorMatrix(desaturatedMatrix),
+                error = ColorPainter(errorColor.copy(alpha = .67f)),
+                alpha = .67f,
                 modifier = Modifier
                     .matchParentSize()
                     .graphicsLayer {
@@ -85,13 +101,16 @@ fun ImageUtility(
                             )
                         }
                     }
-                    .blur(24.dp)
+                    .blur(48.dp)
             )
         }
 
         Box(
-            if (enableGlowEffect) Modifier.padding(blurPadding) else Modifier
-        ) { // return@Box
+            modifier = Modifier.padding(blurPadding).clip(RoundedCornerShape(cornerRadius)),
+            Alignment.Center
+        ) {  // return@Box
+            var isLoading by remember { mutableStateOf(true) }
+
             AsyncImage(
                 model = imageUrl,
                 contentDescription = contentDescription,
@@ -101,9 +120,15 @@ fun ImageUtility(
                 colorFilter = colorFilter,
                 filterQuality = filterQuality,
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .heightIn(min = 180.dp)
+                    .clip(RoundedCornerShape(cornerRadius)),
+                onLoading = { isLoading = true },
+                onSuccess = { isLoading = false },
+                onError = { isLoading = false },
+                error = ColorPainter(errorColor)
             )
+            if (isLoading) CircularProgressIndicator()
         }
     }
 }

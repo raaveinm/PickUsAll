@@ -8,10 +8,7 @@ import androidx.compose.ui.unit.dp
 // Created by Kirill "Raaveinm" on 8/4/26.
 //
 
-val PicassoShapes = Shapes(
-    extraSmall = RoundedCornerShape(4.dp),
-    small = RoundedCornerShape(8.dp),
-    medium = RoundedCornerShape(12.dp),
-    large = RoundedCornerShape(16.dp),
-    extraLarge = RoundedCornerShape(28.dp)
-)
+object Shapes {
+    val smallShape = 8.dp
+    val averageShape = 12.dp
+}
