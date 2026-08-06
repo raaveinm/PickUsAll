@@ -65,7 +65,6 @@ kotlin {
     }
 
     sourceSets {
-        val hazeVer = "2.0.0-alpha03"
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
@@ -80,8 +79,6 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(project(":core:designsystem"))
-            implementation("dev.chrisbanes.haze:haze:$hazeVer")
-            implementation("dev.chrisbanes.haze:haze-blur:$hazeVer")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

@@ -21,13 +21,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
 
 @Composable
 @Preview
 fun App() {
-    val hazeState = rememberHazeState()
     CoilInitializer()
     PicassoTheme {
         var showContent by remember { mutableStateOf(false) }
@@ -35,8 +32,7 @@ fun App() {
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surface)
                 .safeContentPadding()
-                .fillMaxSize()
-                .hazeSource(state = hazeState),
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Button(onClick = { showContent = !showContent }) {
@@ -49,9 +45,9 @@ fun App() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Row {
-                        GameCard(gameId = 1808500,hazeState = hazeState, text = "567.8 h")
-                        GameCard(gameId = 1091500,hazeState = hazeState)
-                        GameCard(gameId = -1,hazeState = hazeState)
+                        GameCard(gameId = 1808500, text = "567.8 h")
+                        GameCard(gameId = 1091500)
+                        GameCard(gameId = -1)
                     }
                     Text("Compose: $greeting",color = MaterialTheme.colorScheme.onSurface)
                 }

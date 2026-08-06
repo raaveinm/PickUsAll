@@ -20,10 +20,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import com.raaveinm.pickusall.core.designsystem.utils.ImageUtility
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
 
 //
 // Created by Kirill "Raaveinm" on 8/4/26.
@@ -35,7 +31,6 @@ fun GameCard(
     gameId: Int,
     sourceSize: Pair<Int, Int> = GameCardSize.ASPECT_RATIO_2x3,
     size: Pair<Int, Int> = GameCardSize.ASPECT_RATIO_2x3_SMALL,
-    hazeState: HazeState = rememberHazeState(),
     text: String = "blep"
 ) {
     val imageLink = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$gameId" +
@@ -45,8 +40,7 @@ fun GameCard(
         ImageUtility(
             imageUrl = imageLink,
             modifier = Modifier
-                .size(size.first.dp, size.second.dp)
-                .hazeSource(state = hazeState, zIndex = 0f),
+                .size(size.first.dp, size.second.dp),
             contentDescription = "game_card",
             contentScale = ContentScale.Crop,
             enableGlowEffect = true,
@@ -54,7 +48,7 @@ fun GameCard(
         )
 
         Card(
-            modifier = Modifier.hazeEffect(state = hazeState).size(128.dp, 24.dp),
+            modifier = Modifier.size(128.dp, 24.dp),
             shape = RoundedCornerShape(Shapes.smallShape),
             colors = CardColors(
                 containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = .84f),

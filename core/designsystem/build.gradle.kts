@@ -71,9 +71,6 @@ kotlin {
                 implementation(libs.coil.compose)
                 implementation(libs.coil.network.ktor)
                 implementation(libs.ktor.client.okhttp)
-                implementation(libs.haze)
-                implementation(libs.haze.blur)
-                implementation(libs.haze.blur.materials)
             }
         }
 
