@@ -59,8 +59,6 @@ kotlin {
     // common to share sources between related targets.
     // See: https://kotlinlang.org/docs/multiplatform-hierarchy.html
     sourceSets {
-        val hazeVer = "2.0.0-alpha03"
-
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)
@@ -73,8 +71,9 @@ kotlin {
                 implementation(libs.coil.compose)
                 implementation(libs.coil.network.ktor)
                 implementation(libs.ktor.client.okhttp)
-                implementation("dev.chrisbanes.haze:haze:${hazeVer}")
-                implementation("dev.chrisbanes.haze:haze-blur:${hazeVer}")
+                implementation(libs.haze)
+                implementation(libs.haze.blur)
+                implementation(libs.haze.blur.materials)
             }
         }
 

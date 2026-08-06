@@ -35,15 +35,18 @@ fun GameCard(
     gameId: Int,
     sourceSize: Pair<Int, Int> = GameCardSize.ASPECT_RATIO_2x3,
     size: Pair<Int, Int> = GameCardSize.ASPECT_RATIO_2x3_SMALL,
-    hazeState: HazeState = rememberHazeState()
+    hazeState: HazeState = rememberHazeState(),
+    text: String = "blep"
 ) {
     val imageLink = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$gameId" +
             "/library_${sourceSize.first}x${sourceSize.second}.jpg"
 
-    Box(modifier.hazeSource(hazeState), Alignment.BottomCenter) {
+    Box(modifier = modifier, contentAlignment = Alignment.BottomCenter) {
         ImageUtility(
             imageUrl = imageLink,
-            modifier = Modifier.size(size.first.dp, size.second.dp),
+            modifier = Modifier
+                .size(size.first.dp, size.second.dp)
+                .hazeSource(state = hazeState, zIndex = 0f),
             contentDescription = "game_card",
             contentScale = ContentScale.Crop,
             enableGlowEffect = true,
@@ -61,7 +64,7 @@ fun GameCard(
             ),
             content = {
                 Text(
-                    text = "info",
+                    text = text,
                     modifier = Modifier.fillMaxSize().padding(4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     maxLines = 1,
