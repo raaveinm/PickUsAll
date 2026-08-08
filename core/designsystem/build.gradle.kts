@@ -14,7 +14,7 @@ kotlin {
     android {
         namespace = "com.raaveinm.pickusall.core.designsystem"
         compileSdk {
-            version = release(36) {
+            version = release(37) {
                 minorApiLevel = 1
             }
         }
@@ -70,7 +70,12 @@ kotlin {
                 implementation(libs.compose.components.resources)
                 implementation(libs.coil.compose)
                 implementation(libs.coil.network.ktor)
-                implementation(libs.ktor.client.okhttp)
+                implementation(libs.androidx.material.icons.extended)
+                implementation(libs.decompose)
+                implementation(libs.decompose.compose)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.androidx.lifecycle.viewmodelCompose)
+                implementation(libs.androidx.lifecycle.runtimeCompose)
             }
         }
 
