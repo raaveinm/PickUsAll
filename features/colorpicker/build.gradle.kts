@@ -12,11 +12,11 @@ kotlin {
     android {
         namespace = "com.raaveinm.pickusall.features.colorpicker"
         compileSdk {
-            version = release(36) {
-                minorApiLevel = 1
+            version = release(libs.versions.android.compileSdk.get().toInt()) {
+                minorApiLevel = libs.versions.android.minorSdk.get().toInt()
             }
         }
-        minSdk = 28
+        minSdk = libs.versions.android.minSdk.get().toInt()
 
         withHostTestBuilder {
         }

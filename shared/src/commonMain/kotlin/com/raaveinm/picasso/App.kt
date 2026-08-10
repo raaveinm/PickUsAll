@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
+import com.raaveinm.pickusall.core.designsystem.components.GamePreview
 import com.raaveinm.pickusall.core.designsystem.components.NavBar
 import com.raaveinm.pickusall.core.designsystem.components.Switch
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
@@ -35,8 +37,8 @@ import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
 @Composable
 @Preview
 fun App() {
-    CoilInitializer()
     PicassoTheme {
+        CoilInitializer()
         var showContent by remember { mutableStateOf(false) }
         val gradientBrush = Brush.verticalGradient(
             colors = listOf(
@@ -66,9 +68,9 @@ fun App() {
                 ) {
                     item {
                         Row {
-                            GameCard(gameId = 1808500, text = "567.8 h")
-                            GameCard(gameId = 1091500)
-                            GameCard(gameId = -1)
+                            GameCard(modifier = Modifier.size(300.dp,450.dp), gameId = 1808500, text = "567.8 h")
+                            GameCard(modifier = Modifier.size(300.dp,450.dp), gameId = 1091500)
+                            GameCard(modifier = Modifier.size(300.dp,450.dp), gameId = -1)
                         }
                     }
 
@@ -105,6 +107,46 @@ fun App() {
                     item {
                         var selected by remember{mutableStateOf(0)}
                         NavBar(selectedId=selected, onItemClick = { selected = it })
+                    }
+
+                    item {
+                        GamePreview(
+                            modifier = Modifier.sizeIn(maxWidth = 1024.dp),
+                            gameId = 620980,
+                            gameName = "Beat Saber",
+                            screenshotFilename = listOf(
+                                "ss_542d092f42c779c866167bec05c1da488bcd91f8",
+                                "ss_b65444cc4513f34bd41fa6b0fe96cf11d94fea8d",
+                                "ss_7df971fd7781d69dc455b15a400a6973ed7d3f36"
+                            ),
+                            inLibrary = true,
+                            gameTags = listOf("vr", "rythm", "music", "moddable")
+                        )
+                    }
+                    item {
+                        GamePreview(
+                            modifier = Modifier.sizeIn(maxWidth = 1024.dp),
+                            gameId = 1601580,
+                            gameName = "Frostpunk 2",
+                            screenshotFilename = listOf(
+                                "5fcef70d6bc626f4c0cfc74826c3a27125bd1376/ss_5fcef70d6bc626f4c0cfc74826c3a27125bd1376",
+                                "ss_a61f90216ab7b217a3d8faec25d3d0ba7a5683bc"
+                            ),
+                            inLibrary = false,
+                            gameTags = listOf("city builder", "strategy", "survival")
+                        )
+                    }
+                     item {
+                         GamePreview(
+                             modifier = Modifier.sizeIn(maxWidth = 1024.dp),
+                             gameId = -1,
+                             gameName = "Game Name",
+                             screenshotFilename = listOf(
+                                 "5fcef70d6bc626f4c0cfc74826c3a27125bd1376/ss_5fcef70d6bc626f4c0cfc74826c3a27125bd1376",
+                                 "ss_a61f90216ab7b217a3d8faec25d3d0ba7a5683bc"
+                             ),
+                             gameTags = listOf("stat1", "stat2", "stat3", "stat4")
+                         )
                     }
                 }
             }

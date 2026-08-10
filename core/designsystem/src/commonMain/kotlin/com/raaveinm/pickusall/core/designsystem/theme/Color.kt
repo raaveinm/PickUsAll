@@ -75,3 +75,9 @@ val surfaceContainerLowDark = Color(0xFF1F1A1F)
 val surfaceContainerDark = Color(0xFF231E23)
 val surfaceContainerHighDark = Color(0xFF2E282E)
 val surfaceContainerHighestDark = Color(0xFF393338)
+
+object SpecialColors {
+    val onlineColor = Color(0xFF78B159)
+    val offlineColor = Color(0xFFEB4646)
+    val errorColor = Color(0xFF9FD8E5)
+}

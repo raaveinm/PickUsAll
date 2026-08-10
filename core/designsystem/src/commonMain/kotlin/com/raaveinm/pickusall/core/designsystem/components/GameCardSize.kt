@@ -10,7 +10,7 @@ object GameCardSize {
     // Base CDN URLs (For Reference)
     ///////////////////////////////////////////////
     // Store Assets: https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$gameId/
-    // Icon Assets:  https://media.steampowered.com/steamcommunity/public/images/apps/$gameId/
+    // Icon Assets:  https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/$gameId/$fileName.1920x1080.jpg
 
     ///////////////////////////////////////////////
     // Library Preview

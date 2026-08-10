@@ -13,12 +13,11 @@ kotlin {
     // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
     android {
         namespace = "com.raaveinm.pickusall.core.designsystem"
-        compileSdk {
-            version = release(37) {
-                minorApiLevel = 1
-            }
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        androidResources {
+            enable = true
         }
-        minSdk = 28
+        minSdk = libs.versions.android.minSdk.get().toInt()
 
         withHostTestBuilder {
         }

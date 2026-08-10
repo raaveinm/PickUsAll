@@ -30,21 +30,31 @@ fun GameCard(
     modifier: Modifier = Modifier,
     gameId: Int,
     sourceSize: String = GameCardSize.LIBRARY_600_X_900,
-    text: String = "blep"
+    text: String? = "blep"
 ) {
     val imageLink =
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$gameId/$sourceSize"
 
     Box(modifier = modifier, contentAlignment = Alignment.BottomCenter) {
+
+        ///////////////////////////////////////////////
+        // Card
+        ///////////////////////////////////////////////
+
         ImageUtility(
             imageUrl = imageLink,
-            modifier = Modifier
-                .size(600.dp, 900.dp),
+            modifier = Modifier,
             contentDescription = "game_card",
             contentScale = ContentScale.Crop,
             enableGlowEffect = true,
             cornerRadius = Shapes.averageShape
         )
+
+        if (text == null) return@Box // do not displaying text card if text is null
+
+        ///////////////////////////////////////////////
+        // Low Bar Text Chip
+        ///////////////////////////////////////////////
 
         Card(
             modifier = Modifier.size(128.dp, 24.dp),
