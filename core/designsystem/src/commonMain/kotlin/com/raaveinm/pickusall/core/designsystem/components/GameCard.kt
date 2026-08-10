@@ -29,18 +29,17 @@ import com.raaveinm.pickusall.core.designsystem.utils.ImageUtility
 fun GameCard(
     modifier: Modifier = Modifier,
     gameId: Int,
-    sourceSize: Pair<Int, Int> = GameCardSize.ASPECT_RATIO_2x3,
-    size: Pair<Int, Int> = GameCardSize.ASPECT_RATIO_2x3_SMALL,
+    sourceSize: String = GameCardSize.LIBRARY_600_X_900,
     text: String = "blep"
 ) {
-    val imageLink = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$gameId" +
-            "/library_${sourceSize.first}x${sourceSize.second}.jpg"
+    val imageLink =
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$gameId/$sourceSize"
 
     Box(modifier = modifier, contentAlignment = Alignment.BottomCenter) {
         ImageUtility(
             imageUrl = imageLink,
             modifier = Modifier
-                .size(size.first.dp, size.second.dp),
+                .size(600.dp, 900.dp),
             contentDescription = "game_card",
             contentScale = ContentScale.Crop,
             enableGlowEffect = true,

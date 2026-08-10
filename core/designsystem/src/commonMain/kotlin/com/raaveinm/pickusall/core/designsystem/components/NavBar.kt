@@ -85,7 +85,7 @@ fun NavBar(
         }
 
         FloatingActionButton(
-            onClick = {},
+            onClick = { onItemClick(3) },
             modifier = fabModifier.padding(start = Dimensions.large),
             shape = RoundedCornerShape(16.dp),
             containerColor = MaterialTheme.colorScheme.secondaryContainer,

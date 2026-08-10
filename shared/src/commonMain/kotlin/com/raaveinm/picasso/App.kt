@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -37,9 +38,16 @@ fun App() {
     CoilInitializer()
     PicassoTheme {
         var showContent by remember { mutableStateOf(false) }
+        val gradientBrush = Brush.verticalGradient(
+            colors = listOf(
+                MaterialTheme.colorScheme.surface,
+                MaterialTheme.colorScheme.surface,
+                MaterialTheme.colorScheme.inverseOnSurface
+            )
+        )
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface)
+                .background(gradientBrush)
                 .safeContentPadding()
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -95,7 +103,8 @@ fun App() {
                     }
                     
                     item {
-                        NavBar(selectedId=0)
+                        var selected by remember{mutableStateOf(0)}
+                        NavBar(selectedId=selected, onItemClick = { selected = it })
                     }
                 }
             }
