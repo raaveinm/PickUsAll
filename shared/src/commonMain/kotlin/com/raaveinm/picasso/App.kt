@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -26,11 +27,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.raaveinm.pickusall.core.designsystem.components.ChatPreview
 import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
 import com.raaveinm.pickusall.core.designsystem.components.GamePreview
+import com.raaveinm.pickusall.core.designsystem.components.Messages
 import com.raaveinm.pickusall.core.designsystem.components.NavBar
 import com.raaveinm.pickusall.core.designsystem.components.Switch
+import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
 
@@ -148,6 +152,77 @@ fun App() {
                              gameTags = listOf("stat1", "stat2", "stat3", "stat4")
                          )
                     }
+
+                    item {
+                        ChatPreview(
+                            Modifier.sizeIn(maxWidth = 728.dp).fillMaxWidth(),
+                            chatTitle = "username",
+                            iconLink = "err",
+                            lastMessage = "The lunatic is in my head The lunatic is in my head" +
+                                    "  You raise the blade You make the change You rearrange me " +
+                                    "'til I'm sane You lock the door And throw away the key There's" +
+                                    " someone in my head, but it's not me"
+                        )
+                    }
+
+                    item {
+                        val url = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_full.jpg";
+                        ChatPreview(
+                            Modifier.sizeIn(maxWidth = 728.dp).fillMaxWidth(),
+                            chatTitle = "Nick\uD83D\uDC3E",
+                            iconLink = url,
+                            lastMessage = "Mornin' <3"
+                        )
+                    }
+
+                    item {
+                        Column(Modifier.sizeIn(maxWidth = 728.dp).fillMaxWidth().padding(Dimensions.medium)) {
+
+                            Messages(
+                                iconLink = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_medium.jpg",
+                                username = "raaveinm",
+                                textMessage = "The lunatic is on the grass\n" +
+                                        "Remembering games\n" +
+                                        "And daisy chains and laughs\n" +
+                                        "Got to keep the loonies on the path\n" +
+                                        "The lunatic is in the hall\n" +
+                                        "The lunatics are in my hall\n" +
+                                        "The paper holds their folded faces to the floor \n" +
+                                        "And every day the paper boy brings more",
+                                timestamp = "11:12",
+                                isSender = true,
+                                modifier = Modifier,
+                                previousExisted = false,
+                                isLast = true
+                            )
+
+                            Messages(
+                                iconLink = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_medium.jpg",
+                                username = "raaveinm",
+                                textMessage = "And if the dam breaks open many years too soon And " +
+                                        "if there is no room upon the hill And if your head explodes " +
+                                        "with dark forebodings too I'll see you on the dark side of the moon",
+                                timestamp = "11:10",
+                                isSender = false,
+                                modifier = Modifier,
+                                previousExisted = false,
+                                isLast = false
+                            )
+
+                            Messages(
+                                iconLink = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_medium.jpg",
+                                username = "raaveinm",
+                                textMessage = "The lunatic is in my head The lunatic is in my head " +
+                                        "You raise the blade You make the change You rearrange me '" +
+                                        "til I'm sane You lock the door And throw away the key There's " +
+                                        "someone in my head, but it's not me",
+                                timestamp = "11:12",
+                                previousExisted = true,
+                                isSender = false
+                            )
+                        }
+                    }
+
                 }
             }
         }
