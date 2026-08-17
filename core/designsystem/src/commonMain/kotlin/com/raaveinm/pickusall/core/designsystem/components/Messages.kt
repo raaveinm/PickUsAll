@@ -57,7 +57,7 @@ fun Messages (
                         alignment = Alignment.Center,
                         modifier = Modifier
                             .size(32.dp)
-                            .clip(RoundedCornerShape(Shapes.circleShape)),
+                            .clip(Shapes.circleShape),
                         error = painterResource(Res.drawable.ic_default_icon)
                     )
                 }
@@ -76,7 +76,7 @@ fun Messages (
                         alignment = Alignment.Center,
                         modifier = Modifier
                             .size(32.dp)
-                            .clip(RoundedCornerShape(Shapes.circleShape)),
+                            .clip(Shapes.circleShape),
                 error = painterResource(Res.drawable.ic_default_icon)
                     )
                 }

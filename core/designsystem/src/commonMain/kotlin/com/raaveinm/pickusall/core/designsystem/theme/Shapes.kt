@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 object Shapes {
     val smallShape = 8.dp
     val averageShape = 12.dp
-    val circleShape = 100.dp
+    val circleShape = RoundedCornerShape(100.dp)
 
     val incomeChatShape = RoundedCornerShape(0.dp, averageShape, averageShape, averageShape)
     val outcomeShape =  RoundedCornerShape(averageShape, averageShape, 0.dp, averageShape)

@@ -52,7 +52,7 @@ fun ChatPreview(
             modifier = Modifier
                 .padding(Dimensions.small)
                 .size(64.dp)
-                .clip(RoundedCornerShape(Shapes.circleShape)),
+                .clip(Shapes.circleShape),
             Alignment.Center
         ) {  // return@Box
             AsyncImage(
@@ -63,7 +63,7 @@ fun ChatPreview(
                 modifier = Modifier
                     .fillMaxSize()
                     .heightIn(min = 180.dp)
-                    .clip(RoundedCornerShape(Shapes.circleShape)),
+                    .clip(Shapes.circleShape),
                 error = painterResource(Res.drawable.ic_default_icon)
             )
             //endregion

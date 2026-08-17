@@ -28,12 +28,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.raaveinm.pickusall.core.designsystem.components.ChatPreview
+import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
 import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
 import com.raaveinm.pickusall.core.designsystem.components.GamePreview
 import com.raaveinm.pickusall.core.designsystem.components.Messages
 import com.raaveinm.pickusall.core.designsystem.components.NavBar
 import com.raaveinm.pickusall.core.designsystem.components.Switch
+import com.raaveinm.pickusall.core.designsystem.components.UserMiniProfile
+import com.raaveinm.pickusall.core.designsystem.components.UserQuickAction
+import com.raaveinm.pickusall.core.designsystem.obj.UserStatus
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
@@ -223,6 +227,48 @@ fun App() {
                         }
                     }
 
+                    item {
+                        ChatTopBar(
+                            modifier = Modifier.sizeIn(maxWidth = 512.dp).fillMaxWidth().padding(horizontal = 24.dp),
+                            chatName = "Username",
+                            chatIcon = null,
+                            onGoBackAction = {},
+                            onChatIconAction = {}
+                        )
+                    }
+
+                    item {
+                        UserQuickAction(
+                            modifier = Modifier,
+                            onMessageClick = {},
+                            onAddToGroupClick = {},
+                            onSteamProfileRedirectClick = {},
+                        )
+                    }
+
+                    item {
+                        UserMiniProfile(
+                            modifier = Modifier.sizeIn(maxWidth = 512.dp),
+                            iconLink = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_medium.jpg",
+                            username = "Raaveinm",
+                            isOnline = true,
+                            status = UserStatus.onlineStatusList.random(),
+                            onMessageClick = {},
+                            onSteamProfileRedirectClick = {},
+                        )
+                    }
+
+                    item {
+                        UserMiniProfile(
+                            modifier = Modifier.sizeIn(maxWidth = 512.dp),
+                            iconLink = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_medium.jpg",
+                            username = "Raaveinm",
+                            isOnline = false,
+                            status = UserStatus.offlineStatusList.random(),
+                            onMessageClick = {},
+                            onSteamProfileRedirectClick = {},
+                        )
+                    }
                 }
             }
         }

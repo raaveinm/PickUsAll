@@ -2,7 +2,6 @@ package com.raaveinm.pickusall.core.designsystem.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -28,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.raaveinm.pickusall.core.designsystem.obj.GameCardSize
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import com.raaveinm.pickusall.core.designsystem.theme.SpecialColors
@@ -143,7 +143,7 @@ private fun GamePreviewCompact(
             GameCard(
                 modifier = Modifier.size(100.dp, 150.dp),
                 gameId = gameId,
-                sourceSize = GameCardSize.LIBRARY_300_X_450,
+                sourceSize = GameCardSize.LIBRARY_600_X_900,
                 text = null
             )
 
