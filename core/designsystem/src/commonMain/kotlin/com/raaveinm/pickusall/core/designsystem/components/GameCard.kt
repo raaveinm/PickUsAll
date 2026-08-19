@@ -1,6 +1,7 @@
 package com.raaveinm.pickusall.core.designsystem.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,7 +37,7 @@ fun GameCard(
     val imageLink =
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$gameId/$sourceSize"
 
-    Box(modifier = modifier, contentAlignment = Alignment.BottomCenter) {
+    Box(modifier = modifier.aspectRatio(2f / 3f), contentAlignment = Alignment.BottomCenter) {
 
         ///////////////////////////////////////////////
         // Card

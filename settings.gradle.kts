@@ -1,5 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
+include(":core:model")
+
+
 include(":features:colorpicker")
 include(":core:designsystem")
 
