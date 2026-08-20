@@ -1,10 +1,11 @@
 package com.raaveinm.pickusall.core.designsystem.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -32,12 +33,20 @@ fun GameCard(
     modifier: Modifier = Modifier,
     gameId: Int,
     sourceSize: String = GameCardSize.LIBRARY_600_X_900,
-    text: String? = "blep"
+    text: String? = "blep",
+    onClick: (() -> Unit)? = null
 ) {
     val imageLink =
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$gameId/$sourceSize"
 
-    Box(modifier = modifier.aspectRatio(2f / 3f), contentAlignment = Alignment.BottomCenter) {
+    Box(
+        modifier = modifier.aspectRatio(2f / 3f).clickable(onClick != null) {
+            if (onClick != null) {
+                onClick()
+            }
+        },
+        contentAlignment = Alignment.BottomCenter
+    ) {
 
         ///////////////////////////////////////////////
         // Card
@@ -59,7 +68,7 @@ fun GameCard(
         ///////////////////////////////////////////////
 
         Card(
-            modifier = Modifier.size(128.dp, 24.dp),
+            modifier = Modifier.sizeIn(maxWidth = 128.dp, minHeight =  24.dp).padding(horizontal = 12.dp),
             shape = RoundedCornerShape(Shapes.smallShape),
             colors = CardColors(
                 containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = .84f),
@@ -70,7 +79,7 @@ fun GameCard(
             content = {
                 Text(
                     text = text,
-                    modifier = Modifier.fillMaxSize().padding(4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     maxLines = 1,
                     softWrap = true,

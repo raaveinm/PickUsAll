@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -27,8 +27,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.raaveinm.core.model.lib.GameInfo
-import com.raaveinm.picasso.ui.canvas.CanvasLibrary
+import com.raaveinm.picasso.ui.canvas.CanvasScreen
 import com.raaveinm.pickusall.core.designsystem.components.ChatPreview
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
 import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
@@ -60,7 +59,7 @@ fun App() {
         Column(
             modifier = Modifier
                 .background(gradientBrush)
-                .safeContentPadding()
+                .systemBarsPadding()
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -130,7 +129,7 @@ fun App() {
                                 "ss_7df971fd7781d69dc455b15a400a6973ed7d3f36"
                             ),
                             inLibrary = true,
-                            gameTags = listOf("vr", "rythm", "music", "moddable")
+                            gameTags = listOf("vr", "rhythm", "music", "moddable")
                         )
                     }
                     item {
@@ -172,7 +171,7 @@ fun App() {
                     }
 
                     item {
-                        val url = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_full.jpg";
+                        val url = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_full.jpg"
                         ChatPreview(
                             Modifier.sizeIn(maxWidth = 728.dp).fillMaxWidth(),
                             chatTitle = "Nick\uD83D\uDC3E",
@@ -289,85 +288,9 @@ fun App() {
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
-                item {
-
-                }
             }
-            CanvasLibrary(
-                modifier = Modifier.sizeIn(maxWidth = 1024.dp),
-                libraryList = listOf(
-                    GameInfo(
-                        appId = 1808500,
-                        name = "Arc Raiders",
-                        playtime2Weeks = 407,
-                        playtimeForever = 16877,
-                        imgIconUrl = "c284e73b6f3321864805d66f99924a0da9f0b219",
-                        hasCommunityVisibleStats = true,
-                        playtimeWindowsForever = 2935,
-                        playtimeMacForever = 0,
-                        playtimeLinuxForever = 13941,
-                        playtimeDeckForever = 0,
-                        rtimeLastPlayed = 1787003896,
-                        playtimeDisconnected = 37,
-                    ),
-                    GameInfo(
-                        appId = 1091500,
-                        name = "Cyberpunk 2077",
-                        playtime2Weeks = 310,
-                        playtimeForever = 24634,
-                        imgIconUrl = "6897c3848f3e0350d512f59d5bae174a1e3739f9",
-                        hasCommunityVisibleStats = true,
-                        playtimeWindowsForever = 21363,
-                        playtimeMacForever = 0,
-                        playtimeLinuxForever = 3270,
-                        playtimeDeckForever = 0,
-                        rtimeLastPlayed = 1786658136,
-                        playtimeDisconnected = 0,
-                    ),
-                    GameInfo(
-                        appId = 2073850,
-                        name = "THE FINALS",
-                        playtime2Weeks = 499,
-                        playtimeForever = 4674,
-                        imgIconUrl = "9532db560dca3b4982f4af3f5981b6b2ce2a6909",
-                        hasCommunityVisibleStats = true,
-                        playtimeWindowsForever = 460,
-                        playtimeMacForever = 0,
-                        playtimeLinuxForever = 4213,
-                        playtimeDeckForever = 0,
-                        rtimeLastPlayed = 1786914018,
-                        playtimeDisconnected = 0,
-                    ),
-                    GameInfo(
-                        appId = 1601580,
-                        name = "Frostpunk 2",
-                        playtimeForever = 417,
-                        imgIconUrl = "5e66161686d4e2503a8a42aab9e8bc1c46c68fc1",
-                        hasCommunityVisibleStats = true,
-                        playtimeWindowsForever = 384,
-                        playtimeMacForever = 11,
-                        playtimeLinuxForever = 20,
-                        playtimeDeckForever = 0,
-                        rtimeLastPlayed = 1767214834,
-                        playtimeDisconnected = 0,
-                        playtime2Weeks = 0
-                    ),
-                    GameInfo(
-                        appId = 264710,
-                        name = "Subnautica",
-                        playtimeForever = 5522,
-                        imgIconUrl = "8a14ceef6e230330a916d7a6324b8c52d464d569",
-                        hasCommunityVisibleStats = true,
-                        playtimeWindowsForever = 5455,
-                        playtimeMacForever = 51,
-                        playtimeLinuxForever = 15,
-                        playtimeDeckForever = 0,
-                        rtimeLastPlayed = 1776366237,
-                        playtimeDisconnected = 0,
-                        playtime2Weeks = 0,
-                    ),
-                )
-            )
+
+            CanvasScreen(Modifier.fillMaxWidth().padding(horizontal = Dimensions.small))
         }
     }
 }

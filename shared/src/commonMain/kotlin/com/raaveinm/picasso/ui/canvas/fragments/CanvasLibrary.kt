@@ -1,18 +1,17 @@
-package com.raaveinm.picasso.ui.canvas
+package com.raaveinm.picasso.ui.canvas.fragments
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.core.model.lib.GameInfo
+import com.raaveinm.picasso.ui.actions.libraryRedirect
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
 
 //
@@ -26,7 +25,7 @@ fun CanvasLibrary(
     libraryList: List<GameInfo>,
 ) {
     BoxWithConstraints(modifier = modifier) {
-        val minCellSize = if (maxWidth < 700.dp) 120.dp else 220.dp
+        val minCellSize = if (maxWidth < 700.dp) 110.dp else 220.dp
 
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minCellSize),
@@ -35,10 +34,12 @@ fun CanvasLibrary(
             horizontalArrangement = Arrangement.Center,
         ) {
             items(libraryList) { game ->
+                val uriHandler = LocalUriHandler.current
                 GameCard(
-                    modifier = Modifier.padding(Dimensions.small),
+                    modifier = Modifier,
                     gameId = game.appId,
-                    text = game.name
+                    text = game.name,
+                    onClick = { libraryRedirect(game.appId, uriHandler) }
                 )
             }
         }
