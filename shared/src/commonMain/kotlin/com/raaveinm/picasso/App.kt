@@ -27,7 +27,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.raaveinm.picasso.data.mock.Mock
 import com.raaveinm.picasso.ui.canvas.CanvasScreen
+import com.raaveinm.picasso.ui.chat.fragments.AllChats
 import com.raaveinm.pickusall.core.designsystem.components.ChatPreview
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
 import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
@@ -272,6 +274,11 @@ fun App() {
                     }
                 }
             }
+
+            AllChats(
+                chats = Mock.chatList,
+                modifier = Modifier
+            )
 
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),

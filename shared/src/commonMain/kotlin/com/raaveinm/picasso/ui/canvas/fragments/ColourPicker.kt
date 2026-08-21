@@ -35,6 +35,6 @@ fun ColourPicker(
 fun ColourPickerPreview() {
     ColourPicker(
         modifier = Modifier,
-        gameList = Mock().gameListCommunityContent
+        gameList = Mock.gameListCommunityContent
     )
 }

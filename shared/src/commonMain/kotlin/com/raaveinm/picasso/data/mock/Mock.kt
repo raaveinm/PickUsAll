@@ -1,9 +1,10 @@
 package com.raaveinm.picasso.data.mock
 
+import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.lib.CommunityContent
 import com.raaveinm.core.model.lib.GameInfo
 
-data class Mock(
+object Mock {
     val libraryList: List<GameInfo> = listOf(
         GameInfo(
             appId = 1808500,
@@ -159,7 +160,7 @@ data class Mock(
             playtimeDisconnected = 56,
             playtime2Weeks = 80,
         ),
-    ),
+    )
 
     val gameListCommunityContent: List<CommunityContent> = listOf(
         CommunityContent(
@@ -186,4 +187,29 @@ data class Mock(
             gameTags = listOf("asdsad")
         )
     )
-)
+
+    val chatList: List<Chat> = listOf(
+        Chat(
+            chatTitle = "Nick\uD83D\uDC3E",
+            iconLink = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_full.jpg",
+            lastMessage = "Mornin' <3"
+        ),
+        Chat(
+            chatTitle = "Adam",
+            iconLink = "",
+            lastMessage = null
+        ),
+        Chat(
+            chatTitle = "Gordon",
+            iconLink = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1808500/cb49dfbcd7175c86e297b35ffc54cf779708f0ae/ss_cb49dfbcd7175c86e297b35ffc54cf779708f0ae.1920x1080.jpg?t=1786961844",
+            lastMessage = "The lunatic is on the grass\n" +
+                    "Remembering games\n" +
+                    "And daisy chains and laughs\n" +
+                    "Got to keep the loonies on the path\n" +
+                    "The lunatic is in the hall\n" +
+                    "The lunatics are in my hall\n" +
+                    "The paper holds their folded faces to the floor \n" +
+                    "And every day the paper boy brings more",
+        )
+    )
+}

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +46,7 @@ fun Messages (
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = if (!isSender) { Arrangement.Start } else { Arrangement.End },
-                modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.small)
+                modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.extraSmall)
             ) {
                 if (!isSender) {
                     AsyncImage(
@@ -81,7 +80,7 @@ fun Messages (
                     )
                 }
             }
-        } else { Spacer(Modifier.size(Dimensions.small)) }
+        } else { Spacer(Modifier.size(Dimensions.extraSmall)) }
 
         ///////////////////////////////////////////////
         // Content
@@ -113,7 +112,7 @@ fun Messages (
                 fontSize = MaterialTheme.typography.bodySmall.fontSize,
                 fontStyle = MaterialTheme.typography.bodySmall.fontStyle,
                 fontWeight = MaterialTheme.typography.bodySmall.fontWeight,
-                textAlign = TextAlign.End
+                textAlign = if (!isSender) { TextAlign.Start } else { TextAlign.End }
             )
         }
     }

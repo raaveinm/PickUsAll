@@ -2,6 +2,7 @@ package com.raaveinm.picasso.ui.canvas
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,12 +55,12 @@ fun CanvasScreen(
 
             CanvasLibrary(
                 modifier = Modifier.sizeIn(maxWidth = 1024.dp),
-                libraryList = Mock().libraryList
+                libraryList = Mock.libraryList
             )
         } else {
             ColourPicker(
-                modifier = Modifier,
-                gameList = Mock().gameListCommunityContent
+                modifier = Modifier.sizeIn(maxWidth = 1024.dp).padding(Dimensions.medium),
+                gameList = Mock.gameListCommunityContent
             )
         }
     }
