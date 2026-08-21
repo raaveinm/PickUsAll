@@ -6,17 +6,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.GroupAdd
-import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
@@ -24,7 +23,6 @@ import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import org.jetbrains.compose.resources.vectorResource
 import pickusall.core.designsystem.generated.resources.Res
 import pickusall.core.designsystem.generated.resources.ic_steam_icon
-import pickusall.core.designsystem.generated.resources.ic_sticker
 
 @Composable
 fun UserQuickAction(
@@ -63,8 +61,9 @@ fun UserQuickAction(
     val actions = listOf(onMessageClick(), onAddToGroupClick(), onSteamProfileRedirectClick())
 
     Row(
-        Modifier
+        modifier
             .clip(Shapes.circleShape)
+            .shadow(12.dp)
             .background(MaterialTheme.colorScheme.secondaryContainer)
             .padding(horizontal = Dimensions.medium)
     ) {

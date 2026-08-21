@@ -7,8 +7,23 @@ import kotlinx.serialization.Serializable
 // Created by Kirill "Raaveinm" on 8/21/26.
 // Copyright (c) 2026 Retrograde Mercury. All rights reserved.
 //
-// https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${STEAM_API_KEY}&steamids=&{STEAMID64}
+//* @sample "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${STEAM_API_KEY}&steamids=&{STEAMID64}"
 
+/**
+ *
+ *
+ *  * @param personaState
+ *
+ * The user's current status:
+ * - `0`: Offline (or private profile)
+ * - `1`: Online
+ * - `2`: Busy
+ * - `3`: Away
+ * - `4`: Snooze
+ * - `5`: Looking to trade
+ * - `6`: Looking to play
+ *
+ **/
 @Serializable
 data class User(
     @SerialName("steamid")
@@ -34,7 +49,7 @@ data class User(
     @SerialName("lastlogoff")
     val lastLogOff: Long? = null,
     @SerialName("personastate")
-    val personaState: Int,
+    val personaState: Int,                      // Online State
     @SerialName("realname")
     val realName: String? = null,
     @SerialName("primaryclanid")
@@ -48,5 +63,9 @@ data class User(
     @SerialName("locstatecode")
     val locStateCode: String? = null,
     @SerialName("loccityid")
-    val locCityId: Int? = null
+    val locCityId: Int? = null,
+    @SerialName("gameextrainfo")                // Currently online game name
+    val gameExtraInfo: String? = null,
+    @SerialName("gameid")                       // Currently online game id
+    val gameId: Int? = null,
 )

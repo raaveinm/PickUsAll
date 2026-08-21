@@ -30,6 +30,7 @@ import androidx.compose.ui.zIndex
 import com.raaveinm.picasso.data.mock.Mock
 import com.raaveinm.picasso.ui.canvas.CanvasScreen
 import com.raaveinm.picasso.ui.chat.fragments.AllChats
+import com.raaveinm.picasso.ui.chat.fragments.UserActions
 import com.raaveinm.pickusall.core.designsystem.components.ChatPreview
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
 import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
@@ -255,7 +256,7 @@ fun App() {
                             iconLink = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_medium.jpg",
                             username = "Raaveinm",
                             isOnline = true,
-                            status = UserStatus.onlineStatusList.random(),
+                            status = UserStatus.getOnlineStatus(0),
                             onMessageClick = {},
                             onSteamProfileRedirectClick = {},
                         )
@@ -267,13 +268,16 @@ fun App() {
                             iconLink = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_medium.jpg",
                             username = "Raaveinm",
                             isOnline = false,
-                            status = UserStatus.offlineStatusList.random(),
+                            status = UserStatus.getOnlineStatus(1),
                             onMessageClick = {},
                             onSteamProfileRedirectClick = {},
                         )
                     }
                 }
             }
+
+            UserActions(user = Mock.user_1,
+                mostPlayed = Mock.mostPlayedGames, modifier = Modifier.sizeIn(maxWidth = 512.dp))
 
             AllChats(
                 chats = Mock.chatList,

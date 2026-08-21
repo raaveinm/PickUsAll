@@ -3,6 +3,7 @@ package com.raaveinm.picasso.data.mock
 import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.lib.CommunityContent
 import com.raaveinm.core.model.lib.GameInfo
+import com.raaveinm.core.model.user.User
 
 object Mock {
     val libraryList: List<GameInfo> = listOf(
@@ -188,6 +189,51 @@ object Mock {
         )
     )
 
+    val mostPlayedGames: List<GameInfo> = listOf(
+        GameInfo(
+            appId = 1808500,
+            name = "Arc Raiders",
+            playtime2Weeks = 407,
+            playtimeForever = 16877,
+            imgIconUrl = "c284e73b6f3321864805d66f99924a0da9f0b219",
+            hasCommunityVisibleStats = true,
+            playtimeWindowsForever = 2935,
+            playtimeMacForever = 0,
+            playtimeLinuxForever = 13941,
+            playtimeDeckForever = 0,
+            rtimeLastPlayed = 1787003896,
+            playtimeDisconnected = 37,
+        ),
+        GameInfo(
+            appId = 1091500,
+            name = "Cyberpunk 2077",
+            playtime2Weeks = 310,
+            playtimeForever = 24634,
+            imgIconUrl = "6897c3848f3e0350d512f59d5bae174a1e3739f9",
+            hasCommunityVisibleStats = true,
+            playtimeWindowsForever = 21363,
+            playtimeMacForever = 0,
+            playtimeLinuxForever = 3270,
+            playtimeDeckForever = 0,
+            rtimeLastPlayed = 1786658136,
+            playtimeDisconnected = 0,
+        ),
+        GameInfo(
+            appId = 2073850,
+            name = "THE FINALS",
+            playtime2Weeks = 499,
+            playtimeForever = 4674,
+            imgIconUrl = "9532db560dca3b4982f4af3f5981b6b2ce2a6909",
+            hasCommunityVisibleStats = true,
+            playtimeWindowsForever = 460,
+            playtimeMacForever = 0,
+            playtimeLinuxForever = 4213,
+            playtimeDeckForever = 0,
+            rtimeLastPlayed = 1786914018,
+            playtimeDisconnected = 0,
+        ),
+    )
+
     val chatList: List<Chat> = listOf(
         Chat(
             chatTitle = "Nick\uD83D\uDC3E",
@@ -211,5 +257,43 @@ object Mock {
                     "The paper holds their folded faces to the floor \n" +
                     "And every day the paper boy brings more",
         )
+    )
+
+    val user_1 = User(
+        steamId = 1,
+        communityVisibilityState = 3,
+        personaName = "raaveinm",
+        realName = "Kira \"Raaveinm\"",
+        commentPermission = true,
+        profileUrl = "https://steamcommunity.com/id/raaveinm/",
+        avatar = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79.jpg",
+        avatarMedium = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_medium.jpg",
+        avatarFull = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_full.jpg",
+        avatarHash = "b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79",
+        personaState = 1
+    )
+    val user_2 = User(
+        steamId = 2,
+        communityVisibilityState = 3,
+        personaName = "Nick",
+        commentPermission = true,
+        profileUrl = "",
+        avatar = "https://avatars.steamstatic.com/6f4944ce1cd6bc9848125d6bc82d380853df9253.jpg",
+        avatarMedium = "https://avatars.steamstatic.com/6f4944ce1cd6bc9848125d6bc82d380853df9253_medium.jpg",
+        avatarFull = "https://avatars.steamstatic.com/6f4944ce1cd6bc9848125d6bc82d380853df9253_full.jpg",
+        avatarHash = "",
+        personaState = 1
+    )
+    val user_3 = User(
+        steamId = 3,
+        communityVisibilityState = 3,
+        personaName = "koul",
+        commentPermission = false,
+        profileUrl = "https://www.furaffinity.net/user/koul/",
+        avatar = "https://d.furaffinity.net/art/koul/1634771898/1634771898.koul_storm_shep.png",
+        avatarMedium = "https://d.furaffinity.net/art/koul/1634771898/1634771898.koul_storm_shep.png",
+        avatarFull = "https://d.furaffinity.net/art/koul/1634771898/1634771898.koul_storm_shep.png",
+        avatarHash = "",
+        personaState = 1
     )
 }

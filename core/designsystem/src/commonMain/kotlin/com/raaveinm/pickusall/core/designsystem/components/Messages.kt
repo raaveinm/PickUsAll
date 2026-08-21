@@ -38,7 +38,7 @@ fun Messages (
     previousExisted: Boolean = false,
     isLast: Boolean = true
 ) {
-    Column(modifier) {
+    Column(modifier.fillMaxWidth()) {
         ///////////////////////////////////////////////
         // Author
         ///////////////////////////////////////////////

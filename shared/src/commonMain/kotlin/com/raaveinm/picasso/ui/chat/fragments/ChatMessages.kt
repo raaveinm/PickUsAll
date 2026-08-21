@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.raaveinm.core.model.chat.MessageData
 import com.raaveinm.core.model.user.User
+import com.raaveinm.picasso.data.mock.Mock
 import com.raaveinm.pickusall.core.designsystem.components.Messages
 
 @Composable
@@ -36,36 +37,13 @@ fun ChatMessages(
 @Preview(showBackground = true)
 @Composable
 fun ChatMessagesPreview() {
-    val me = User(
-        steamId = 1,
-        communityVisibilityState = 3,
-        personaName = "raaveinm",
-        commentPermission = true,
-        profileUrl = "",
-        avatar = "",
-        avatarMedium = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_medium.jpg",
-        avatarFull = "",
-        avatarHash = "",
-        personaState = 1
-    )
-    val friend = User(
-        steamId = 2,
-        communityVisibilityState = 3,
-        personaName = "Nick",
-        commentPermission = true,
-        profileUrl = "",
-        avatar = "",
-        avatarMedium = "https://avatars.steamstatic.com/6f4944ce1cd6bc9848125d6bc82d380853df9253_medium.jpg",
-        avatarFull = "",
-        avatarHash = "",
-        personaState = 1
-    )
+
     ChatMessages(
-        user = me,
+        user = Mock.user_1,
         messages = listOf(
-            MessageData(user = friend, textMessage = "Mornin'", timestamp = "11:09"),
-            MessageData(user = friend, textMessage = "<3", timestamp = "11:09"),
-            MessageData(user = me, textMessage = "Mornin' <3", timestamp = "11:10"),
+            MessageData(user = Mock.user_1, textMessage = "Mornin'", timestamp = "11:09"),
+            MessageData(user = Mock.user_1, textMessage = "<3", timestamp = "11:09"),
+            MessageData(user = Mock.user_2, textMessage = "Mornin' <3", timestamp = "11:10"),
         )
     )
 }
