@@ -1,6 +1,8 @@
 package com.raaveinm.picasso.data.mock
 
 import com.raaveinm.core.model.chat.Chat
+import com.raaveinm.core.model.chat.Conversation
+import com.raaveinm.core.model.chat.Palette
 import com.raaveinm.core.model.lib.CommunityContent
 import com.raaveinm.core.model.lib.GameInfo
 import com.raaveinm.core.model.user.User
@@ -234,31 +236,6 @@ object Mock {
         ),
     )
 
-    val chatList: List<Chat> = listOf(
-        Chat(
-            chatTitle = "Nick\uD83D\uDC3E",
-            iconLink = "https://avatars.steamstatic.com/b606d0c9249cbeb8ed8ce1c57c0fd0f3c9058c79_full.jpg",
-            lastMessage = "Mornin' <3"
-        ),
-        Chat(
-            chatTitle = "Adam",
-            iconLink = "",
-            lastMessage = null
-        ),
-        Chat(
-            chatTitle = "Gordon",
-            iconLink = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1808500/cb49dfbcd7175c86e297b35ffc54cf779708f0ae/ss_cb49dfbcd7175c86e297b35ffc54cf779708f0ae.1920x1080.jpg?t=1786961844",
-            lastMessage = "The lunatic is on the grass\n" +
-                    "Remembering games\n" +
-                    "And daisy chains and laughs\n" +
-                    "Got to keep the loonies on the path\n" +
-                    "The lunatic is in the hall\n" +
-                    "The lunatics are in my hall\n" +
-                    "The paper holds their folded faces to the floor \n" +
-                    "And every day the paper boy brings more",
-        )
-    )
-
     val user_1 = User(
         steamId = 1,
         communityVisibilityState = 3,
@@ -275,7 +252,7 @@ object Mock {
     val user_2 = User(
         steamId = 2,
         communityVisibilityState = 3,
-        personaName = "Nick",
+        personaName = "Nick\uD83D\uDC3E",
         commentPermission = true,
         profileUrl = "",
         avatar = "https://avatars.steamstatic.com/6f4944ce1cd6bc9848125d6bc82d380853df9253.jpg",
@@ -296,4 +273,57 @@ object Mock {
         avatarHash = "",
         personaState = 1
     )
+    val user_warn = User(
+        steamId = 4,
+        communityVisibilityState = 1,
+        personaName = "WARNING",
+        commentPermission = false,
+        profileUrl = "https://www.furaffinity.net/user/koul/",
+        avatar = "https://en.wikipedia.org/wiki/Biological_hazard#/media/File:Air_pollution3.jpg",
+        avatarMedium = "https://en.wikipedia.org/wiki/Biological_hazard#/media/File:Air_pollution3.jpg",
+        avatarFull = "https://en.wikipedia.org/wiki/Biological_hazard#/media/File:Air_pollution3.jpg",
+        avatarHash = "",
+        personaState = 1
+    )
+
+    val chatList: List<Chat> = listOf(
+        Chat(
+            id = user_warn.steamId,
+            chatTitle = user_warn,
+            lastMessage = "If you see this chat - something is wrong"
+        ),
+        Chat(
+            id = user_1.steamId,
+            chatTitle = user_1,
+            lastMessage = "Mornin' <3"
+        ),
+        Chat(
+            id = user_2.steamId,
+            chatTitle = user_2,
+            lastMessage = null
+        ),
+        Chat(
+            id = user_3.steamId,
+            chatTitle = user_3,
+            lastMessage = "The lunatic is on the grass\n" +
+                    "Remembering games\n" +
+                    "And daisy chains and laughs\n" +
+                    "Got to keep the loonies on the path\n" +
+                    "The lunatic is in the hall\n" +
+                    "The lunatics are in my hall\n" +
+                    "The paper holds their folded faces to the floor \n" +
+                    "And every day the paper boy brings more",
+        )
+    )
+
+    val paletteList: List<Palette> = listOf(
+        Palette(
+            id = 1001,
+            name = "Raid Night",
+            members = listOf(user_1, user_2, user_3),
+            lastMessage = "koul: The lunatic is on the grass"
+        )
+    )
+
+    val conversationList: List<Conversation> = chatList + paletteList
 }

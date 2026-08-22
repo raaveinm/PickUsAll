@@ -1,4 +1,7 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
@@ -7,7 +10,8 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    id("com.codingfeline.buildkonfig") version "0.15.2"
+    alias(libs.plugins.kotlinx.serialization)
+    id("com.codingfeline.buildkonfig") version "0.22.0"
 }
 
 val localProperties = Properties().apply {
@@ -79,6 +83,10 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.kotlinx.serialization.json)
+
+            implementation(libs.navigation.compose)
+
             implementation(project(":core:designsystem"))
             implementation(project(":core:model"))
         }

@@ -1,0 +1,19 @@
+<resources>
+    <!--Tool Strings-->
+    <string name="app_name">Pick Us All</string>
+
+    <!--Application-->
+
+    <!--Canvas-->
+    <string-array name="switch_options">
+        <item>Library</item>
+        <item>Play Next</item>
+    </string-array>
+
+    <string-array name="sort_options">
+        <item>name</item>
+        <item>time</item>
+        <item>hours played</item>
+        <item>last played</item>
+    </string-array>
+</resources>

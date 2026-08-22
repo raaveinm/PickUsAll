@@ -1,6 +1,6 @@
 [versions]
 agp = "9.3.1"
-decompose = "3.5.0"
+navigationCompose = "2.9.2"
 kotlinx-serialization = "1.11.0"
 android-compileSdk = "37"
 android-minorSdk = "1"
@@ -25,8 +25,7 @@ ktor = "3.1.0"
 
 [libraries]
 androidx-material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version = "1.7.3" }
-decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
-decompose-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }

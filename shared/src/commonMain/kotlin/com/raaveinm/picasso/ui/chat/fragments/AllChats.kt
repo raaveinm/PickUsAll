@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.raaveinm.core.model.chat.Chat
+import com.raaveinm.core.model.chat.Conversation
+import com.raaveinm.core.model.chat.Palette
 import com.raaveinm.picasso.data.mock.Mock
 import com.raaveinm.pickusall.core.designsystem.components.ChatPreview
 import com.raaveinm.pickusall.core.designsystem.obj.NoPreviousMessages
@@ -16,21 +18,32 @@ import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 @Composable
 fun AllChats(
     modifier: Modifier = Modifier,
-    chats: List<Chat>,
+    conversations: List<Conversation>,
+    onChatClick: (Long) -> Unit = {},
+    onGroupClick: (Long) -> Unit = {}
 ) {
     LazyColumn(
         modifier = modifier.sizeIn(maxWidth = 512.dp),
         verticalArrangement = Arrangement.spacedBy(Dimensions.small)
     ) {
-        chats.forEach { chat ->
+        conversations.forEach { conversation ->
             item {
-                ChatPreview(
-                    chatTitle = chat.chatTitle,
-                    iconLink = chat.iconLink,
-                    lastMessage = chat.lastMessage?: NoPreviousMessages.messages.random(),
-                    modifier = Modifier,
-                    onClick = {}
-                )
+                when (conversation) {
+                    is Chat -> ChatPreview(
+                        chatTitle = conversation.chatTitle.personaName,
+                        iconLink = conversation.chatTitle.avatarMedium,
+                        lastMessage = conversation.lastMessage ?: NoPreviousMessages.messages.random(),
+                        modifier = Modifier,
+                        onClick = { onChatClick(conversation.id) }
+                    )
+                    is Palette -> ChatPreview(
+                        chatTitle = conversation.name,
+                        iconLink = conversation.members.firstOrNull()?.avatarMedium ?: "",
+                        lastMessage = conversation.lastMessage ?: NoPreviousMessages.messages.random(),
+                        modifier = Modifier,
+                        onClick = { onGroupClick(conversation.id) }
+                    )
+                }
             }
         }
     }
@@ -40,7 +53,7 @@ fun AllChats(
 @Composable
 fun AllChatsPreview() {
     AllChats(
-        chats = Mock.chatList,
+        conversations = Mock.conversationList,
         modifier = Modifier
     )
 }
