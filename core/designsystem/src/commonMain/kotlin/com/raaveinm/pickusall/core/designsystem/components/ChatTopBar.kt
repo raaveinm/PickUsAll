@@ -34,7 +34,8 @@ fun ChatTopBar(
     chatName: String,
     chatIcon: String? = null,
     onGoBackAction: () -> Unit = {},
-    onChatIconAction: () -> Unit = {}
+    onChatIconAction: () -> Unit = {},
+    hideUserIcon: Boolean = false
 ) {
     Row(
         modifier = modifier
@@ -70,6 +71,8 @@ fun ChatTopBar(
             softWrap = true,
             maxLines = 1
         )
+
+        if (hideUserIcon) return@Row
 
         AsyncImage(
             model = chatIcon,

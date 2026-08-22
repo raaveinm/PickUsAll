@@ -34,7 +34,7 @@ fun UserQuickAction(
     val elements = listOf<@Composable () -> Unit>(
         {
             Icon(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(24.dp).clickable{ onMessageClick() },
                 imageVector = Icons.Default.ChatBubbleOutline,
                 contentDescription = "menu_item_home",
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -42,7 +42,7 @@ fun UserQuickAction(
         },
         {
             Icon(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(24.dp).clickable{ onAddToGroupClick() },
                 imageVector = Icons.Outlined.GroupAdd,
                 contentDescription = "menu_item_home",
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -50,16 +50,13 @@ fun UserQuickAction(
         },
         {
             Icon(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(24.dp).clickable{ onSteamProfileRedirectClick() },
                 imageVector = vectorResource(Res.drawable.ic_steam_icon),
                 contentDescription = "menu_item_home",
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )
         }
     )
-
-    val actions = listOf(onMessageClick(), onAddToGroupClick(), onSteamProfileRedirectClick())
-
     Row(
         modifier
             .clip(Shapes.circleShape)
@@ -72,14 +69,7 @@ fun UserQuickAction(
                 Modifier
                     .padding(vertical = Dimensions.medium)
                     .size(48.dp)
-                    .clip(Shapes.circleShape)
-                    .clickable { actions.indexOf(
-                        when (content) {
-                            elements[0] -> onMessageClick()
-                            elements[1] -> onAddToGroupClick()
-                            else -> onSteamProfileRedirectClick()
-                        }
-                    ) },
+                    .clip(Shapes.circleShape),
                 contentAlignment = Alignment.Center
             ) { content() }
         }

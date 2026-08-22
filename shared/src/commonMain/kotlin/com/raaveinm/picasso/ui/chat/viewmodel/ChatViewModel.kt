@@ -11,7 +11,20 @@ class ChatViewModel : ViewModel() {
 
     init {
         _chatsUiState.value = ChatUiState(
-            conversations = Mock.conversationList
+            conversations = Mock.conversationList,
+            selectedChat = null
         )
+    }
+
+    fun setSelectedChat(id: Long?) {
+        setSelectedUser(id)
+        _chatsUiState.value = _chatsUiState.value.copy(selectedChat = id)
+    }
+
+    fun setSelectedUser(userId: Long?) {
+        val user = Mock.userList.firstOrNull {
+            it.steamId == userId
+        }
+        _chatsUiState.value = _chatsUiState.value.copy(selectedUser = user)
     }
 }

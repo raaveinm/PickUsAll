@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -19,16 +20,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.raaveinm.picasso.ui.canvas.CanvasScreen
+import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
 import com.raaveinm.picasso.ui.chat.ChatScreen
-import com.raaveinm.picasso.ui.chat.ChatWithUserScreen
-import com.raaveinm.picasso.ui.chat.GroupScreen
+import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
 import com.raaveinm.picasso.ui.navigation.Canvas
 import com.raaveinm.picasso.ui.navigation.ChatList
-import com.raaveinm.picasso.ui.navigation.ChatWithUser
-import com.raaveinm.picasso.ui.navigation.Group
-import com.raaveinm.picasso.ui.navigation.UserProfile
 import com.raaveinm.pickusall.core.designsystem.components.NavBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
@@ -39,6 +36,9 @@ import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
 fun App(
     navController: NavHostController = rememberNavController()
 ) {
+    val canvasViewModel = CanvasViewModel()
+    val chatViewModel = ChatViewModel()
+
     PicassoTheme {
         CoilInitializer()
 
@@ -60,33 +60,17 @@ fun App(
                 startDestination = Canvas
             ) {
                 composable<Canvas> {
-                    CanvasScreen(modifier = Modifier)
+                    CanvasScreen(
+                        modifier = Modifier,
+                        canvasViewModel
+                    )
                 }
                 composable<ChatList> {
                     ChatScreen(
-                        modifier = Modifier,
-                        onChatClick = { chatId -> navController.navigate(ChatWithUser(chatId = chatId)) },
-                        onGroupClick = { groupId -> navController.navigate(Group(groupId = groupId)) }
-                    )
-                }
-                composable<Group> { backStackEntry ->
-                    val route: Group = backStackEntry.toRoute()
-                    GroupScreen(
-                        modifier = Modifier,
-                        groupId = route.groupId,
-                        onBack = { navController.popBackStack() },
-                        onMemberClick = { memberId ->
-                            navController.navigate(ChatWithUser(chatId = memberId, groupId = route.groupId))
-                        }
-                    )
-                }
-                composable<ChatWithUser> { backStackEntry ->
-                    val route: ChatWithUser = backStackEntry.toRoute()
-                    ChatWithUserScreen(
-                        modifier = Modifier,
-                        chatId = route.chatId,
-                        onBack = { navController.popBackStack() },
-                        onUserIconClick = { userId -> navController.navigate(UserProfile(userId = userId)) }
+                        modifier = Modifier.safeContentPadding(),
+                        viewModel = chatViewModel,
+                        onGroupClick = { },
+                        nestedNavHostController = rememberNavController()
                     )
                 }
             }

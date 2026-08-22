@@ -254,7 +254,7 @@ object Mock {
         communityVisibilityState = 3,
         personaName = "Nick\uD83D\uDC3E",
         commentPermission = true,
-        profileUrl = "",
+        profileUrl = "https://steamcommunity.com/profiles/76561198325678334/",
         avatar = "https://avatars.steamstatic.com/6f4944ce1cd6bc9848125d6bc82d380853df9253.jpg",
         avatarMedium = "https://avatars.steamstatic.com/6f4944ce1cd6bc9848125d6bc82d380853df9253_medium.jpg",
         avatarFull = "https://avatars.steamstatic.com/6f4944ce1cd6bc9848125d6bc82d380853df9253_full.jpg",
@@ -285,6 +285,8 @@ object Mock {
         avatarHash = "",
         personaState = 1
     )
+
+    val userList: List<User> = listOf(user_1, user_2, user_3, user_warn)
 
     val chatList: List<Chat> = listOf(
         Chat(
