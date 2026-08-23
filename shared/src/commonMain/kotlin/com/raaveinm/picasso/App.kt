@@ -52,10 +52,10 @@ fun App(
             )
         )
 
-        Box {
+        Box(Modifier.background(gradientBrush)) {
             NavHost(
                 navController = navController,
-                modifier = Modifier.fillMaxSize().background(gradientBrush).systemBarsPadding(),
+                modifier = Modifier.fillMaxSize().systemBarsPadding(),
                 contentAlignment = Alignment.Center,
                 startDestination = Canvas
             ) {

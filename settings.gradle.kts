@@ -1,8 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
+include(":core:database")
 include(":core:model")
-
-
 include(":features:colorpicker")
 include(":core:designsystem")
 
@@ -15,7 +14,8 @@ pluginManagement {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
                 includeGroupAndSubgroups("com.android")
-                includeGroupAndSubgroups("com.google")
+                includeGroupAndSubgroups("com.google.android")
+                includeGroupAndSubgroups("com.google.firebase")
             }
         }
         mavenCentral()
@@ -29,7 +29,8 @@ dependencyResolutionManagement {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
                 includeGroupAndSubgroups("com.android")
-                includeGroupAndSubgroups("com.google")
+                includeGroupAndSubgroups("com.google.android")
+                includeGroupAndSubgroups("com.google.firebase")
             }
         }
         mavenCentral()

@@ -1,10 +1,10 @@
 package com.raaveinm.picasso.ui.canvas
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,9 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
 import com.raaveinm.picasso.ui.canvas.fragments.CanvasLibrary
 import com.raaveinm.picasso.ui.canvas.fragments.ColourPicker
+import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
 import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
 import com.raaveinm.pickusall.core.designsystem.components.Switch
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
@@ -34,40 +34,38 @@ fun CanvasScreen(
     val options = stringArrayResource(Res.array.switch_options)
     var selectedSwitch by remember { mutableStateOf(0) }
 
-    Scaffold (
+    Column(
         modifier,
-        topBar = {
-            Box(
-                modifier = Modifier.fillMaxWidth().sizeIn(maxWidth = 1024.dp),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                Switch(
-                    Modifier.sizeIn(maxWidth = 256.dp),
-                    selected = selectedSwitch,
-                    onSelected = { selectedSwitch = it },
-                    options = options,
-                )
-                if (selectedSwitch == 0) {
-                    val options = stringArrayResource(Res.array.sort_options)
-                    var selected by remember { mutableStateOf(0) }
-
-                    DropDownSelector(
-                        modifier = Modifier
-                            .zIndex(2f)
-                            .sizeIn(maxWidth = 256.dp)
-                            .padding(top = Dimensions.extraLarge, bottom = Dimensions.medium),
-                        selectedOption = options[selected],
-                        onOptionSelected = {
-                            selected = options.indexOf(it)
-                        },
-                        optionsList = options
-                    )
-                }
-            }
-        }
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().padding(it),
+            modifier = Modifier.fillMaxWidth().sizeIn(maxWidth = 1024.dp),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Switch(
+                Modifier.sizeIn(maxWidth = 256.dp),
+                selected = selectedSwitch,
+                onSelected = { selectedSwitch = it },
+                options = options,
+            )
+            if (selectedSwitch == 0) {
+                val options = stringArrayResource(Res.array.sort_options)
+                var selected by remember { mutableStateOf(0) }
+
+                DropDownSelector(
+                    modifier = Modifier
+                        .zIndex(2f)
+                        .sizeIn(maxWidth = 256.dp)
+                        .padding(top = Dimensions.extraLarge, bottom = Dimensions.medium),
+                    selectedOption = options[selected],
+                    onOptionSelected = {
+                        selected = options.indexOf(it)
+                    },
+                    optionsList = options
+                )
+            }
+        }
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(),
             contentAlignment = Alignment.TopCenter
         ) {
             if (selectedSwitch == 0) {
