@@ -89,6 +89,7 @@ kotlin {
                 implementation(libs.androidx.core)
                 implementation(libs.androidx.runner)
                 implementation(libs.androidx.testExt.junit)
+                implementation(project(":core:model"))
             }
         }
 

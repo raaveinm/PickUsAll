@@ -3,13 +3,13 @@ package com.raaveinm.picasso.data.mock
 import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Conversation
 import com.raaveinm.core.model.chat.Palette
-import com.raaveinm.core.model.lib.CommunityContent
-import com.raaveinm.core.model.lib.GameInfo
+import com.raaveinm.core.model.game.CommunityContent
+import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.core.model.user.User
 
 object Mock {
-    val libraryList: List<GameInfo> = listOf(
-        GameInfo(
+    val libraryList: List<OwnedGame> = listOf(
+        OwnedGame(
             appId = 1808500,
             name = "Arc Raiders",
             playtime2Weeks = 407,
@@ -23,7 +23,7 @@ object Mock {
             rtimeLastPlayed = 1787003896,
             playtimeDisconnected = 37,
         ),
-        GameInfo(
+        OwnedGame(
             appId = 1091500,
             name = "Cyberpunk 2077",
             playtime2Weeks = 310,
@@ -37,7 +37,7 @@ object Mock {
             rtimeLastPlayed = 1786658136,
             playtimeDisconnected = 0,
         ),
-        GameInfo(
+        OwnedGame(
             appId = 2073850,
             name = "THE FINALS",
             playtime2Weeks = 499,
@@ -51,7 +51,7 @@ object Mock {
             rtimeLastPlayed = 1786914018,
             playtimeDisconnected = 0,
         ),
-        GameInfo(
+        OwnedGame(
             appId = 1601580,
             name = "Frostpunk 2",
             playtimeForever = 417,
@@ -65,7 +65,7 @@ object Mock {
             playtimeDisconnected = 0,
             playtime2Weeks = 0
         ),
-        GameInfo(
+        OwnedGame(
             appId = 264710,
             name = "Subnautica",
             playtimeForever = 5522,
@@ -79,7 +79,7 @@ object Mock {
             playtimeDisconnected = 0,
             playtime2Weeks = 0,
         ),
-        GameInfo(
+        OwnedGame(
             appId = 848450,
             name = "Subnautica: Below Zero",
             playtimeForever = 5248,
@@ -93,7 +93,7 @@ object Mock {
             playtimeDisconnected = 0,
             playtime2Weeks = 0,
         ),
-        GameInfo(
+        OwnedGame(
             appId = 1293830,
             name = "Forza Horizon 4",
             playtimeForever = 9248,
@@ -107,7 +107,7 @@ object Mock {
             playtimeDisconnected = 5,
             playtime2Weeks = 0,
         ),
-        GameInfo(
+        OwnedGame(
             appId = 1911610,
             name = "Windblown",
             playtimeForever = 414,
@@ -121,7 +121,7 @@ object Mock {
             playtimeDisconnected = 0,
             playtime2Weeks = 0,
         ),
-        GameInfo(
+        OwnedGame(
             appId = 730,
             name = "Counter-Strike 2",
             playtimeForever = 46350,
@@ -135,7 +135,7 @@ object Mock {
             playtimeDisconnected = 3,
             playtime2Weeks = 203,
         ),
-        GameInfo(
+        OwnedGame(
             appId = 359550,
             name = "Tom Clancy's Rainbow Six Siege",
             playtimeForever = 66613,
@@ -149,7 +149,7 @@ object Mock {
             playtimeDisconnected = 30,
             playtime2Weeks = 0,
         ),
-        GameInfo(
+        OwnedGame(
             appId = 620980,
             name = "Beat Saber",
             playtimeForever = 13786,
@@ -167,7 +167,7 @@ object Mock {
 
     val gameListCommunityContent: List<CommunityContent> = listOf(
         CommunityContent(
-            gameInfo = GameInfo(
+            ownedGame = OwnedGame(
                 appId = 620980,
                 name = "Beat Saber",
                 playtimeForever = 13786,
@@ -191,8 +191,8 @@ object Mock {
         )
     )
 
-    val mostPlayedGames: List<GameInfo> = listOf(
-        GameInfo(
+    val mostPlayedGames: List<OwnedGame> = listOf(
+        OwnedGame(
             appId = 1808500,
             name = "Arc Raiders",
             playtime2Weeks = 407,
@@ -206,7 +206,7 @@ object Mock {
             rtimeLastPlayed = 1787003896,
             playtimeDisconnected = 37,
         ),
-        GameInfo(
+        OwnedGame(
             appId = 1091500,
             name = "Cyberpunk 2077",
             playtime2Weeks = 310,
@@ -220,7 +220,7 @@ object Mock {
             rtimeLastPlayed = 1786658136,
             playtimeDisconnected = 0,
         ),
-        GameInfo(
+        OwnedGame(
             appId = 2073850,
             name = "THE FINALS",
             playtime2Weeks = 499,

@@ -1,0 +1,41 @@
+package com.raaveinm.core.database.entities.chat
+
+import androidx.room3.Entity
+import androidx.room3.ForeignKey
+import androidx.room3.Index
+import androidx.room3.PrimaryKey
+import com.raaveinm.core.database.entities.api.user.Users
+
+//
+// Created by Kirill "Raaveinm" on 8/23/26.
+// Copyright (c) 2026 Retrograde Mercury. All rights reserved.
+//
+
+@Entity(
+    foreignKeys = [
+        ForeignKey(
+            entity = Conversations::class,
+            parentColumns = ["id"],
+            childColumns = ["conversationId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Users::class,
+            parentColumns = ["steamId"],
+            childColumns = ["senderSteamId"],
+            onDelete = ForeignKey.NO_ACTION
+        )
+    ],
+    // covers the conversationId FK and speeds up "messages in this conversation, ordered" queries
+    indices = [
+        Index(value = ["conversationId", "timestamp"]),
+        Index("senderSteamId")
+    ]
+)
+data class MessageData(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val conversationId: Long,
+    val senderSteamId: Long,
+    val textMessage: String,
+    val timestamp: Long
+)

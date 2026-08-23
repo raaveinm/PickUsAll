@@ -22,7 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.raaveinm.core.model.lib.GameInfo
+import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.data.mock.Mock
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
@@ -38,7 +38,7 @@ import com.raaveinm.pickusall.core.designsystem.utils.ImageUtility
 fun UserActions(
     modifier: Modifier = Modifier,
     user: User,
-    mostPlayed: List<GameInfo> = emptyList(),
+    mostPlayed: List<OwnedGame> = emptyList(),
     onBack: () -> Unit = {},
     showTopBar: Boolean = false,
     onAddToGroupClick: () -> Unit = {},

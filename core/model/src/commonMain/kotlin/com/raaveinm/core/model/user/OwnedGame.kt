@@ -1,4 +1,4 @@
-package com.raaveinm.core.model.lib
+package com.raaveinm.core.model.user
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
 // Owned Games: https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${STEAM_API_KEY}&steamid=${userId}&include_appinfo=true&include_played_free_games=true&format=json
 
 @Serializable
-data class GameInfo(
+data class OwnedGame(
     @SerialName("appid")
     val appId: Int,                             // Steam Game ID
     val name: String,                           // Game Name

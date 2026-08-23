@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.raaveinm.core.model.lib.CommunityContent
+import com.raaveinm.core.model.game.CommunityContent
 import com.raaveinm.picasso.data.mock.Mock
 import com.raaveinm.pickusall.core.designsystem.components.GamePreview
 
@@ -19,8 +19,8 @@ fun ColourPicker(
             gameList.forEach {
                 GamePreview(
                     modifier = Modifier.fillMaxWidth(),
-                    gameName = it.gameInfo.name,
-                    gameId = it.gameInfo.appId,
+                    gameName = it.ownedGame.name,
+                    gameId = it.ownedGame.appId,
                     screenshotFilename = it.imageUrl,
                     inLibrary = it.inLibrary,
                     gameTags = it.gameTags

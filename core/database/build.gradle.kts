@@ -64,6 +64,7 @@ kotlin {
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.androidx.room3.runtime)
                 implementation(libs.androidx.sqlite.bundled)
+                implementation(project(":core:model"))
             }
         }
 

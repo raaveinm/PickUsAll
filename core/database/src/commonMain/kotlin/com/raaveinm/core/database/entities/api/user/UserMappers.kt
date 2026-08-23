@@ -1,0 +1,51 @@
+package com.raaveinm.core.database.entities.api.user
+
+import com.raaveinm.core.model.user.User
+
+fun User.toEntity(): Users = Users(
+    steamId = steamId,
+    communityVisibilityState = communityVisibilityState,
+    profileState = profileState,
+    personaName = personaName,
+    commentPermission = commentPermission,
+    profileUrl = profileUrl,
+    avatar = avatar,
+    avatarMedium = avatarMedium,
+    avatarFull = avatarFull,
+    avatarHash = avatarHash,
+    lastLogOff = lastLogOff,
+    personaState = personaState,
+    realName = realName,
+    primaryClanId = primaryClanId,
+    timeCreated = timeCreated,
+    personaStateFlags = personaStateFlags,
+    locCountryCode = locCountryCode,
+    locStateCode = locStateCode,
+    locCityId = locCityId,
+    gameExtraInfo = gameExtraInfo,
+    gameId = gameId,
+)
+
+fun Users.toDto(): User = User(
+    steamId = steamId,
+    communityVisibilityState = communityVisibilityState,
+    profileState = profileState,
+    personaName = personaName,
+    commentPermission = commentPermission,
+    profileUrl = profileUrl,
+    avatar = avatar,
+    avatarMedium = avatarMedium,
+    avatarFull = avatarFull,
+    avatarHash = avatarHash,
+    lastLogOff = lastLogOff,
+    personaState = personaState,
+    realName = realName,
+    primaryClanId = primaryClanId,
+    timeCreated = timeCreated,
+    personaStateFlags = personaStateFlags,
+    locCountryCode = locCountryCode,
+    locStateCode = locStateCode,
+    locCityId = locCityId,
+    gameExtraInfo = gameExtraInfo,
+    gameId = gameId,
+)

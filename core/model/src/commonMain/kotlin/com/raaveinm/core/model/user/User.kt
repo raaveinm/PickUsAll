@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 /**
  *
  *
- *  * @param personaState
+ *  @param personaState
  *
  * The user's current status:
  * - `0`: Offline (or private profile)

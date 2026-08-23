@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.raaveinm.core.model.lib.GameInfo
+import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.picasso.ui.actions.libraryRedirect
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
 
@@ -22,7 +22,7 @@ import com.raaveinm.pickusall.core.designsystem.components.GameCard
 @Composable
 fun CanvasLibrary(
     modifier: Modifier = Modifier,
-    libraryList: List<GameInfo>,
+    libraryList: List<OwnedGame>,
 ) {
     BoxWithConstraints(modifier = modifier) {
         val minCellSize = if (maxWidth < 700.dp) 110.dp else 220.dp
@@ -52,7 +52,7 @@ fun CanvasLibraryPreview() {
     CanvasLibrary(
         modifier = Modifier,
         libraryList = listOf(
-            GameInfo(
+            OwnedGame(
                 appId = 1808500,
                 name = "Arc Raiders",
                 playtime2Weeks = 407,
@@ -66,7 +66,7 @@ fun CanvasLibraryPreview() {
                 rtimeLastPlayed = 1787003896,
                 playtimeDisconnected = 37,
             ),
-            GameInfo(
+            OwnedGame(
                 appId = 1091500,
                 name = "Cyberpunk 2077",
                 playtime2Weeks = 310,
@@ -80,7 +80,7 @@ fun CanvasLibraryPreview() {
                 rtimeLastPlayed = 1786658136,
                 playtimeDisconnected = 0,
             ),
-            GameInfo(
+            OwnedGame(
                 appId = 2073850,
                 name = "THE FINALS",
                 playtime2Weeks = 499,
@@ -94,7 +94,7 @@ fun CanvasLibraryPreview() {
                 rtimeLastPlayed = 1786914018,
                 playtimeDisconnected = 0,
             ),
-            GameInfo(
+            OwnedGame(
                 appId = 1601580,
                 name = "Frostpunk 2",
                 playtimeForever = 417,
@@ -108,7 +108,7 @@ fun CanvasLibraryPreview() {
                 playtimeDisconnected = 0,
                 playtime2Weeks = 0
             ),
-            GameInfo(
+            OwnedGame(
                 appId = 264710,
                 name = "Subnautica",
                 playtimeForever = 5522,
