@@ -73,6 +73,7 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
+            implementation(libs.koin.android)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -87,11 +88,17 @@ kotlin {
 
             implementation(libs.navigation.compose)
 
+            implementation(project.dependencies.platform(libs.koin.bom))
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+
             implementation(project(":core:designsystem"))
             implementation(project(":core:model"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.koin.test)
         }
         jvmMain.dependencies {
             implementation(libs.ktor.client.okhttp)

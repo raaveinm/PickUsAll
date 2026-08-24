@@ -5,13 +5,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import com.raaveinm.picasso.di.initKoin
 
-fun main() = application {
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = "PickUsAll",
-        state = WindowState(size = DpSize(1200.dp, 900.dp))
-    ) {
-        App()
+fun main() {
+    initKoin()
+
+    application {
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = "PickUsAll",
+            state = WindowState(size = DpSize(1200.dp, 900.dp))
+        ) {
+            App()
+        }
     }
 }

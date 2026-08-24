@@ -30,14 +30,15 @@ import com.raaveinm.pickusall.core.designsystem.components.NavBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 @Preview
 fun App(
     navController: NavHostController = rememberNavController()
 ) {
-    val canvasViewModel = CanvasViewModel()
-    val chatViewModel = ChatViewModel()
+    val canvasViewModel = koinViewModel<CanvasViewModel>()
+    val chatViewModel = koinViewModel<ChatViewModel>()
 
     PicassoTheme {
         CoilInitializer()
@@ -76,7 +77,8 @@ fun App(
             }
 
             NavBar(
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = Dimensions.medium),
+                modifier = Modifier.align(Alignment.BottomCenter)
+                    .padding(bottom = Dimensions.medium),
                 nestedModifier = Modifier,
                 fabModifier = Modifier,
                 selectedId = navigationSelected,
