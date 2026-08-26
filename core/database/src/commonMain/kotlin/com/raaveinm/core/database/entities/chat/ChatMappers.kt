@@ -1,5 +1,6 @@
 package com.raaveinm.core.database.entities.chat
 
+import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Conversation
 import com.raaveinm.core.model.chat.Palette
@@ -40,7 +41,18 @@ fun Palette.toMemberEntities(localConversationId: Long): List<PaletteMembers> =
         )
     }
 
-// No MessageData mapper yet: the domain MessageData.timestamp is a display-ready
-// string (e.g. "11:09" in mocks), not the epoch Long the Room entity stores — that
-// mismatch is real, not just a rename, and papering over it here would be guessing.
-// Revisit once real chat network payloads (with an actual epoch) exist.
+// Reverse direction, for reading the chat list back out of Room. listMessageData is
+// intentionally left empty here - the list view only needs lastMessage, full message
+// history is loaded separately per opened conversation.
+fun ChatWithTitle.toDto(): Chat = Chat(
+    id = conversation.id,
+    chatTitle = titleUser.toDto(),
+    lastMessage = conversation.lastMessage
+)
+
+fun PaletteWithMembers.toDto(): Palette = Palette(
+    id = conversation.id,
+    name = palette.name,
+    members = members.map { it.toDto() },
+    lastMessage = conversation.lastMessage
+)

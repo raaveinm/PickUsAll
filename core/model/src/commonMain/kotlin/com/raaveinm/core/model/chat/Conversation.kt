@@ -6,4 +6,5 @@ import kotlinx.serialization.Serializable
 sealed interface Conversation {
     val id: Long
     val lastMessage: String?
+    val listMessageData: List<MessageData>
 }

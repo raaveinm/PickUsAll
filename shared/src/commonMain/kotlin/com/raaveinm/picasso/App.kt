@@ -20,17 +20,28 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.raaveinm.picasso.ui.canvas.CanvasScreen
 import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
 import com.raaveinm.picasso.ui.chat.ChatScreen
 import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
+import com.raaveinm.picasso.ui.friends.FriendScreen
 import com.raaveinm.picasso.ui.navigation.Canvas
-import com.raaveinm.picasso.ui.navigation.ChatList
+import com.raaveinm.picasso.ui.navigation.ChatGraph
+import com.raaveinm.picasso.ui.navigation.Friends
+import com.raaveinm.picasso.ui.navigation.Settings
+import com.raaveinm.picasso.ui.settings.SettingsScreen
+import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
 import com.raaveinm.pickusall.core.designsystem.components.NavBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
 import org.koin.compose.viewmodel.koinViewModel
+
+private const val CanvasTab = 0
+private const val ChatTab = 1
+private const val FriendsTab = 2
+private const val SettingsTab = 3
 
 @Composable
 @Preview
@@ -39,11 +50,21 @@ fun App(
 ) {
     val canvasViewModel = koinViewModel<CanvasViewModel>()
     val chatViewModel = koinViewModel<ChatViewModel>()
+    val settingsViewModel = koinViewModel<SettingsViewModel>()
 
     PicassoTheme {
         CoilInitializer()
 
-        var navigationSelected by remember { mutableStateOf(0) }
+        var navigationSelected by remember { mutableStateOf(CanvasTab) }
+
+        fun openTab(route: Any, tab: Int) {
+            navController.navigate(route) {
+                popUpTo<Canvas> { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+            navigationSelected = tab
+        }
 
         val gradientBrush = Brush.verticalGradient(
             colors = listOf(
@@ -66,12 +87,29 @@ fun App(
                         canvasViewModel
                     )
                 }
-                composable<ChatList> {
+                composable<ChatGraph> { backStackEntry ->
+                    val route = backStackEntry.toRoute<ChatGraph>()
                     ChatScreen(
                         modifier = Modifier.safeContentPadding(),
                         viewModel = chatViewModel,
-                        onGroupClick = { },
+                        selectedChatId = route.selectedChatId,
                         nestedNavHostController = rememberNavController()
+                    )
+                }
+                composable<Friends> {
+                    FriendScreen(
+                        modifier = Modifier.safeContentPadding(),
+                        viewModel = chatViewModel,
+                        // TODO(start a new DM when there is no conversation with that friend yet)
+                        onMessageClick = { chatId ->
+                            if (chatId != null) openTab(ChatGraph(chatId), ChatTab)
+                        }
+                    )
+                }
+                composable<Settings> {
+                    SettingsScreen(
+                        modifier = Modifier.safeContentPadding(),
+                        viewModel = settingsViewModel
                     )
                 }
             }
@@ -84,12 +122,13 @@ fun App(
                 selectedId = navigationSelected,
                 onItemClick = {
                     val screen = when (it) {
-                        0 -> Canvas
-                        1 -> ChatList
+                        CanvasTab -> Canvas
+                        ChatTab -> ChatGraph()
+                        FriendsTab -> Friends
+                        SettingsTab -> Settings
                         else -> Canvas
                     }
-                    navController.navigate(screen)
-                    navigationSelected = it
+                    openTab(screen, it)
                 },
             )
         }

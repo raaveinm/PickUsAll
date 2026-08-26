@@ -22,7 +22,10 @@ import com.raaveinm.picasso.ui.chat.fragments.UserActions
 import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
 import com.raaveinm.picasso.ui.navigation.ChatList
 import com.raaveinm.picasso.ui.navigation.ChatWithUser
+import com.raaveinm.picasso.ui.navigation.Palette
 import com.raaveinm.picasso.ui.navigation.UserProfile
+import org.koin.compose.viewmodel.koinViewModel
+import com.raaveinm.core.model.chat.Palette as PaletteConversation
 
 private val CompactWidthBreakpoint = 700.dp
 private val ThirdColumnBreakpoint = 1100.dp
@@ -31,9 +34,8 @@ private val SidebarWidth = 320.dp
 @Composable
 fun ChatScreen(
     modifier: Modifier = Modifier,
-    viewModel: ChatViewModel = ChatViewModel(),
+    viewModel: ChatViewModel = koinViewModel(),
     selectedChatId: Long? = null,
-    onGroupClick: (Long) -> Unit = {},
     nestedNavHostController: NavHostController
 ) {
     val state by viewModel.chatsUiState.collectAsState()
@@ -59,7 +61,10 @@ fun ChatScreen(
                             viewModel.setSelectedChat(it)
                             nestedNavHostController.navigate(ChatWithUser(chatId = it))
                         },
-                        onGroupClick = onGroupClick
+                        onGroupClick = {
+                            viewModel.setSelectedChat(it)
+                            nestedNavHostController.navigate(ChatWithUser(chatId = it, groupId = it))
+                        }
                     )
                 }
                 composable<ChatWithUser> { backStackEntry ->
@@ -71,9 +76,14 @@ fun ChatScreen(
                             viewModel.setSelectedChat(null)
                             nestedNavHostController.popBackStack()
                         },
-                        onUserIconClick = {
-                            viewModel.setSelectedUser(it)
-                            nestedNavHostController.navigate(UserProfile(userId = it))
+                        // in a palette the icon leads to the member list, in a DM straight to the profile
+                        onUserIconClick = { userId ->
+                            if (route.groupId != null) {
+                                nestedNavHostController.navigate(Palette(groupId = route.groupId))
+                            } else {
+                                viewModel.setSelectedUser(userId)
+                                nestedNavHostController.navigate(UserProfile(userId = userId))
+                            }
                         },
                         messageData = emptyList()
                     )
@@ -91,14 +101,30 @@ fun ChatScreen(
                         )
                     }
                 }
+                composable<Palette> { backStackEntry ->
+                    val route = backStackEntry.toRoute<Palette>()
+                    GroupScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        groupId = route.groupId,
+                        onBack = { nestedNavHostController.popBackStack() },
+                        onMemberClick = { userId ->
+                            viewModel.setSelectedUser(userId)
+                            nestedNavHostController.navigate(UserProfile(userId = userId))
+                        }
+                    )
+                }
             }
         } else {
+            val selectedPalette = state.conversations
+                .filterIsInstance<PaletteConversation>()
+                .firstOrNull { it.id == state.selectedChat }
+
             Row(modifier = Modifier.fillMaxSize()) {
                 AllChats(
                     modifier = Modifier.fillMaxHeight().width(SidebarWidth),
                     conversations = state.conversations,
                     onChatClick = { viewModel.setSelectedChat(it) },
-                    onGroupClick = onGroupClick
+                    onGroupClick = { viewModel.setSelectedChat(it) }
                 )
                 AnimatedVisibility(
                     visible = state.selectedChat != null,
@@ -113,16 +139,26 @@ fun ChatScreen(
                     )
                 }
                 if (showThirdColumn) {
+                    // the trailing column shows the selected member, or the palette roster while
+                    // nobody is picked - a DM always has its user selected, so it never lands here
                     AnimatedVisibility(
-                        visible = state.selectedUser != null,
+                        visible = state.selectedUser != null || selectedPalette != null,
                         modifier = Modifier.fillMaxHeight().sizeIn(minWidth = 128.dp, maxWidth = SidebarWidth)
                     ) {
-                        state.selectedUser?.let {
-                            UserActions(
+                        val selectedUser = state.selectedUser
+                        when {
+                            selectedUser != null -> UserActions(
                                 modifier = Modifier.fillMaxSize(),
-                                user = it,
+                                user = selectedUser,
                                 mostPlayed = listOf(),
+                                onBack = { viewModel.setSelectedUser(null) },
                                 onAddToGroupClick = {} // TODO(same)
+                            )
+                            selectedPalette != null -> GroupScreen(
+                                modifier = Modifier.fillMaxSize(),
+                                groupId = selectedPalette.id,
+                                onBack = { viewModel.setSelectedChat(null) },
+                                onMemberClick = { viewModel.setSelectedUser(it) }
                             )
                         }
                     }

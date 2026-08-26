@@ -53,6 +53,8 @@ kotlin {
         }
     }
 
+    jvm()
+
     // Source set declarations.
     // Declaring a target automatically creates a source set with the same name. By default, the
     // Kotlin Gradle Plugin creates additional source sets that depend on each other, since it is
@@ -64,6 +66,7 @@ kotlin {
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.androidx.room3.runtime)
                 implementation(libs.androidx.sqlite.bundled)
+                implementation(libs.koin.core)
                 implementation(project(":core:model"))
             }
         }
@@ -92,6 +95,18 @@ kotlin {
             dependencies {
             }
         }
+
+        jvmMain {
+            dependencies {
+            }
+        }
     }
 
+}
+
+dependencies {
+    add("kspAndroid", libs.androidx.room3.compiler)
+    add("kspIosArm64", libs.androidx.room3.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room3.compiler)
+    add("kspJvm", libs.androidx.room3.compiler)
 }

@@ -8,5 +8,6 @@ data class Palette(
     override val id: Long,
     val name: String,
     val members: List<User>,
-    override val lastMessage: String? = null
+    override val lastMessage: String? = null,
+    override val listMessageData: List<MessageData> = emptyList()
 ) : Conversation

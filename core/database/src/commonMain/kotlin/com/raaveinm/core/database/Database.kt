@@ -42,13 +42,13 @@ import com.raaveinm.core.database.entities.server.Servers
     OwnedGames::class, SteamFriends::class, UserAchievements::class, Users::class
                      ], version = 1)
 @ConstructedBy(DatabaseConstructor::class)
-abstract class Database : RoomDatabase() {
+abstract class PicassoDatabase : RoomDatabase() {
     abstract fun getChatDao(): ChatDao
     abstract fun getGameDao(): GameDao
     abstract fun getServerDao(): ServerDao
     abstract fun getUserDao(): UserDao
 }
 @Suppress("KotlinNoActualForExpect", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-expect object DatabaseConstructor : RoomDatabaseConstructor<RoomDatabase> {
-    override fun initialize(): RoomDatabase
+expect object DatabaseConstructor : RoomDatabaseConstructor<PicassoDatabase> {
+    override fun initialize(): PicassoDatabase
 }

@@ -5,10 +5,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import com.raaveinm.core.database.DatabaseFactory
+import com.raaveinm.core.database.databaseModule
 import com.raaveinm.picasso.di.initKoin
 
 fun main() {
-    initKoin()
+    initKoin {
+        modules(databaseModule(DatabaseFactory()))
+    }
 
     application {
         Window(

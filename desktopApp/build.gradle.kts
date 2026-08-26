@@ -8,7 +8,10 @@ plugins {
 
 dependencies {
     implementation(project(":shared"))
+    implementation(project(":core:database"))
     implementation(libs.ktor.client.okhttp)
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
 
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutinesSwing)

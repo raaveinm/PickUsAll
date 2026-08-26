@@ -12,6 +12,7 @@ kotlin {
 }
 dependencies {
     implementation(project(":shared"))
+    implementation(project(":core:database"))
     implementation(libs.ktor.client.okhttp)
     implementation(libs.koin.android)
 

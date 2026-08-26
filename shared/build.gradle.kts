@@ -95,6 +95,7 @@ kotlin {
 
             implementation(project(":core:designsystem"))
             implementation(project(":core:model"))
+            implementation(project(":core:database"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
