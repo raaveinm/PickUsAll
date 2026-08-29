@@ -13,13 +13,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.raaveinm.core.model.chat.Chat
-import com.raaveinm.core.model.chat.Conversation
-import com.raaveinm.core.model.chat.Palette
-import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
 import com.raaveinm.picasso.ui.friends.fragments.FriendList
-import com.raaveinm.picasso.ui.friends.fragments.isOnline
 import com.raaveinm.pickusall.core.designsystem.components.PicassoSearchBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 
@@ -37,11 +32,11 @@ fun FriendScreen(
     viewModel: ChatViewModel,
     onMessageClick: (Long?) -> Unit = {}
 ) {
-    val state by viewModel.chatsUiState.collectAsState()
+    val state by viewModel.friendsUiState.collectAsState()
     val searchState = rememberTextFieldState()
     val query = searchState.text.toString()
 
-    val friends = remember(state.conversations) { state.conversations.toFriends() }
+    val friends = remember(state.friends) { state.friends }
     val shownFriends = remember(friends, query) {
         if (query.isBlank()) friends
         else friends.filter { it.personaName.contains(query.trim(), ignoreCase = true) }
@@ -62,20 +57,7 @@ fun FriendScreen(
             modifier = Modifier.fillMaxSize().sizeIn(maxWidth = ContentWidth),
             friendList = shownFriends,
             emptyPlaceholder = if (query.isBlank()) "no artists around" else "nobody answers to \"$query\"",
-            onMessageClick = { friend -> onMessageClick(state.conversations.dmWith(friend)) }
+            onMessageClick = { friend -> onMessageClick(state.friends.firstOrNull {friend.steamId == friend.steamId}?.steamId) }
         )
     }
 }
-
-// TODO(replace with the Steam friend list once the API layer lands) - until then the roster is
-//  everyone reachable through an existing conversation.
-private fun List<Conversation>.toFriends(): List<User> = flatMap { conversation ->
-    when (conversation) {
-        is Chat -> listOf(conversation.chatTitle)
-        is Palette -> conversation.members
-    }
-}.distinctBy { it.steamId }
-    .sortedWith(compareByDescending<User> { it.isOnline() }.thenBy { it.personaName.lowercase() })
-
-private fun List<Conversation>.dmWith(friend: User): Long? = filterIsInstance<Chat>()
-    .firstOrNull { it.chatTitle.steamId == friend.steamId }?.id

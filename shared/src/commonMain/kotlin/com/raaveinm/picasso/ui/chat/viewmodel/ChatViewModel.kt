@@ -3,6 +3,7 @@ package com.raaveinm.picasso.ui.chat.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.raaveinm.core.database.dao.ChatDao
+import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.database.entities.chat.toDto
 import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Palette
@@ -15,13 +16,24 @@ import kotlinx.coroutines.flow.update
 
 class ChatViewModel(chatDao: ChatDao) : ViewModel() {
     private val _chatsUiState = MutableStateFlow(ChatUiState())
+    private val _friendListUiState = MutableStateFlow(FriendsUiState())
     val chatsUiState = _chatsUiState.asStateFlow()
+    val  friendsUiState = _friendListUiState.asStateFlow()
 
     init {
+        ///////////////////////////////////////////////
+        // Init chat ui state
+        ///////////////////////////////////////////////
         combine(chatDao.observeChats(), chatDao.observePalettes()) { chats, palettes ->
             chats.map { it.toDto() } + palettes.map { it.toDto() }
         }.onEach { conversations ->
             _chatsUiState.update { it.copy(conversations = conversations) }
+        }.launchIn(viewModelScope)
+        ///////////////////////////////////////////////
+        // friend list
+        ///////////////////////////////////////////////
+        chatDao.getUserFriends(76561198966516520).onEach { friends ->
+            _friendListUiState.update { it.copy(friends = friends.map { user -> user.toDto() }) }
         }.launchIn(viewModelScope)
     }
 

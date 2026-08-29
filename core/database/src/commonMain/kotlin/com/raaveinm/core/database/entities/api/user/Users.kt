@@ -31,4 +31,5 @@ data class Users(
     val locCityId: Int? = null,
     val gameExtraInfo: String? = null,
     val gameId: Int? = null,
+    val fetchedAt: Long,
 )

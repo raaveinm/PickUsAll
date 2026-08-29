@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.raaveinm.picasso.data.mock.Mock
+import com.raaveinm.core.model.chat.Palette
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
 import com.raaveinm.pickusall.core.designsystem.components.UserMiniProfile
 import com.raaveinm.pickusall.core.designsystem.obj.UserStatus
@@ -17,12 +17,10 @@ import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 @Composable
 fun GroupScreen(
     modifier: Modifier = Modifier,
-    groupId: Long,
+    group: Palette?,
     onBack: () -> Unit = {},
     onMemberClick: (Long) -> Unit = {}
 ) {
-    val group = Mock.paletteList.firstOrNull { it.id == groupId }
-
     Column(modifier.fillMaxSize()) {
         if (group != null) {
             ChatTopBar(

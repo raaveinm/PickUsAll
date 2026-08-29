@@ -25,6 +25,7 @@ import com.raaveinm.picasso.ui.navigation.ChatWithUser
 import com.raaveinm.picasso.ui.navigation.Palette
 import com.raaveinm.picasso.ui.navigation.UserProfile
 import org.koin.compose.viewmodel.koinViewModel
+import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Palette as PaletteConversation
 
 private val CompactWidthBreakpoint = 700.dp
@@ -71,7 +72,7 @@ fun ChatScreen(
                     val route = backStackEntry.toRoute<ChatWithUser>()
                     ChatWithUserScreen(
                         modifier = Modifier.fillMaxSize(),
-                        chatId = route.chatId,
+                        chat = state.conversations.filterIsInstance<Chat>().find { it.id == route.chatId },
                         onBack = {
                             viewModel.setSelectedChat(null)
                             nestedNavHostController.popBackStack()
@@ -105,7 +106,7 @@ fun ChatScreen(
                     val route = backStackEntry.toRoute<Palette>()
                     GroupScreen(
                         modifier = Modifier.fillMaxSize(),
-                        groupId = route.groupId,
+                        group = state.conversations.filterIsInstance<PaletteConversation>().find { it.id == route.groupId },
                         onBack = { nestedNavHostController.popBackStack() },
                         onMemberClick = { userId ->
                             viewModel.setSelectedUser(userId)
@@ -132,10 +133,10 @@ fun ChatScreen(
                 ) {
                     ChatWithUserScreen(
                         modifier = Modifier.fillMaxSize(),
-                        chatId = state.selectedChat ?: -1,
+                        chat = state.conversations.filterIsInstance<Chat>().find { it.id == state.selectedChat },
                         onBack = { viewModel.setSelectedChat(null) },
                         onUserIconClick = { viewModel.setSelectedUser(it) },
-                        emptyList()
+                        messageData = emptyList()
                     )
                 }
                 if (showThirdColumn) {
@@ -156,7 +157,7 @@ fun ChatScreen(
                             )
                             selectedPalette != null -> GroupScreen(
                                 modifier = Modifier.fillMaxSize(),
-                                groupId = selectedPalette.id,
+                                group = selectedPalette,
                                 onBack = { viewModel.setSelectedChat(null) },
                                 onMemberClick = { viewModel.setSelectedUser(it) }
                             )

@@ -2,7 +2,7 @@ package com.raaveinm.core.database.entities.api.user
 
 import com.raaveinm.core.model.user.User
 
-fun User.toEntity(): Users = Users(
+fun User.toEntity(fetchedAt: Long): Users = Users(
     steamId = steamId,
     communityVisibilityState = communityVisibilityState,
     profileState = profileState,
@@ -24,6 +24,7 @@ fun User.toEntity(): Users = Users(
     locCityId = locCityId,
     gameExtraInfo = gameExtraInfo,
     gameId = gameId,
+    fetchedAt = fetchedAt,
 )
 
 fun Users.toDto(): User = User(

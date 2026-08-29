@@ -35,5 +35,6 @@ data class UserAchievements(
     val appId: Int,
     val apiName: String,
     val achieved: Boolean = false,
-    val unlockTime: Long?
+    val unlockTime: Long?,
+    val fetchedAt: Long
 )

@@ -3,6 +3,7 @@ package com.raaveinm.core.database.dao
 import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
+import androidx.room3.Query
 import com.raaveinm.core.database.entities.api.user.Users
 
 //
@@ -13,4 +14,17 @@ import com.raaveinm.core.database.entities.api.user.Users
 interface UserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addUser(user: Users)
+
+    // NOTES: Cache rotation
+    @Query(
+        """
+        DELETE FROM Users
+        WHERE steamId != :selfSteamId
+          AND fetchedAt < :cutoff
+          AND steamId NOT IN (SELECT friendSteamId FROM SteamFriends WHERE userSteamId = :selfSteamId)
+          AND steamId NOT IN (SELECT chatTitleSteamId FROM Chats)
+          AND steamId NOT IN (SELECT userSteamId FROM PaletteMembers)
+        """
+    )
+    suspend fun pruneStaleUsers(selfSteamId: Long, cutoff: Long): Int
 }

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "13d49697167009fcc9d66511dbf88eb9",
+    "identityHash": "99948947bc127098a74cf18a5b7e0cc9",
     "entities": [
       {
         "tableName": "Servers",
@@ -913,7 +913,7 @@
       },
       {
         "tableName": "OwnedGames",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userSteamId` INTEGER NOT NULL, `appId` INTEGER NOT NULL, `name` TEXT NOT NULL, `imgIconUrl` TEXT NOT NULL, `playtimeForever` INTEGER NOT NULL, `playtime2Weeks` INTEGER NOT NULL, `playtimeForeverWindows` INTEGER, `playtimeForeverMac` INTEGER, `playtimeForeverLinux` INTEGER, `playtimeForeverDeck` INTEGER, `playtimeDisconnected` INTEGER, `hasCommunityVisible` INTEGER NOT NULL, `rTimeLastPlayed` INTEGER NOT NULL, PRIMARY KEY(`userSteamId`, `appId`), FOREIGN KEY(`userSteamId`) REFERENCES `Users`(`steamId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userSteamId` INTEGER NOT NULL, `appId` INTEGER NOT NULL, `name` TEXT NOT NULL, `imgIconUrl` TEXT NOT NULL, `playtimeForever` INTEGER NOT NULL, `playtime2Weeks` INTEGER NOT NULL, `playtimeForeverWindows` INTEGER, `playtimeForeverMac` INTEGER, `playtimeForeverLinux` INTEGER, `playtimeForeverDeck` INTEGER, `playtimeDisconnected` INTEGER, `hasCommunityVisible` INTEGER NOT NULL, `rTimeLastPlayed` INTEGER NOT NULL, `fetchedAt` INTEGER NOT NULL, PRIMARY KEY(`userSteamId`, `appId`), FOREIGN KEY(`userSteamId`) REFERENCES `Users`(`steamId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "userSteamId",
@@ -985,6 +985,12 @@
           {
             "fieldPath": "rTimeLastPlayed",
             "columnName": "rTimeLastPlayed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fetchedAt",
+            "columnName": "fetchedAt",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -1087,7 +1093,7 @@
       },
       {
         "tableName": "UserAchievements",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`steamId` INTEGER NOT NULL, `appId` INTEGER NOT NULL, `apiName` TEXT NOT NULL, `achieved` INTEGER NOT NULL, `unlockTime` INTEGER, PRIMARY KEY(`steamId`, `appId`, `apiName`), FOREIGN KEY(`steamId`) REFERENCES `Users`(`steamId`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`appId`, `apiName`) REFERENCES `GameAchievements`(`appId`, `apiName`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`steamId` INTEGER NOT NULL, `appId` INTEGER NOT NULL, `apiName` TEXT NOT NULL, `achieved` INTEGER NOT NULL, `unlockTime` INTEGER, `fetchedAt` INTEGER NOT NULL, PRIMARY KEY(`steamId`, `appId`, `apiName`), FOREIGN KEY(`steamId`) REFERENCES `Users`(`steamId`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`appId`, `apiName`) REFERENCES `GameAchievements`(`appId`, `apiName`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "steamId",
@@ -1117,6 +1123,12 @@
             "fieldPath": "unlockTime",
             "columnName": "unlockTime",
             "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fetchedAt",
+            "columnName": "fetchedAt",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -1168,7 +1180,7 @@
       },
       {
         "tableName": "Users",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`steamId` INTEGER NOT NULL, `communityVisibilityState` INTEGER NOT NULL, `profileState` INTEGER, `personaName` TEXT NOT NULL, `commentPermission` INTEGER NOT NULL, `profileUrl` TEXT NOT NULL, `avatar` TEXT NOT NULL, `avatarMedium` TEXT NOT NULL, `avatarFull` TEXT NOT NULL, `avatarHash` TEXT NOT NULL, `lastLogOff` INTEGER, `personaState` INTEGER NOT NULL, `realName` TEXT, `primaryClanId` TEXT, `timeCreated` INTEGER, `personaStateFlags` INTEGER, `locCountryCode` TEXT, `locStateCode` TEXT, `locCityId` INTEGER, `gameExtraInfo` TEXT, `gameId` INTEGER, PRIMARY KEY(`steamId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`steamId` INTEGER NOT NULL, `communityVisibilityState` INTEGER NOT NULL, `profileState` INTEGER, `personaName` TEXT NOT NULL, `commentPermission` INTEGER NOT NULL, `profileUrl` TEXT NOT NULL, `avatar` TEXT NOT NULL, `avatarMedium` TEXT NOT NULL, `avatarFull` TEXT NOT NULL, `avatarHash` TEXT NOT NULL, `lastLogOff` INTEGER, `personaState` INTEGER NOT NULL, `realName` TEXT, `primaryClanId` TEXT, `timeCreated` INTEGER, `personaStateFlags` INTEGER, `locCountryCode` TEXT, `locStateCode` TEXT, `locCityId` INTEGER, `gameExtraInfo` TEXT, `gameId` INTEGER, `fetchedAt` INTEGER NOT NULL, PRIMARY KEY(`steamId`))",
         "fields": [
           {
             "fieldPath": "steamId",
@@ -1284,6 +1296,12 @@
             "fieldPath": "gameId",
             "columnName": "gameId",
             "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fetchedAt",
+            "columnName": "fetchedAt",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -1296,7 +1314,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '13d49697167009fcc9d66511dbf88eb9')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '99948947bc127098a74cf18a5b7e0cc9')"
     ]
   }
 }

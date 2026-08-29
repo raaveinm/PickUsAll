@@ -37,5 +37,6 @@ data class OwnedGames(
     val playtimeForeverDeck: Int?,
     val playtimeDisconnected: Int?,
     val hasCommunityVisible: Boolean,
-    val rTimeLastPlayed: Long
+    val rTimeLastPlayed: Long,
+    val fetchedAt: Long
 )

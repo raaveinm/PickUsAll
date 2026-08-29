@@ -4,6 +4,7 @@ import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.Query
 import androidx.room3.Transaction
+import com.raaveinm.core.database.entities.api.user.Users
 import com.raaveinm.core.database.entities.chat.ChatWithTitle
 import com.raaveinm.core.database.entities.chat.Chats
 import com.raaveinm.core.database.entities.chat.Conversations
@@ -30,9 +31,6 @@ interface ChatDao {
     @Query("SELECT conversations.*, palettes.* FROM conversations JOIN palettes ON palettes.conversationId = conversations.id ORDER BY conversations.id DESC")
     fun observePalettes(): Flow<List<PaletteWithMembers>>
 
-    // Caller (repository) is responsible for making sure `chatTitleSteamId` already
-    // exists in Users first - creating that row needs real Steam profile data, which
-    // isn't available here, so we don't do it as a side effect of this transaction.
     @Transaction
     suspend fun createNewDM(
         serverId: Long,
@@ -51,4 +49,9 @@ interface ChatDao {
         insertChat(Chats(conversationId = conversationId, chatTitleSteamId = chatTitleSteamId))
         return conversationId
     }
+
+    @Query("SELECT steamId, communityVisibilityState, profileState, personaName, commentPermission, profileUrl, avatar, " +
+            "       avatarMedium, avatarFull, avatarHash, lastLogOff, personaState, realName, primaryClanId, timeCreated, " +
+            "       personaStateFlags, locCountryCode, locStateCode, locCityId, gameExtraInfo, gameId, fetchedAt " +
+            "from SteamFriends JOIN main.Users U on SteamFriends.friendSteamId = U.steamId where userSteamId = :userId;") fun getUserFriends(userId: Long): Flow<List<Users>>
 }
