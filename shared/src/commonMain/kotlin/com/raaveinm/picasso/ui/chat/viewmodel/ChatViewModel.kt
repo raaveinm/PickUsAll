@@ -7,6 +7,7 @@ import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.database.entities.chat.toDto
 import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Palette
+import com.raaveinm.picasso.AppConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -36,7 +37,7 @@ class ChatViewModel(val chatDao: ChatDao) : ViewModel() {
         // friend list
         ///////////////////////////////////////////////
         viewModelScope.launch{
-            chatDao.getUserFriends(76561198966516520).onEach { friends ->
+            chatDao.getUserFriends(AppConfig.USER_ID).onEach { friends ->
                 _friendListUiState.update { it.copy(friends = friends.map { user -> user.toDto() }) }
             }.launchIn(viewModelScope)
         }

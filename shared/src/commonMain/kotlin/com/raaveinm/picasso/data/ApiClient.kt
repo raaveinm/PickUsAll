@@ -9,4 +9,6 @@ import com.raaveinm.picasso.AppConfig
 class ApiClient {
     private val steamApi: String
         get() = AppConfig.STEAM_API_KEY
+    val userId: Long
+        get() = AppConfig.USER_ID
 }

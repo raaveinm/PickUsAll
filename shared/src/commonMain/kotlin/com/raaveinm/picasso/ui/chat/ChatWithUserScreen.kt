@@ -12,6 +12,7 @@ import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Conversation
 import com.raaveinm.core.model.chat.MessageData
 import com.raaveinm.core.model.chat.Palette
+import com.raaveinm.picasso.data.ApiClient
 import com.raaveinm.picasso.ui.chat.fragments.ChatMessages
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
@@ -50,7 +51,7 @@ fun ChatWithUserScreen(
         )
         ChatMessages(
             modifier = Modifier.fillMaxSize(),
-            user = counterpart,
+            user = ApiClient().userId,
             messages = messageData,
             onLoadMore = onLoadMoreHistory
         )

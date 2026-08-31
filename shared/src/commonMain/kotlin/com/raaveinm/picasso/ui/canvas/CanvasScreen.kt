@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +23,7 @@ import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
 import com.raaveinm.pickusall.core.designsystem.components.Switch
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import org.jetbrains.compose.resources.stringArrayResource
+import org.koin.compose.viewmodel.koinViewModel
 import pickusall.shared.generated.resources.Res
 import pickusall.shared.generated.resources.sort_options
 import pickusall.shared.generated.resources.switch_options
@@ -29,8 +31,9 @@ import pickusall.shared.generated.resources.switch_options
 @Composable
 fun CanvasScreen(
     modifier: Modifier = Modifier,
-    viewModel: CanvasViewModel = CanvasViewModel()
+    viewModel: CanvasViewModel = koinViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     val options = stringArrayResource(Res.array.switch_options)
     var selectedSwitch by remember { mutableStateOf(0) }
 
@@ -71,14 +74,14 @@ fun CanvasScreen(
             if (selectedSwitch == 0) {
                 CanvasLibrary(
                     modifier = Modifier.sizeIn(maxWidth = 1024.dp),
-                    libraryList = viewModel.libraryList
+                    libraryList = uiState.userLibrary
                 )
             } else {
                 ColourPicker(
                     modifier = Modifier
                         .sizeIn(maxWidth = 1024.dp)
                         .padding(Dimensions.medium),
-                    gameList = viewModel.gameListCommunityContent
+                    gameList = uiState.gameStore
                 )
             }
         }

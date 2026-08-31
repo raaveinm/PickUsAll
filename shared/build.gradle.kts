@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.LONG
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -24,6 +25,10 @@ val localProperties = Properties().apply {
 val apiKey: String = localProperties.getProperty("STEAM_API_KEY")
     ?: System.getenv("STEAM_API_KEY")
     ?: ""
+val userId: String = (localProperties.getProperty("USER_ID") ?: System.getenv("USER_ID"))
+    ?.trimEnd('L', 'l')
+    ?.takeIf { it.toLongOrNull() != null }
+    ?: "0"
 
 buildkonfig {
     packageName = "com.raaveinm.picasso"
@@ -31,6 +36,7 @@ buildkonfig {
 
     defaultConfigs {
         buildConfigField(STRING, "STEAM_API_KEY", apiKey)
+        buildConfigField(LONG, "USER_ID", userId)
     }
 }
 

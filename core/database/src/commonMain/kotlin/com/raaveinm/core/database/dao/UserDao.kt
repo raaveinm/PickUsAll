@@ -4,7 +4,9 @@ import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
+import com.raaveinm.core.database.entities.api.user.OwnedGames
 import com.raaveinm.core.database.entities.api.user.Users
+import kotlinx.coroutines.flow.Flow
 
 //
 // Created by Kirill "Raaveinm" on 8/23/26.
@@ -27,4 +29,6 @@ interface UserDao {
         """
     )
     suspend fun pruneStaleUsers(selfSteamId: Long, cutoff: Long): Int
+    @Query("select * from OwnedGames where userSteamId=:userId")
+    fun getUserLibrary(userId: Long): Flow<List<OwnedGames>>
 }

@@ -15,7 +15,7 @@ import com.raaveinm.pickusall.core.designsystem.components.Messages
 fun ChatMessages(
     modifier: Modifier = Modifier,
     messages: List<MessageData> = emptyList(),
-    user: User?,
+    user: Long?,
     onLoadMore: () -> Unit = {}
 ) {
     val listState = rememberLazyListState()
@@ -31,7 +31,7 @@ fun ChatMessages(
                 username = message.user.personaName,
                 textMessage = message.textMessage,
                 timestamp = message.timestamp,
-                isSender = user != null && user == message.user,
+                isSender = user != null && user == message.user.steamId,
                 modifier = Modifier,
                 previousExisted = index < messages.lastIndex && messages[index + 1].user == message.user,
                 isLast = index == 0 || messages[index - 1].user != message.user
@@ -46,7 +46,7 @@ fun ChatMessages(
 fun ChatMessagesPreview() {
 
     ChatMessages(
-        user = Mock.user_1,
+        user = Mock.user_1.steamId,
         messages = listOf(
             MessageData(user = Mock.user_1, textMessage = "Mornin'", timestamp = "11:09"),
             MessageData(user = Mock.user_1, textMessage = "<3", timestamp = "11:09"),
