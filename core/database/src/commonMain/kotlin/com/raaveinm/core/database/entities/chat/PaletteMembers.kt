@@ -21,8 +21,6 @@ import com.raaveinm.core.database.entities.api.user.Users
             onDelete = ForeignKey.NO_ACTION
         )
     ],
-    // paletteConversationId is covered by the composite PK; userSteamId needs its own
-    // (also makes "which palettes is this user in" queries fast)
     indices = [Index("userSteamId")]
 )
 data class PaletteMembers(

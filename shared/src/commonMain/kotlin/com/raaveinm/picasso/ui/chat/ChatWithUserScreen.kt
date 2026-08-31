@@ -20,6 +20,7 @@ fun ChatWithUserScreen(
     chat: Chat?,
     onBack: () -> Unit = {},
     onUserIconClick: (Long) -> Unit = {},
+    onLoadMoreHistory: () -> Unit = {},
     messageData: List<MessageData>
 ) {
     val user = chat?.chatTitle
@@ -39,7 +40,8 @@ fun ChatWithUserScreen(
             ChatMessages(
                 modifier = Modifier.fillMaxSize(),
                 user = user,
-                messages = messageData
+                messages = messageData,
+                onLoadMore = onLoadMoreHistory
             )
         }
     }

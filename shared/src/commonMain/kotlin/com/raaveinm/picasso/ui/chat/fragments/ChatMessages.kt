@@ -2,6 +2,7 @@ package com.raaveinm.picasso.ui.chat.fragments
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -14,10 +15,15 @@ import com.raaveinm.pickusall.core.designsystem.components.Messages
 fun ChatMessages(
     modifier: Modifier = Modifier,
     messages: List<MessageData> = emptyList(),
-    user: User
+    user: User,
+    onLoadMore: () -> Unit = {}
 ) {
+    val listState = rememberLazyListState()
+
     LazyColumn(
-        modifier
+        modifier,
+        state = listState,
+        reverseLayout = true
     ) {
         itemsIndexed(messages) { index, message ->
             Messages(
@@ -27,9 +33,10 @@ fun ChatMessages(
                 timestamp = message.timestamp,
                 isSender = user == message.user,
                 modifier = Modifier,
-                previousExisted = index > 0 && messages[index - 1].user == message.user,
-                isLast = index == messages.lastIndex || messages[index + 1].user != message.user
+                previousExisted = index < messages.lastIndex && messages[index + 1].user == message.user,
+                isLast = index == 0 || messages[index - 1].user != message.user
             )
+            if (index == messages.lastIndex) { onLoadMore() }
         }
     }
 }

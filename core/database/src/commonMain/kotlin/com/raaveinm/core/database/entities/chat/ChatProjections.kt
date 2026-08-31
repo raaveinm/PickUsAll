@@ -5,14 +5,17 @@ import androidx.room3.Junction
 import androidx.room3.Relation
 import com.raaveinm.core.database.entities.api.user.Users
 
-// Room can't map a sum type (Chat | Palette) out of one query, so the chat list is
-// read as two separate flows - one per conversation kind - and merged by the caller.
-
 data class ChatWithTitle(
     @Embedded val conversation: Conversations,
     @Embedded val chat: Chats,
     @Relation(parentColumns = ["chatTitleSteamId"], entityColumns = ["steamId"])
     val titleUser: Users
+)
+
+data class MessageWithSender(
+    @Embedded val message: MessageData,
+    @Relation(parentColumns = ["senderSteamId"], entityColumns = ["steamId"])
+    val sender: Users
 )
 
 data class PaletteWithMembers(

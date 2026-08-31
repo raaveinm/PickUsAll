@@ -67,6 +67,7 @@ kotlin {
                 implementation(libs.androidx.room3.runtime)
                 implementation(libs.androidx.sqlite.bundled)
                 implementation(libs.koin.core)
+                implementation(libs.kotlinx.datetime)
                 implementation(project(":core:model"))
             }
         }

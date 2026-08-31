@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -26,6 +27,7 @@ import com.raaveinm.picasso.ui.navigation.Palette
 import com.raaveinm.picasso.ui.navigation.UserProfile
 import org.koin.compose.viewmodel.koinViewModel
 import com.raaveinm.core.model.chat.Chat
+import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.core.model.chat.Palette as PaletteConversation
 
 private val CompactWidthBreakpoint = 700.dp
@@ -71,7 +73,7 @@ fun ChatScreen(
                 composable<ChatWithUser> { backStackEntry ->
                     val route = backStackEntry.toRoute<ChatWithUser>()
                     ChatWithUserScreen(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().padding(Dimensions.medium),
                         chat = state.conversations.filterIsInstance<Chat>().find { it.id == route.chatId },
                         onBack = {
                             viewModel.setSelectedChat(null)
@@ -86,7 +88,8 @@ fun ChatScreen(
                                 nestedNavHostController.navigate(UserProfile(userId = userId))
                             }
                         },
-                        messageData = emptyList()
+                        onLoadMoreHistory = { viewModel.retrieveChatHistory(route.chatId) },
+                        messageData = state.chatHistory
                     )
                 }
                 composable<UserProfile> {
@@ -132,16 +135,15 @@ fun ChatScreen(
                     modifier = Modifier.fillMaxHeight().weight(1f)
                 ) {
                     ChatWithUserScreen(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().padding(Dimensions.large),
                         chat = state.conversations.filterIsInstance<Chat>().find { it.id == state.selectedChat },
                         onBack = { viewModel.setSelectedChat(null) },
                         onUserIconClick = { viewModel.setSelectedUser(it) },
-                        messageData = emptyList()
+                        onLoadMoreHistory = { state.selectedChat?.let(viewModel::retrieveChatHistory) },
+                        messageData = state.chatHistory
                     )
                 }
                 if (showThirdColumn) {
-                    // the trailing column shows the selected member, or the palette roster while
-                    // nobody is picked - a DM always has its user selected, so it never lands here
                     AnimatedVisibility(
                         visible = state.selectedUser != null || selectedPalette != null,
                         modifier = Modifier.fillMaxHeight().sizeIn(minWidth = 128.dp, maxWidth = SidebarWidth)

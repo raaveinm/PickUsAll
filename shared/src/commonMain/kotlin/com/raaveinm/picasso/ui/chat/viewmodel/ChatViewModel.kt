@@ -13,8 +13,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class ChatViewModel(chatDao: ChatDao) : ViewModel() {
+private const val CHAT_HISTORY_PAGE_SIZE = 50
+
+class ChatViewModel(val chatDao: ChatDao) : ViewModel() {
     private val _chatsUiState = MutableStateFlow(ChatUiState())
     private val _friendListUiState = MutableStateFlow(FriendsUiState())
     val chatsUiState = _chatsUiState.asStateFlow()
@@ -32,9 +35,11 @@ class ChatViewModel(chatDao: ChatDao) : ViewModel() {
         ///////////////////////////////////////////////
         // friend list
         ///////////////////////////////////////////////
-        chatDao.getUserFriends(76561198966516520).onEach { friends ->
-            _friendListUiState.update { it.copy(friends = friends.map { user -> user.toDto() }) }
-        }.launchIn(viewModelScope)
+        viewModelScope.launch{
+            chatDao.getUserFriends(76561198966516520).onEach { friends ->
+                _friendListUiState.update { it.copy(friends = friends.map { user -> user.toDto() }) }
+            }.launchIn(viewModelScope)
+        }
     }
 
     fun setSelectedChat(id: Long?) {
@@ -42,8 +47,14 @@ class ChatViewModel(chatDao: ChatDao) : ViewModel() {
             val chat = id?.let { chatId ->
                 state.conversations.filterIsInstance<Chat>().find { it.id == chatId }
             }
-            state.copy(selectedChat = id, selectedUser = chat?.chatTitle)
+            state.copy(
+                selectedChat = id,
+                selectedUser = chat?.chatTitle,
+                chatHistory = emptyList(),
+                hasMoreChatHistory = true
+            )
         }
+        _chatsUiState.value.selectedChat?.let { retrieveChatHistory(it) }
     }
 
     fun setSelectedUser(userId: Long?) {
@@ -59,4 +70,26 @@ class ChatViewModel(chatDao: ChatDao) : ViewModel() {
             state.copy(selectedUser = user)
         }
     }
+
+    fun retrieveChatHistory(conversationId: Long) {
+        val state = _chatsUiState.value
+        if (state.isLoadingChatHistory || !state.hasMoreChatHistory) return
+        _chatsUiState.update { it.copy(isLoadingChatHistory = true) }
+        viewModelScope.launch {
+            val nextPage = chatDao
+                .getChatHistory(conversationId, _chatsUiState.value.chatHistory.size, CHAT_HISTORY_PAGE_SIZE)
+                .map { it.toDto() }
+            _chatsUiState.update {
+                it.copy(
+                    chatHistory = it.chatHistory + nextPage,
+                    isLoadingChatHistory = false,
+                    hasMoreChatHistory = nextPage.size == CHAT_HISTORY_PAGE_SIZE
+                )
+            }
+        }
+    }
+
+//    fun clearCachedChatHistory() {
+//        _chatsUiState.update { it.copy(chatHistory = emptyList(), hasMoreChatHistory = true) }
+//    }
 }

@@ -8,6 +8,8 @@ import com.raaveinm.core.database.entities.api.user.Users
 import com.raaveinm.core.database.entities.chat.ChatWithTitle
 import com.raaveinm.core.database.entities.chat.Chats
 import com.raaveinm.core.database.entities.chat.Conversations
+import com.raaveinm.core.database.entities.chat.MessageData
+import com.raaveinm.core.database.entities.chat.MessageWithSender
 import com.raaveinm.core.database.entities.chat.PaletteWithMembers
 import kotlinx.coroutines.flow.Flow
 
@@ -23,12 +25,17 @@ interface ChatDao {
     @Insert
     suspend fun insertChat(chat: Chats)
 
+    @Insert
+    suspend fun insertMessage(message: MessageData)
+
     @Transaction
-    @Query("SELECT conversations.*, chats.* FROM conversations JOIN chats ON chats.conversationId = conversations.id ORDER BY conversations.id DESC")
+    @Query("SELECT conversations.*, chats.* FROM conversations JOIN chats" +
+            " ON chats.conversationId = conversations.id ORDER BY conversations.id DESC")
     fun observeChats(): Flow<List<ChatWithTitle>>
 
     @Transaction
-    @Query("SELECT conversations.*, palettes.* FROM conversations JOIN palettes ON palettes.conversationId = conversations.id ORDER BY conversations.id DESC")
+    @Query("SELECT conversations.*, palettes.* FROM conversations JOIN palettes" +
+            " ON palettes.conversationId = conversations.id ORDER BY conversations.id DESC")
     fun observePalettes(): Flow<List<PaletteWithMembers>>
 
     @Transaction
@@ -50,8 +57,16 @@ interface ChatDao {
         return conversationId
     }
 
-    @Query("SELECT steamId, communityVisibilityState, profileState, personaName, commentPermission, profileUrl, avatar, " +
-            "       avatarMedium, avatarFull, avatarHash, lastLogOff, personaState, realName, primaryClanId, timeCreated, " +
-            "       personaStateFlags, locCountryCode, locStateCode, locCityId, gameExtraInfo, gameId, fetchedAt " +
-            "from SteamFriends JOIN main.Users U on SteamFriends.friendSteamId = U.steamId where userSteamId = :userId;") fun getUserFriends(userId: Long): Flow<List<Users>>
+    @Query(
+        "SELECT steamId, communityVisibilityState, profileState, personaName, commentPermission, " +
+                "profileUrl, avatar, avatarMedium, avatarFull, avatarHash, lastLogOff, personaState, " +
+                "realName, primaryClanId, timeCreated, personaStateFlags, locCountryCode," +
+                " locStateCode, locCityId, gameExtraInfo, gameId, fetchedAt from SteamFriends " +
+                "JOIN main.Users U on SteamFriends.friendSteamId = U.steamId where userSteamId = :userId;"
+    )
+    fun getUserFriends(userId: Long): Flow<List<Users>>
+
+    @Transaction
+    @Query("select * from MessageData where conversationId = :conversationId order by timestamp desc limit :limit offset :offset")
+    suspend fun getChatHistory(conversationId: Long, offset: Int, limit: Int): List<MessageWithSender>
 }
