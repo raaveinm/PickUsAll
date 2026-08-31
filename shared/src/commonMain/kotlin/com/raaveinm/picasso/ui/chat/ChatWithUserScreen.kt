@@ -9,7 +9,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.raaveinm.core.model.chat.Chat
+import com.raaveinm.core.model.chat.Conversation
 import com.raaveinm.core.model.chat.MessageData
+import com.raaveinm.core.model.chat.Palette
 import com.raaveinm.picasso.ui.chat.fragments.ChatMessages
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
@@ -17,32 +19,40 @@ import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 @Composable
 fun ChatWithUserScreen(
     modifier: Modifier = Modifier,
-    chat: Chat?,
+    conversation: Conversation?,
     onBack: () -> Unit = {},
     onUserIconClick: (Long) -> Unit = {},
     onLoadMoreHistory: () -> Unit = {},
     messageData: List<MessageData>
 ) {
-    val user = chat?.chatTitle
+    if (conversation == null) return
+
+    val counterpart = (conversation as? Chat)?.chatTitle
+    val title = when (conversation) {
+        is Chat -> conversation.chatTitle.personaName
+        is Palette -> conversation.name
+    }
+    val icon = when (conversation) {
+        is Chat -> conversation.chatTitle.avatarMedium
+        is Palette -> conversation.members.firstOrNull()?.avatarMedium
+    }
 
     Column(
         modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (user != null) {
-            ChatTopBar(
-                modifier = Modifier.sizeIn(maxWidth = 512.dp).padding(horizontal = Dimensions.medium),
-                chatName = user.personaName,
-                chatIcon = user.avatarMedium,
-                onGoBackAction = onBack,
-                onChatIconAction = { onUserIconClick(user.steamId) }
-            )
-            ChatMessages(
-                modifier = Modifier.fillMaxSize(),
-                user = user,
-                messages = messageData,
-                onLoadMore = onLoadMoreHistory
-            )
-        }
+        ChatTopBar(
+            modifier = Modifier.sizeIn(maxWidth = 512.dp).padding(horizontal = Dimensions.medium),
+            chatName = title,
+            chatIcon = icon,
+            onGoBackAction = onBack,
+            onChatIconAction = { onUserIconClick(counterpart?.steamId ?: conversation.id) }
+        )
+        ChatMessages(
+            modifier = Modifier.fillMaxSize(),
+            user = counterpart,
+            messages = messageData,
+            onLoadMore = onLoadMoreHistory
+        )
     }
 }

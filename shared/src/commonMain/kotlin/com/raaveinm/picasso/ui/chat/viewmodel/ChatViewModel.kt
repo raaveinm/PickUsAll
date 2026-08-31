@@ -71,6 +71,11 @@ class ChatViewModel(val chatDao: ChatDao) : ViewModel() {
         }
     }
 
+    fun dmWith(steamId: Long): Long? = _chatsUiState.value.conversations
+        .filterIsInstance<Chat>()
+        .firstOrNull { it.chatTitle.steamId == steamId }
+        ?.id
+
     fun retrieveChatHistory(conversationId: Long) {
         val state = _chatsUiState.value
         if (state.isLoadingChatHistory || !state.hasMoreChatHistory) return

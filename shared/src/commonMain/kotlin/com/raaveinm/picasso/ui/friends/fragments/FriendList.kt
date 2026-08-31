@@ -47,7 +47,6 @@ fun FriendList(
         }
 
         items(friendList, key = { it.steamId }) { friend ->
-            // statuses are picked at random, so they are kept stable across recompositions
             val status = remember(friend) { friend.statusText() }
             UserMiniProfile(
                 modifier = Modifier.fillMaxWidth(),

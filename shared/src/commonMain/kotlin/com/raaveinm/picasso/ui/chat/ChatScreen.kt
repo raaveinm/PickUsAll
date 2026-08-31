@@ -14,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,7 +27,6 @@ import com.raaveinm.picasso.ui.navigation.ChatWithUser
 import com.raaveinm.picasso.ui.navigation.Palette
 import com.raaveinm.picasso.ui.navigation.UserProfile
 import org.koin.compose.viewmodel.koinViewModel
-import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.core.model.chat.Palette as PaletteConversation
 
@@ -74,7 +74,7 @@ fun ChatScreen(
                     val route = backStackEntry.toRoute<ChatWithUser>()
                     ChatWithUserScreen(
                         modifier = Modifier.fillMaxSize().padding(Dimensions.medium),
-                        chat = state.conversations.filterIsInstance<Chat>().find { it.id == route.chatId },
+                        conversation = state.conversations.find { it.id == route.chatId },
                         onBack = {
                             viewModel.setSelectedChat(null)
                             nestedNavHostController.popBackStack()
@@ -92,7 +92,8 @@ fun ChatScreen(
                         messageData = state.chatHistory
                     )
                 }
-                composable<UserProfile> {
+                composable<UserProfile> { backStackEntry ->
+                    val route = backStackEntry.toRoute<UserProfile>()
                     state.selectedUser?.let {
                         UserActions(
                             modifier = Modifier.fillMaxSize(),
@@ -101,7 +102,21 @@ fun ChatScreen(
                             onBack = { nestedNavHostController.popBackStack() },
                             showTopBar = true,
                             onAddToGroupClick = {}, //TODO(complete add group logic)
-                            onMessageClick = { viewModel.setSelectedChat(state.selectedChat) }
+                            // TODO(start a new DM when there is no conversation with them yet)
+                            onMessageClick = {
+                                viewModel.dmWith(route.userId)?.let { chatId ->
+                                    viewModel.setSelectedChat(chatId)
+                                    // that chat is usually the entry we came from - go back to it
+                                    // instead of stacking a second copy on top
+                                    val returned = nestedNavHostController.popBackStack(
+                                        route = ChatWithUser(chatId = chatId),
+                                        inclusive = false
+                                    )
+                                    if (!returned) {
+                                        nestedNavHostController.navigate(ChatWithUser(chatId = chatId))
+                                    }
+                                }
+                            }
                         )
                     }
                 }
@@ -116,6 +131,19 @@ fun ChatScreen(
                             nestedNavHostController.navigate(UserProfile(userId = userId))
                         }
                     )
+                }
+            }
+
+            // `startDestination` is only read when the graph is built, but this screen's back stack
+            // entry (and with it the nested controller) survives tab switches - so a chat id
+            // arriving later has to be applied by navigating.
+            LaunchedEffect(selectedChatId) {
+                if (selectedChatId == null) return@LaunchedEffect
+                val current = nestedNavHostController.currentBackStackEntry
+                val alreadyOpen = current?.destination?.hasRoute<ChatWithUser>() == true &&
+                        current.toRoute<ChatWithUser>().chatId == selectedChatId
+                if (!alreadyOpen) {
+                    nestedNavHostController.navigate(ChatWithUser(chatId = selectedChatId))
                 }
             }
         } else {
@@ -136,9 +164,13 @@ fun ChatScreen(
                 ) {
                     ChatWithUserScreen(
                         modifier = Modifier.fillMaxSize().padding(Dimensions.large),
-                        chat = state.conversations.filterIsInstance<Chat>().find { it.id == state.selectedChat },
+                        conversation = state.conversations.find { it.id == state.selectedChat },
                         onBack = { viewModel.setSelectedChat(null) },
-                        onUserIconClick = { viewModel.setSelectedUser(it) },
+                        // a palette has no single counterpart - clearing the selection hands the
+                        // trailing column back to the member roster
+                        onUserIconClick = { userId ->
+                            viewModel.setSelectedUser(if (selectedPalette != null) null else userId)
+                        },
                         onLoadMoreHistory = { state.selectedChat?.let(viewModel::retrieveChatHistory) },
                         messageData = state.chatHistory
                     )
@@ -155,7 +187,13 @@ fun ChatScreen(
                                 user = selectedUser,
                                 mostPlayed = listOf(),
                                 onBack = { viewModel.setSelectedUser(null) },
-                                onAddToGroupClick = {} // TODO(same)
+                                onAddToGroupClick = {}, // TODO(same)
+                                // opening the DM in the middle column also loads its history
+                                // TODO(start a new DM when there is no conversation with them yet)
+                                onMessageClick = {
+                                    viewModel.dmWith(selectedUser.steamId)
+                                        ?.let(viewModel::setSelectedChat)
+                                }
                             )
                             selectedPalette != null -> GroupScreen(
                                 modifier = Modifier.fillMaxSize(),

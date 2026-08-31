@@ -66,6 +66,14 @@ fun App(
             navigationSelected = tab
         }
 
+        fun openChat(chatId: Long) {
+            navController.navigate(ChatGraph(selectedChatId = chatId)) {
+                popUpTo<Canvas> { saveState = true }
+                launchSingleTop = true
+            }
+            navigationSelected = ChatTab
+        }
+
         val gradientBrush = Brush.verticalGradient(
             colors = listOf(
                 MaterialTheme.colorScheme.surface,
@@ -101,9 +109,7 @@ fun App(
                         modifier = Modifier.safeContentPadding(),
                         viewModel = chatViewModel,
                         // TODO(start a new DM when there is no conversation with that friend yet)
-                        onMessageClick = { chatId ->
-                            if (chatId != null) openTab(ChatGraph(chatId), ChatTab)
-                        }
+                        onMessageClick = { chatId -> chatId?.let(::openChat) }
                     )
                 }
                 composable<Settings> {

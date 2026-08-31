@@ -57,7 +57,7 @@ fun FriendScreen(
             modifier = Modifier.fillMaxSize().sizeIn(maxWidth = ContentWidth),
             friendList = shownFriends,
             emptyPlaceholder = if (query.isBlank()) "no artists around" else "nobody answers to \"$query\"",
-            onMessageClick = { friend -> onMessageClick(state.friends.firstOrNull {friend.steamId == friend.steamId}?.steamId) }
+            onMessageClick = { friend -> onMessageClick(viewModel.dmWith(friend.steamId)) }
         )
     }
 }
