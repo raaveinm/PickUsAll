@@ -2,9 +2,11 @@ package com.raaveinm.picasso.ui.canvas
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -16,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.raaveinm.core.model.game.LibraryOrder
 import com.raaveinm.picasso.ui.canvas.fragments.CanvasLibrary
 import com.raaveinm.picasso.ui.canvas.fragments.ColourPicker
 import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
@@ -34,6 +37,7 @@ fun CanvasScreen(
     viewModel: CanvasViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
     val options = stringArrayResource(Res.array.switch_options)
     var selectedSwitch by remember { mutableStateOf(0) }
 
@@ -52,16 +56,21 @@ fun CanvasScreen(
             )
             if (selectedSwitch == 0) {
                 val options = stringArrayResource(Res.array.sort_options)
-                var selected by remember { mutableStateOf(0) }
 
                 DropDownSelector(
                     modifier = Modifier
                         .zIndex(2f)
                         .sizeIn(maxWidth = 256.dp)
                         .padding(top = Dimensions.extraLarge, bottom = Dimensions.medium),
-                    selectedOption = options[selected],
+                    selectedOption = options[uiState.libraryOrder.ordinal],
                     onOptionSelected = {
-                        selected = options.indexOf(it)
+                        val newOrder = when (options.indexOf(it)) {
+                            0 -> LibraryOrder.NAME
+                            1 -> LibraryOrder.PLAYTIME
+                            2 -> LibraryOrder.LAST_PLAYED
+                            else -> LibraryOrder.NAME
+                        }
+                        viewModel.onOrderChanged(newOrder)
                     },
                     optionsList = options
                 )
@@ -72,10 +81,16 @@ fun CanvasScreen(
             contentAlignment = Alignment.TopCenter
         ) {
             if (selectedSwitch == 0) {
-                CanvasLibrary(
-                    modifier = Modifier.sizeIn(maxWidth = 1024.dp),
-                    libraryList = uiState.userLibrary
-                )
+                PullToRefreshBox(
+                    isRefreshing = isRefreshing,
+                    onRefresh = { viewModel.refreshLibrary() },
+                    modifier = Modifier.sizeIn(maxWidth = 1024.dp)
+                ) {
+                    CanvasLibrary(
+                        modifier = Modifier.fillMaxSize(),
+                        libraryList = uiState.userLibrary
+                    )
+                }
             } else {
                 ColourPicker(
                     modifier = Modifier

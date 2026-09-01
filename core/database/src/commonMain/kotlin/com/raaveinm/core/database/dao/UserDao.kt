@@ -31,4 +31,7 @@ interface UserDao {
     suspend fun pruneStaleUsers(selfSteamId: Long, cutoff: Long): Int
     @Query("select * from OwnedGames where userSteamId=:userId")
     fun getUserLibrary(userId: Long): Flow<List<OwnedGames>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun addOwnedGames(games: List<OwnedGames>)
 }

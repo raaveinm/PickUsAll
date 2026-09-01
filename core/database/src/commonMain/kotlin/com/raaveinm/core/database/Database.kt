@@ -1,5 +1,6 @@
 package com.raaveinm.core.database
 
+import androidx.room3.ColumnTypeConverters
 import androidx.room3.ConstructedBy
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
@@ -41,6 +42,7 @@ import com.raaveinm.core.database.entities.server.Servers
     // api - user
     OwnedGames::class, SteamFriends::class, UserAchievements::class, Users::class
                      ], version = 1)
+//@ColumnTypeConverters(RoomConverters::class)
 @ConstructedBy(DatabaseConstructor::class)
 abstract class PicassoDatabase : RoomDatabase() {
     abstract fun getChatDao(): ChatDao
