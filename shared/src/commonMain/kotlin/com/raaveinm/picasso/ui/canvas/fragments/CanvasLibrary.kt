@@ -2,6 +2,7 @@ package com.raaveinm.picasso.ui.canvas.fragments
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -13,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.picasso.ui.actions.libraryRedirect
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
+import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 
 //
 // Created by Kirill "Raaveinm" on 8/18/26.
@@ -29,7 +31,7 @@ fun CanvasLibrary(
 
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minCellSize),
-//            contentPadding = PaddingValues(Dimensions.medium),
+            contentPadding = PaddingValues(vertical = Dimensions.paddingAboveAverage),
             verticalArrangement = Arrangement.Center,
             horizontalArrangement = Arrangement.Center,
         ) {

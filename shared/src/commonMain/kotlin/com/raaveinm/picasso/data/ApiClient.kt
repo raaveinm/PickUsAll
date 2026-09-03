@@ -1,6 +1,8 @@
 package com.raaveinm.picasso.data
 
-import com.raaveinm.core.model.user.GetOwnedGamesResponse
+import com.raaveinm.core.model.game.Game
+import com.raaveinm.core.model.responses.GetGameStoreInfoResponse
+import com.raaveinm.core.model.responses.GetOwnedGamesResponse
 import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.picasso.AppConfig
 import io.ktor.client.HttpClient
@@ -19,6 +21,10 @@ class ApiClient(private val httpClient: HttpClient) {
     val userId: Long
         get() = AppConfig.USER_ID
 
+    ///////////////////////////////////////////////
+    // User's owned games fetch
+    ///////////////////////////////////////////////
+
     suspend fun getOwnedGames(): List<OwnedGame> =
         httpClient.get("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/") {
             parameter("key", steamApi)
@@ -27,4 +33,13 @@ class ApiClient(private val httpClient: HttpClient) {
             parameter("include_played_free_games", true)
             parameter("format", "json")
         }.body<GetOwnedGamesResponse>().response.games
+
+    ///////////////////////////////////////////////
+    // Store's game info fetch
+    ///////////////////////////////////////////////
+    suspend fun getGameStoreInfo(appId: Long): Game? =
+        httpClient.get("https://store.steampowered.com/api/appdetails") {
+            parameter("appids", appId)
+            parameter("format", "json")
+        }.body<GetGameStoreInfoResponse>()[appId.toString()]?.data
 }

@@ -1,9 +1,10 @@
-package com.raaveinm.core.model.user
+package com.raaveinm.core.model.responses
 
 //
 // Created by Kirill "Raaveinm" on 9/1/26.
 //
 
+import com.raaveinm.core.model.user.OwnedGame
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

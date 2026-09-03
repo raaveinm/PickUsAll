@@ -12,5 +12,6 @@ object Dimensions {
     val medium = 16.dp
     val large = 32.dp
     val extraLarge = 64.dp
-    val extraExtraLarge = 128.dp
+    val paddingAverage = 72.dp
+    val paddingAboveAverage = 128.dp
 }
