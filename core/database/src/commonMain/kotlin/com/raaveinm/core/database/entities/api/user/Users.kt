@@ -12,9 +12,9 @@ import androidx.room3.PrimaryKey
 data class Users(
     @PrimaryKey val steamId: Long,
     val communityVisibilityState: Int,
-    val profileState: Boolean? = null,
+    val profileState: Int? = null,
     val personaName: String,
-    val commentPermission: Boolean,
+    val commentPermission: Int,
     val profileUrl: String,
     val avatar: String,
     val avatarMedium: String,

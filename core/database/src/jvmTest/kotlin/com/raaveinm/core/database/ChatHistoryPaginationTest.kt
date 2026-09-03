@@ -104,7 +104,7 @@ class ChatHistoryPaginationTest {
         steamId = steamId,
         communityVisibilityState = 3,
         personaName = name,
-        commentPermission = false,
+        commentPermission = 0,
         profileUrl = "https://example.test/$steamId",
         avatar = "",
         avatarMedium = "",

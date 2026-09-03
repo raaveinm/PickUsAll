@@ -3,7 +3,9 @@ package com.raaveinm.picasso.data
 import com.raaveinm.core.model.game.Game
 import com.raaveinm.core.model.responses.GetGameStoreInfoResponse
 import com.raaveinm.core.model.responses.GetOwnedGamesResponse
+import com.raaveinm.core.model.responses.GetPlayerSummariesResponse
 import com.raaveinm.core.model.user.OwnedGame
+import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.AppConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -20,6 +22,17 @@ class ApiClient(private val httpClient: HttpClient) {
         get() = AppConfig.STEAM_API_KEY
     val userId: Long
         get() = AppConfig.USER_ID
+
+    ///////////////////////////////////////////////
+    // User's profile fetch
+    ///////////////////////////////////////////////
+
+    suspend fun getPlayerSummary(steamId: Long): User? =
+        httpClient.get("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/") {
+            parameter("key", steamApi)
+            parameter("steamids", steamId)
+            parameter("format", "json")
+        }.body<GetPlayerSummariesResponse>().response.players.firstOrNull()
 
     ///////////////////////////////////////////////
     // User's owned games fetch

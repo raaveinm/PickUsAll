@@ -31,11 +31,11 @@ data class User(
     @SerialName("communityvisibilitystate")     // Community Visibility State
     val communityVisibilityState: Int,        // communityvisibilitystate 3 = Public, 1 = Private (only 3 returns full detail)
     @SerialName("profilestate")                 // Profile State
-    val profileState: Boolean? = null,                // user has ever set up their Steam Community profile
+    val profileState: Int? = null,                // user has ever set up their Steam Community profile (1 = yes)
     @SerialName("personaname")
     val personaName: String,                    // Display Name
     @SerialName("commentpermission")
-    val commentPermission: Boolean,             // Is comments allowed
+    val commentPermission: Int = 0,             // Steam sends this as 0/1, not a JSON boolean; omitted for some profiles
     @SerialName("profileurl")
     val profileUrl: String,                     // Steam Profile URL
     @SerialName("avatar")
