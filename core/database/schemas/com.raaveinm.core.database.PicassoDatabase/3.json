@@ -1,0 +1,1277 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "7abe9ac839329a730014ace438720008",
+    "entities": [
+      {
+        "tableName": "Servers",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `url` TEXT NOT NULL, `name` TEXT, `added` INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "added",
+            "columnName": "added",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "CURRENT_TIMESTAMP"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "Chats",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`conversationId` INTEGER NOT NULL, `chatTitleSteamId` INTEGER NOT NULL, PRIMARY KEY(`conversationId`), FOREIGN KEY(`conversationId`) REFERENCES `Conversations`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`chatTitleSteamId`) REFERENCES `Users`(`steamId`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "conversationId",
+            "columnName": "conversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chatTitleSteamId",
+            "columnName": "chatTitleSteamId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "conversationId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Chats_chatTitleSteamId",
+            "unique": false,
+            "columnNames": [
+              "chatTitleSteamId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Chats_chatTitleSteamId` ON `${TABLE_NAME}` (`chatTitleSteamId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Conversations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "conversationId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "Users",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "chatTitleSteamId"
+            ],
+            "referencedColumns": [
+              "steamId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Conversations",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `serverId` INTEGER NOT NULL, `kind` TEXT NOT NULL, `lastMessage` TEXT, `remoteId` INTEGER NOT NULL, FOREIGN KEY(`serverId`) REFERENCES `Servers`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serverId",
+            "columnName": "serverId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastMessage",
+            "columnName": "lastMessage",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Conversations_serverId_remoteId",
+            "unique": true,
+            "columnNames": [
+              "serverId",
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Conversations_serverId_remoteId` ON `${TABLE_NAME}` (`serverId`, `remoteId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Servers",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "serverId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "MessageData",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `conversationId` INTEGER NOT NULL, `senderSteamId` INTEGER NOT NULL, `textMessage` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `status` TEXT NOT NULL, FOREIGN KEY(`conversationId`) REFERENCES `Conversations`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`senderSteamId`) REFERENCES `Users`(`steamId`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "conversationId",
+            "columnName": "conversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "senderSteamId",
+            "columnName": "senderSteamId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "textMessage",
+            "columnName": "textMessage",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_MessageData_conversationId_timestamp",
+            "unique": false,
+            "columnNames": [
+              "conversationId",
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_MessageData_conversationId_timestamp` ON `${TABLE_NAME}` (`conversationId`, `timestamp`)"
+          },
+          {
+            "name": "index_MessageData_senderSteamId",
+            "unique": false,
+            "columnNames": [
+              "senderSteamId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_MessageData_senderSteamId` ON `${TABLE_NAME}` (`senderSteamId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Conversations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "conversationId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "Users",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "senderSteamId"
+            ],
+            "referencedColumns": [
+              "steamId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "PaletteMembers",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`paletteConversationId` INTEGER NOT NULL, `userSteamId` INTEGER NOT NULL, PRIMARY KEY(`paletteConversationId`, `userSteamId`), FOREIGN KEY(`paletteConversationId`) REFERENCES `Palettes`(`conversationId`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`userSteamId`) REFERENCES `Users`(`steamId`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "paletteConversationId",
+            "columnName": "paletteConversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userSteamId",
+            "columnName": "userSteamId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "paletteConversationId",
+            "userSteamId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_PaletteMembers_userSteamId",
+            "unique": false,
+            "columnNames": [
+              "userSteamId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_PaletteMembers_userSteamId` ON `${TABLE_NAME}` (`userSteamId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Palettes",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "paletteConversationId"
+            ],
+            "referencedColumns": [
+              "conversationId"
+            ]
+          },
+          {
+            "table": "Users",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "userSteamId"
+            ],
+            "referencedColumns": [
+              "steamId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Palettes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`conversationId` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`conversationId`), FOREIGN KEY(`conversationId`) REFERENCES `Conversations`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "conversationId",
+            "columnName": "conversationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "conversationId"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "Conversations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "conversationId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Categories",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`categoryId` INTEGER NOT NULL, `description` TEXT NOT NULL, PRIMARY KEY(`categoryId`))",
+        "fields": [
+          {
+            "fieldPath": "categoryId",
+            "columnName": "categoryId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "categoryId"
+          ]
+        }
+      },
+      {
+        "tableName": "GameAchievements",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`appId` INTEGER NOT NULL, `apiName` TEXT NOT NULL, `name` TEXT, `description` TEXT, PRIMARY KEY(`appId`, `apiName`), FOREIGN KEY(`appId`) REFERENCES `Games`(`steamAppId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "appId",
+            "columnName": "appId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "apiName",
+            "columnName": "apiName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "appId",
+            "apiName"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "Games",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "appId"
+            ],
+            "referencedColumns": [
+              "steamAppId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "GameCategories",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`steamAppId` INTEGER NOT NULL, `categoryId` INTEGER NOT NULL, PRIMARY KEY(`steamAppId`, `categoryId`), FOREIGN KEY(`steamAppId`) REFERENCES `Games`(`steamAppId`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`categoryId`) REFERENCES `Categories`(`categoryId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "steamAppId",
+            "columnName": "steamAppId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoryId",
+            "columnName": "categoryId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "steamAppId",
+            "categoryId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_GameCategories_categoryId",
+            "unique": false,
+            "columnNames": [
+              "categoryId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_GameCategories_categoryId` ON `${TABLE_NAME}` (`categoryId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Games",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "steamAppId"
+            ],
+            "referencedColumns": [
+              "steamAppId"
+            ]
+          },
+          {
+            "table": "Categories",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "categoryId"
+            ],
+            "referencedColumns": [
+              "categoryId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "GameDevelopers",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`developerId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `steamAppId` INTEGER NOT NULL, `developerName` TEXT NOT NULL, FOREIGN KEY(`steamAppId`) REFERENCES `Games`(`steamAppId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "developerId",
+            "columnName": "developerId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "steamAppId",
+            "columnName": "steamAppId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "developerName",
+            "columnName": "developerName",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "developerId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_GameDevelopers_steamAppId",
+            "unique": false,
+            "columnNames": [
+              "steamAppId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_GameDevelopers_steamAppId` ON `${TABLE_NAME}` (`steamAppId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Games",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "steamAppId"
+            ],
+            "referencedColumns": [
+              "steamAppId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "GameGenres",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`steamAppId` INTEGER NOT NULL, `genreId` TEXT NOT NULL, PRIMARY KEY(`steamAppId`, `genreId`), FOREIGN KEY(`steamAppId`) REFERENCES `Games`(`steamAppId`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`genreId`) REFERENCES `Genres`(`genreId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "steamAppId",
+            "columnName": "steamAppId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "genreId",
+            "columnName": "genreId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "steamAppId",
+            "genreId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_GameGenres_genreId",
+            "unique": false,
+            "columnNames": [
+              "genreId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_GameGenres_genreId` ON `${TABLE_NAME}` (`genreId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Games",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "steamAppId"
+            ],
+            "referencedColumns": [
+              "steamAppId"
+            ]
+          },
+          {
+            "table": "Genres",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "genreId"
+            ],
+            "referencedColumns": [
+              "genreId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "GameMedia",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`itemId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `steamAppId` INTEGER NOT NULL, `screenshotSteamId` INTEGER, `pathThumbNail` TEXT NOT NULL, `pathFull` TEXT NOT NULL, FOREIGN KEY(`steamAppId`) REFERENCES `Games`(`steamAppId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "itemId",
+            "columnName": "itemId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "steamAppId",
+            "columnName": "steamAppId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "screenshotSteamId",
+            "columnName": "screenshotSteamId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "pathThumbNail",
+            "columnName": "pathThumbNail",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pathFull",
+            "columnName": "pathFull",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "itemId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_GameMedia_steamAppId",
+            "unique": false,
+            "columnNames": [
+              "steamAppId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_GameMedia_steamAppId` ON `${TABLE_NAME}` (`steamAppId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Games",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "steamAppId"
+            ],
+            "referencedColumns": [
+              "steamAppId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "GamePublishers",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`publisherId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `steamAppId` INTEGER NOT NULL, `publisherName` TEXT NOT NULL, FOREIGN KEY(`steamAppId`) REFERENCES `Games`(`steamAppId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "publisherId",
+            "columnName": "publisherId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "steamAppId",
+            "columnName": "steamAppId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "publisherName",
+            "columnName": "publisherName",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "publisherId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_GamePublishers_steamAppId",
+            "unique": false,
+            "columnNames": [
+              "steamAppId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_GamePublishers_steamAppId` ON `${TABLE_NAME}` (`steamAppId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Games",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "steamAppId"
+            ],
+            "referencedColumns": [
+              "steamAppId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Games",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`steamAppId` INTEGER NOT NULL, `name` TEXT NOT NULL, `type` TEXT, `shortDescription` TEXT, `aboutGame` TEXT, `detailedDescription` TEXT, `supportedLanguages` TEXT, `headerImage` TEXT, `webSite` TEXT, `platformWindows` INTEGER, `platformMac` INTEGER, `platformLinux` INTEGER, `priceCurrency` TEXT, `priceInitial` INTEGER, `priceFinal` INTEGER, `priceDiscountPercent` INTEGER, `priceInitialFormatted` TEXT, `priceFinalFormatted` TEXT, `releaseComingSoon` INTEGER, `releaseDate` TEXT, `createdAt` INTEGER, `updatedAt` INTEGER, PRIMARY KEY(`steamAppId`))",
+        "fields": [
+          {
+            "fieldPath": "steamAppId",
+            "columnName": "steamAppId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "shortDescription",
+            "columnName": "shortDescription",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "aboutGame",
+            "columnName": "aboutGame",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "detailedDescription",
+            "columnName": "detailedDescription",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "supportedLanguages",
+            "columnName": "supportedLanguages",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "headerImage",
+            "columnName": "headerImage",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "webSite",
+            "columnName": "webSite",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "platformWindows",
+            "columnName": "platformWindows",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "platformMac",
+            "columnName": "platformMac",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "platformLinux",
+            "columnName": "platformLinux",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "priceCurrency",
+            "columnName": "priceCurrency",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "priceInitial",
+            "columnName": "priceInitial",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "priceFinal",
+            "columnName": "priceFinal",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "priceDiscountPercent",
+            "columnName": "priceDiscountPercent",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "priceInitialFormatted",
+            "columnName": "priceInitialFormatted",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "priceFinalFormatted",
+            "columnName": "priceFinalFormatted",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "releaseComingSoon",
+            "columnName": "releaseComingSoon",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "releaseDate",
+            "columnName": "releaseDate",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "steamAppId"
+          ]
+        }
+      },
+      {
+        "tableName": "Genres",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`genreId` TEXT NOT NULL, `description` TEXT NOT NULL, PRIMARY KEY(`genreId`))",
+        "fields": [
+          {
+            "fieldPath": "genreId",
+            "columnName": "genreId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "genreId"
+          ]
+        }
+      },
+      {
+        "tableName": "OwnedGames",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userSteamId` INTEGER NOT NULL, `appId` INTEGER NOT NULL, `name` TEXT NOT NULL, `imgIconUrl` TEXT NOT NULL, `playtimeForever` INTEGER NOT NULL, `playtime2Weeks` INTEGER NOT NULL, `playtimeForeverWindows` INTEGER, `playtimeForeverMac` INTEGER, `playtimeForeverLinux` INTEGER, `playtimeForeverDeck` INTEGER, `playtimeDisconnected` INTEGER, `hasCommunityVisible` INTEGER NOT NULL, `rTimeLastPlayed` INTEGER NOT NULL, `fetchedAt` INTEGER NOT NULL, PRIMARY KEY(`userSteamId`, `appId`), FOREIGN KEY(`userSteamId`) REFERENCES `Users`(`steamId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "userSteamId",
+            "columnName": "userSteamId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appId",
+            "columnName": "appId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "imgIconUrl",
+            "columnName": "imgIconUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "playtimeForever",
+            "columnName": "playtimeForever",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "playtime2Weeks",
+            "columnName": "playtime2Weeks",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "playtimeForeverWindows",
+            "columnName": "playtimeForeverWindows",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "playtimeForeverMac",
+            "columnName": "playtimeForeverMac",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "playtimeForeverLinux",
+            "columnName": "playtimeForeverLinux",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "playtimeForeverDeck",
+            "columnName": "playtimeForeverDeck",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "playtimeDisconnected",
+            "columnName": "playtimeDisconnected",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "hasCommunityVisible",
+            "columnName": "hasCommunityVisible",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rTimeLastPlayed",
+            "columnName": "rTimeLastPlayed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fetchedAt",
+            "columnName": "fetchedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "userSteamId",
+            "appId"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "Users",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "userSteamId"
+            ],
+            "referencedColumns": [
+              "steamId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "SteamFriends",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userSteamId` INTEGER NOT NULL, `friendSteamId` INTEGER NOT NULL, `relation` TEXT, `friendsSince` INTEGER, `createdAt` INTEGER, PRIMARY KEY(`userSteamId`, `friendSteamId`), FOREIGN KEY(`userSteamId`) REFERENCES `Users`(`steamId`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`friendSteamId`) REFERENCES `Users`(`steamId`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "userSteamId",
+            "columnName": "userSteamId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "friendSteamId",
+            "columnName": "friendSteamId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relation",
+            "columnName": "relation",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "friendsSince",
+            "columnName": "friendsSince",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "userSteamId",
+            "friendSteamId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_SteamFriends_friendSteamId",
+            "unique": false,
+            "columnNames": [
+              "friendSteamId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_SteamFriends_friendSteamId` ON `${TABLE_NAME}` (`friendSteamId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Users",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "userSteamId"
+            ],
+            "referencedColumns": [
+              "steamId"
+            ]
+          },
+          {
+            "table": "Users",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "friendSteamId"
+            ],
+            "referencedColumns": [
+              "steamId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "UserAchievements",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`steamId` INTEGER NOT NULL, `appId` INTEGER NOT NULL, `apiName` TEXT NOT NULL, `achieved` INTEGER NOT NULL, `unlockTime` INTEGER, `fetchedAt` INTEGER NOT NULL, PRIMARY KEY(`steamId`, `appId`, `apiName`), FOREIGN KEY(`steamId`) REFERENCES `Users`(`steamId`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`appId`, `apiName`) REFERENCES `GameAchievements`(`appId`, `apiName`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "steamId",
+            "columnName": "steamId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appId",
+            "columnName": "appId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "apiName",
+            "columnName": "apiName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "achieved",
+            "columnName": "achieved",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unlockTime",
+            "columnName": "unlockTime",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fetchedAt",
+            "columnName": "fetchedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "steamId",
+            "appId",
+            "apiName"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_UserAchievements_appId_apiName",
+            "unique": false,
+            "columnNames": [
+              "appId",
+              "apiName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_UserAchievements_appId_apiName` ON `${TABLE_NAME}` (`appId`, `apiName`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Users",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "steamId"
+            ],
+            "referencedColumns": [
+              "steamId"
+            ]
+          },
+          {
+            "table": "GameAchievements",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "appId",
+              "apiName"
+            ],
+            "referencedColumns": [
+              "appId",
+              "apiName"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Users",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`steamId` INTEGER NOT NULL, `communityVisibilityState` INTEGER NOT NULL, `profileState` INTEGER, `personaName` TEXT NOT NULL, `commentPermission` INTEGER NOT NULL, `profileUrl` TEXT NOT NULL, `avatar` TEXT NOT NULL, `avatarMedium` TEXT NOT NULL, `avatarFull` TEXT NOT NULL, `avatarHash` TEXT NOT NULL, `lastLogOff` INTEGER, `personaState` INTEGER NOT NULL, `realName` TEXT, `primaryClanId` TEXT, `timeCreated` INTEGER, `personaStateFlags` INTEGER, `locCountryCode` TEXT, `locStateCode` TEXT, `locCityId` INTEGER, `gameExtraInfo` TEXT, `gameId` INTEGER, `fetchedAt` INTEGER NOT NULL, PRIMARY KEY(`steamId`))",
+        "fields": [
+          {
+            "fieldPath": "steamId",
+            "columnName": "steamId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "communityVisibilityState",
+            "columnName": "communityVisibilityState",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profileState",
+            "columnName": "profileState",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "personaName",
+            "columnName": "personaName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "commentPermission",
+            "columnName": "commentPermission",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profileUrl",
+            "columnName": "profileUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avatar",
+            "columnName": "avatar",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avatarMedium",
+            "columnName": "avatarMedium",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avatarFull",
+            "columnName": "avatarFull",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avatarHash",
+            "columnName": "avatarHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastLogOff",
+            "columnName": "lastLogOff",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "personaState",
+            "columnName": "personaState",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "realName",
+            "columnName": "realName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "primaryClanId",
+            "columnName": "primaryClanId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timeCreated",
+            "columnName": "timeCreated",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "personaStateFlags",
+            "columnName": "personaStateFlags",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "locCountryCode",
+            "columnName": "locCountryCode",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "locStateCode",
+            "columnName": "locStateCode",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "locCityId",
+            "columnName": "locCityId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "gameExtraInfo",
+            "columnName": "gameExtraInfo",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "gameId",
+            "columnName": "gameId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fetchedAt",
+            "columnName": "fetchedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "steamId"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7abe9ac839329a730014ace438720008')"
+    ]
+  }
+}

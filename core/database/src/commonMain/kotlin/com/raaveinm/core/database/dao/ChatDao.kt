@@ -11,6 +11,7 @@ import com.raaveinm.core.database.entities.chat.Conversations
 import com.raaveinm.core.database.entities.chat.MessageData
 import com.raaveinm.core.database.entities.chat.MessageWithSender
 import com.raaveinm.core.database.entities.chat.PaletteWithMembers
+import com.raaveinm.core.model.chat.MessageStatus
 import kotlinx.coroutines.flow.Flow
 
 //
@@ -26,7 +27,10 @@ interface ChatDao {
     suspend fun insertChat(chat: Chats)
 
     @Insert
-    suspend fun insertMessage(message: MessageData)
+    suspend fun insertMessage(message: MessageData): Long
+
+    @Query("UPDATE MessageData SET status = :status WHERE id = :id")
+    suspend fun updateMessageStatus(id: Long, status: MessageStatus)
 
     @Transaction
     @Query("SELECT conversations.*, chats.* FROM conversations JOIN chats" +

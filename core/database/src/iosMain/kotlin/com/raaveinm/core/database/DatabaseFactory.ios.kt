@@ -17,7 +17,7 @@ actual class DatabaseFactory {
         return Room.databaseBuilder<PicassoDatabase>(name = dbFile)
             .setDriver(BundledSQLiteDriver())
             .setQueryCoroutineContext(Dispatchers.IO)
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
     }
 

@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 data class MessageData(
     val user: User,
     val textMessage: String,
-    val timestamp: String
+    val timestamp: String,
+    val status: MessageStatus = MessageStatus.SENT
 )

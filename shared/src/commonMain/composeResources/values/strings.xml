@@ -15,4 +15,13 @@
         <item>hours played</item>
         <item>last played</item>
     </string-array>
+
+    <!--text field hints-->
+    <string name="search_bar_hint">search</string>
+
+    <string-array name="message_hints_arr">
+        <item>try something</item>
+        <item>say "Hello"</item>
+        <item>type here</item>
+    </string-array>
 </resources>

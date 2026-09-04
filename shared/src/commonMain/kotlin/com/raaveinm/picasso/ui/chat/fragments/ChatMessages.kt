@@ -1,5 +1,6 @@
 package com.raaveinm.picasso.ui.chat.fragments
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -10,20 +11,23 @@ import com.raaveinm.core.model.chat.MessageData
 import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.data.mock.Mock
 import com.raaveinm.pickusall.core.designsystem.components.Messages
+import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 
 @Composable
 fun ChatMessages(
     modifier: Modifier = Modifier,
     messages: List<MessageData> = emptyList(),
     user: Long?,
-    onLoadMore: () -> Unit = {}
+    onLoadMore: () -> Unit = {},
+    contentPadding: PaddingValues = PaddingValues(vertical = Dimensions.medium)
 ) {
     val listState = rememberLazyListState()
 
     LazyColumn(
         modifier,
         state = listState,
-        reverseLayout = true
+        reverseLayout = true,
+        contentPadding = contentPadding
     ) {
         itemsIndexed(messages) { index, message ->
             Messages(

@@ -42,8 +42,8 @@ import com.raaveinm.core.database.entities.server.Servers
     Genres::class,
     // api - user
     OwnedGames::class, SteamFriends::class, UserAchievements::class, Users::class
-                     ], version = 2)
-//@ColumnTypeConverters(RoomConverters::class)
+                     ], version = 3)
+@ColumnTypeConverters(RoomConverters::class)
 @ConstructedBy(DatabaseConstructor::class)
 abstract class PicassoDatabase : RoomDatabase() {
     abstract fun getChatDao(): ChatDao
@@ -58,4 +58,10 @@ expect object DatabaseConstructor : RoomDatabaseConstructor<PicassoDatabase> {
 
 val MIGRATION_1_2 = Migration(1, 2) { connection ->
     connection.execSQL("DROP TABLE IF EXISTS `CommunityContent`")
+}
+
+val MIGRATION_2_3 = Migration(2, 3) { connection ->
+    // Existing rows predate the outbox: they only ever got into the DB by already
+    // having been synced/received, so backfilling them as SENT is correct, not a guess.
+    connection.execSQL("ALTER TABLE MessageData ADD COLUMN status TEXT NOT NULL DEFAULT 'SENT'")
 }

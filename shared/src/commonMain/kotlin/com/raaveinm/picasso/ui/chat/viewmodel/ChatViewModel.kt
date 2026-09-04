@@ -8,6 +8,7 @@ import com.raaveinm.core.database.entities.chat.toDto
 import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Palette
 import com.raaveinm.picasso.AppConfig
+import com.raaveinm.picasso.data.repository.ChatRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -18,7 +19,10 @@ import kotlinx.coroutines.launch
 
 private const val CHAT_HISTORY_PAGE_SIZE = 50
 
-class ChatViewModel(val chatDao: ChatDao) : ViewModel() {
+class ChatViewModel(
+    val chatDao: ChatDao,
+    private val chatRepository: ChatRepository
+) : ViewModel() {
     private val _chatsUiState = MutableStateFlow(ChatUiState())
     private val _friendListUiState = MutableStateFlow(FriendsUiState())
     val chatsUiState = _chatsUiState.asStateFlow()
@@ -98,4 +102,15 @@ class ChatViewModel(val chatDao: ChatDao) : ViewModel() {
 //    fun clearCachedChatHistory() {
 //        _chatsUiState.update { it.copy(chatHistory = emptyList(), hasMoreChatHistory = true) }
 //    }
+
+    fun sendMessage(conversationId: Long, text: String) {
+        if (text.isBlank()) return
+        viewModelScope.launch {
+            chatRepository.sendMessage(conversationId, AppConfig.USER_ID, text)
+            if (_chatsUiState.value.selectedChat == conversationId) {
+                _chatsUiState.update { it.copy(chatHistory = emptyList(), hasMoreChatHistory = true) }
+                retrieveChatHistory(conversationId)
+            }
+        }
+    }
 }

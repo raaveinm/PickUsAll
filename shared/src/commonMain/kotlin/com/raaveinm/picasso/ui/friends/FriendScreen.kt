@@ -17,6 +17,9 @@ import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
 import com.raaveinm.picasso.ui.friends.fragments.FriendList
 import com.raaveinm.pickusall.core.designsystem.components.PicassoSearchBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import org.jetbrains.compose.resources.stringResource
+import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.search_bar_hint
 
 private val ContentWidth = 512.dp
 
@@ -47,10 +50,10 @@ fun FriendScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         PicassoSearchBar(
-            modifier = Modifier.fillMaxWidth().sizeIn(maxWidth = ContentWidth)
+            modifier = Modifier.sizeIn(maxWidth = ContentWidth).fillMaxWidth()
                 .padding(top = Dimensions.medium),
             textFieldState = searchState,
-            placeholder = "search artists"
+            placeholder = stringResource(Res.string.search_bar_hint)
         )
 
         FriendList(

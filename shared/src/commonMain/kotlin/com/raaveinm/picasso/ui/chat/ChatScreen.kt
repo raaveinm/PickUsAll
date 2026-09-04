@@ -89,6 +89,7 @@ fun ChatScreen(
                             }
                         },
                         onLoadMoreHistory = { viewModel.retrieveChatHistory(route.chatId) },
+                        onSendMessage = { text -> viewModel.sendMessage(route.chatId, text) },
                         messageData = state.chatHistory
                     )
                 }
@@ -106,8 +107,6 @@ fun ChatScreen(
                             onMessageClick = {
                                 viewModel.dmWith(route.userId)?.let { chatId ->
                                     viewModel.setSelectedChat(chatId)
-                                    // that chat is usually the entry we came from - go back to it
-                                    // instead of stacking a second copy on top
                                     val returned = nestedNavHostController.popBackStack(
                                         route = ChatWithUser(chatId = chatId),
                                         inclusive = false
@@ -163,15 +162,15 @@ fun ChatScreen(
                     modifier = Modifier.fillMaxHeight().weight(1f)
                 ) {
                     ChatWithUserScreen(
-                        modifier = Modifier.fillMaxSize().padding(Dimensions.large),
+                        modifier = Modifier.fillMaxSize().padding(horizontal = Dimensions.large),
                         conversation = state.conversations.find { it.id == state.selectedChat },
                         onBack = { viewModel.setSelectedChat(null) },
-                        // a palette has no single counterpart - clearing the selection hands the
-                        // trailing column back to the member roster
+
                         onUserIconClick = { userId ->
                             viewModel.setSelectedUser(if (selectedPalette != null) null else userId)
                         },
                         onLoadMoreHistory = { state.selectedChat?.let(viewModel::retrieveChatHistory) },
+                        onSendMessage = { text -> state.selectedChat?.let { viewModel.sendMessage(it, text) } },
                         messageData = state.chatHistory
                     )
                 }

@@ -98,7 +98,7 @@ fun App(
                 composable<ChatGraph> { backStackEntry ->
                     val route = backStackEntry.toRoute<ChatGraph>()
                     ChatScreen(
-                        modifier = Modifier.safeContentPadding().padding(bottom = Dimensions.extraLarge),
+                        modifier = Modifier.safeContentPadding(),
                         viewModel = chatViewModel,
                         selectedChatId = route.selectedChatId,
                         nestedNavHostController = rememberNavController()

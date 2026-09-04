@@ -64,7 +64,8 @@ fun PaletteWithMembers.toDto(): Palette = Palette(
 fun MessageWithSender.toDto(): MessageDataDto = MessageDataDto(
     user = sender.toDto(),
     textMessage = message.textMessage,
-    timestamp = message.timestamp.toDisplayTime()
+    timestamp = message.timestamp.toDisplayTime(),
+    status = message.status
 )
 
 private fun Long.toDisplayTime(): String {

@@ -5,6 +5,7 @@ import androidx.room3.ForeignKey
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
 import com.raaveinm.core.database.entities.api.user.Users
+import com.raaveinm.core.model.chat.MessageStatus
 
 //
 // Created by Kirill "Raaveinm" on 8/23/26.
@@ -37,5 +38,6 @@ data class MessageData(
     val conversationId: Long,
     val senderSteamId: Long,
     val textMessage: String,
-    val timestamp: Long
+    val timestamp: Long,
+    val status: MessageStatus
 )
