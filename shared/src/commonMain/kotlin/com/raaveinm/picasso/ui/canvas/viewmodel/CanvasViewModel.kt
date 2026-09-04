@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.raaveinm.core.database.dao.GameDao
 import com.raaveinm.core.database.dao.UserDao
+import com.raaveinm.core.database.entities.api.game.toCommunityContent
 import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.model.game.LibraryOrder
 import com.raaveinm.picasso.AppConfig
+import com.raaveinm.picasso.data.repository.GameStoreRepository
 import com.raaveinm.picasso.data.repository.OwnedGamesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +22,8 @@ import kotlinx.coroutines.launch
 class CanvasViewModel(
     private val userDao: UserDao,
     private val gameDao: GameDao,
-    private val ownedGamesRepository: OwnedGamesRepository
+    private val ownedGamesRepository: OwnedGamesRepository,
+    private val gameStoreRepository: GameStoreRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CanvasUiState())
     val uiState = _uiState.asStateFlow()
@@ -31,9 +34,9 @@ class CanvasViewModel(
     init {
         combine(
             userDao.getUserLibrary(AppConfig.USER_ID),
-            gameDao.observeGames(),
+            gameDao.observeGamesWithDetails(),
             _libraryOrder
-        ) { library, games, order ->
+        ) { library, gamesWithDetails, order ->
             val sortedLibrary = when (order) {
                 LibraryOrder.NAME -> library.sortedBy { it.name }
                 LibraryOrder.PLAYTIME -> library.sortedByDescending { it.playtimeForever }
@@ -42,9 +45,13 @@ class CanvasViewModel(
             CanvasUiState(
                 userLibrary = sortedLibrary.map { it.toDto() },
                 libraryOrder = order,
-                gameStore = games
+                communityContent = gamesWithDetails.toCommunityContent(library)
             )
         }.onEach { state -> _uiState.update { state } }.launchIn(viewModelScope)
+
+        userDao.getUserLibrary(AppConfig.USER_ID)
+            .onEach { library -> gameStoreRepository.refreshMissingDetails(library.map { it.appId }) }
+            .launchIn(viewModelScope)
 
         refreshLibrary()
     }

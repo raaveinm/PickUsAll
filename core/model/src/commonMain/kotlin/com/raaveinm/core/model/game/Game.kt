@@ -29,6 +29,8 @@ data class Game(
     val priceOverview: GameApiPriceOverview? = null,
     @SerialName("release_date")
     val releaseDate: GameApiReleaseDate? = null,
+    val screenshots: List<GameApiScreenshot> = emptyList(),
+    val categories: List<GameApiCategory> = emptyList(),
 )
 
 @Serializable
@@ -56,4 +58,19 @@ data class GameApiReleaseDate(
     @SerialName("coming_soon")
     val comingSoon: Boolean,
     val date: String
+)
+
+@Serializable
+data class GameApiScreenshot(
+    val id: Int,
+    @SerialName("path_thumbnail")
+    val pathThumbnail: String,
+    @SerialName("path_full")
+    val pathFull: String
+)
+
+@Serializable
+data class GameApiCategory(
+    val id: Int,
+    val description: String
 )

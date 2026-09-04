@@ -1,41 +1,37 @@
 package com.raaveinm.picasso.ui.canvas.fragments
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.raaveinm.core.database.entities.api.game.Games
 import com.raaveinm.core.model.game.CommunityContent
-import com.raaveinm.picasso.data.mock.Mock
 import com.raaveinm.pickusall.core.designsystem.components.GamePreview
+import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 
 @Composable
 fun ColourPicker(
     modifier: Modifier = Modifier,
-    gameList: List<Games>
+    communityContent: List<CommunityContent>
 ) {
-    LazyColumn(modifier) {
+    LazyColumn(
+        modifier,
+        contentPadding = PaddingValues(vertical = Dimensions.paddingAboveAverage),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.small)
+    ) {
         item {
-            gameList.forEach {
+            communityContent.forEach {
                 GamePreview(
-                    modifier = Modifier.fillMaxWidth(),
-                    gameName = it.name,
-                    gameId = it.steamAppId,
-                    screenshotFilename = listOfNotNull(it.headerImage),
-                    inLibrary = null,
-                    gameTags = emptyList()
+                    modifier = Modifier.fillMaxWidth().padding(top = Dimensions.sMedium),
+                    gameName = it.ownedGame.name,
+                    gameId = it.ownedGame.appId,
+                    screenshotFilename = it.imageUrl,
+                    inLibrary = it.inLibrary,
+                    gameTags = it.gameTags
                 )
             }
         }
     }
 }
-
-//@Preview
-//@Composable
-//fun ColourPickerPreview() {
-//    ColourPicker(
-//        modifier = Modifier,
-//        gameList = Mock.gameListCommunityContent
-//    )
-//}

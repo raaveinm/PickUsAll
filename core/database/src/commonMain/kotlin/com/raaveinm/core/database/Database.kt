@@ -5,12 +5,13 @@ import androidx.room3.ConstructedBy
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
+import androidx.room3.migration.Migration
+import androidx.sqlite.execSQL
 import com.raaveinm.core.database.dao.ChatDao
 import com.raaveinm.core.database.dao.GameDao
 import com.raaveinm.core.database.dao.ServerDao
 import com.raaveinm.core.database.dao.UserDao
 import com.raaveinm.core.database.entities.api.game.Categories
-import com.raaveinm.core.database.entities.api.game.CommunityContent
 import com.raaveinm.core.database.entities.api.game.GameAchievements
 import com.raaveinm.core.database.entities.api.game.GameCategories
 import com.raaveinm.core.database.entities.api.game.GameDevelopers
@@ -36,12 +37,12 @@ import com.raaveinm.core.database.entities.server.Servers
     // chat
     Chats::class, Conversations::class, MessageData::class, PaletteMembers::class, Palettes::class,
     //api - games
-    Categories::class, CommunityContent::class, GameAchievements::class, GameCategories::class,
+    Categories::class, GameAchievements::class, GameCategories::class,
     GameDevelopers::class, GameGenres::class, GameMedia::class, GamePublishers::class, Games::class,
     Genres::class,
     // api - user
     OwnedGames::class, SteamFriends::class, UserAchievements::class, Users::class
-                     ], version = 1)
+                     ], version = 2)
 //@ColumnTypeConverters(RoomConverters::class)
 @ConstructedBy(DatabaseConstructor::class)
 abstract class PicassoDatabase : RoomDatabase() {
@@ -53,4 +54,8 @@ abstract class PicassoDatabase : RoomDatabase() {
 @Suppress("KotlinNoActualForExpect", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect object DatabaseConstructor : RoomDatabaseConstructor<PicassoDatabase> {
     override fun initialize(): PicassoDatabase
+}
+
+val MIGRATION_1_2 = Migration(1, 2) { connection ->
+    connection.execSQL("DROP TABLE IF EXISTS `CommunityContent`")
 }

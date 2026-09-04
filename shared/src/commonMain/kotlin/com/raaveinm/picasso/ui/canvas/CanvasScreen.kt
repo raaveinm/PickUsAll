@@ -70,10 +70,9 @@ fun CanvasScreen(
             } else {
                 ColourPicker(
                     modifier = Modifier
-                        .fillMaxSize()
                         .sizeIn(maxWidth = 1024.dp)
-                        .padding(top = Dimensions.extraLarge * 2, start = Dimensions.medium, end = Dimensions.medium),
-                    gameList = uiState.gameStore
+                        .padding(vertical = Dimensions.medium),
+                    communityContent = uiState.communityContent
                 )
             }
         }
