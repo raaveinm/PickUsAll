@@ -2,6 +2,7 @@ package com.raaveinm.picasso.di
 
 import com.raaveinm.picasso.data.ApiClient
 import com.raaveinm.picasso.data.repository.ChatRepository
+import com.raaveinm.picasso.data.repository.FriendsRepository
 import com.raaveinm.picasso.data.repository.GameStoreRepository
 import com.raaveinm.picasso.data.repository.OwnedGamesRepository
 import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
@@ -29,6 +30,7 @@ private val sharedModule = module {
     single { OwnedGamesRepository(get(), get()) }
     single { GameStoreRepository(get(), get()) }
     single { ChatRepository(get()) }
+    single { FriendsRepository(get(), get()) }
     viewModelOf(::CanvasViewModel)
     viewModelOf(::ChatViewModel)
     viewModelOf(::SettingsViewModel)

@@ -4,7 +4,10 @@ import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
+import androidx.room3.Transaction
+import androidx.room3.Upsert
 import com.raaveinm.core.database.entities.api.user.OwnedGames
+import com.raaveinm.core.database.entities.api.user.SteamFriends
 import com.raaveinm.core.database.entities.api.user.Users
 import kotlinx.coroutines.flow.Flow
 
@@ -16,6 +19,27 @@ import kotlinx.coroutines.flow.Flow
 interface UserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addUser(user: Users)
+
+    @Upsert
+    suspend fun upsertUsers(users: List<Users>)
+
+    @Query("DELETE FROM SteamFriends WHERE userSteamId = :userSteamId")
+    suspend fun deleteFriendsOf(userSteamId: Long)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun addFriends(friends: List<SteamFriends>)
+
+    /**
+     * Steam hands back the friend list as a whole, so it is authoritative as a whole:
+     * whoever dropped off it has to disappear locally too. The unfriended user's `Users`
+     * row is deliberately left behind - [pruneStaleUsers] is what reclaims it, once it's
+     * both stale and unreachable.
+     */
+    @Transaction
+    suspend fun replaceFriends(userSteamId: Long, friends: List<SteamFriends>) {
+        deleteFriendsOf(userSteamId)
+        addFriends(friends)
+    }
 
     // NOTES: Cache rotation
     @Query(

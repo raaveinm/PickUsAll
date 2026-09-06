@@ -9,6 +9,8 @@ import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Palette
 import com.raaveinm.picasso.AppConfig
 import com.raaveinm.picasso.data.repository.ChatRepository
+import com.raaveinm.picasso.data.repository.FriendsRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -21,7 +23,8 @@ private const val CHAT_HISTORY_PAGE_SIZE = 50
 
 class ChatViewModel(
     val chatDao: ChatDao,
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val friendsRepository: FriendsRepository
 ) : ViewModel() {
     private val _chatsUiState = MutableStateFlow(ChatUiState())
     private val _friendListUiState = MutableStateFlow(FriendsUiState())
@@ -44,6 +47,29 @@ class ChatViewModel(
             chatDao.getUserFriends(AppConfig.USER_ID).onEach { friends ->
                 _friendListUiState.update { it.copy(friends = friends.map { user -> user.toDto() }) }
             }.launchIn(viewModelScope)
+        }
+        refreshFriends()
+    }
+
+    /**
+     * Pulls the friend list from Steam into Room - the flow above is what actually
+     * surfaces it, so nothing is returned here.
+     */
+    fun refreshFriends() {
+        if (_friendListUiState.value.isRefreshing) return
+        viewModelScope.launch {
+            _friendListUiState.update { it.copy(isRefreshing = true) }
+            try {
+                friendsRepository.refresh()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // TODO: surface a real error state once there's a UI for it; for now
+                // a failed refresh just leaves the last cached friend list in place.
+                println("ChatViewModel.refreshFriends failed: $e")
+            } finally {
+                _friendListUiState.update { it.copy(isRefreshing = false) }
+            }
         }
     }
 
