@@ -1,5 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
+include(":features:impl-webrtc")
+
+
 include(":core:database")
 include(":core:model")
 include(":features:colorpicker")
