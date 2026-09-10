@@ -42,6 +42,7 @@ fun ChatScreen(
     nestedNavHostController: NavHostController
 ) {
     val state by viewModel.chatsUiState.collectAsState()
+    val isInCall by viewModel.isInCall.collectAsState()
 
     LaunchedEffect(selectedChatId) {
         if (selectedChatId != null) viewModel.setSelectedChat(selectedChatId)
@@ -90,6 +91,8 @@ fun ChatScreen(
                         },
                         onLoadMoreHistory = { viewModel.retrieveChatHistory(route.chatId) },
                         onSendMessage = { text -> viewModel.sendMessage(route.chatId, text) },
+                        onCallClicked = { viewModel.onCallClicked(route.chatId) },
+                        callState = isInCall,
                         messageData = state.chatHistory
                     )
                 }
@@ -171,6 +174,8 @@ fun ChatScreen(
                         },
                         onLoadMoreHistory = { state.selectedChat?.let(viewModel::retrieveChatHistory) },
                         onSendMessage = { text -> state.selectedChat?.let { viewModel.sendMessage(it, text) } },
+                        onCallClicked = { state.selectedChat?.let { viewModel.onCallClicked(it) } },
+                        callState = isInCall,
                         messageData = state.chatHistory
                     )
                 }

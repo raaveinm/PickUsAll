@@ -7,11 +7,13 @@ import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.database.entities.chat.toDto
 import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Palette
+import com.raaveinm.features.impl_webrtc.CallManager
 import com.raaveinm.picasso.AppConfig
 import com.raaveinm.picasso.data.repository.ChatRepository
 import com.raaveinm.picasso.data.repository.FriendsRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -24,12 +26,14 @@ private const val CHAT_HISTORY_PAGE_SIZE = 50
 class ChatViewModel(
     val chatDao: ChatDao,
     private val chatRepository: ChatRepository,
-    private val friendsRepository: FriendsRepository
+    private val friendsRepository: FriendsRepository,
+    private val callManager: CallManager
 ) : ViewModel() {
     private val _chatsUiState = MutableStateFlow(ChatUiState())
     private val _friendListUiState = MutableStateFlow(FriendsUiState())
     val chatsUiState = _chatsUiState.asStateFlow()
     val  friendsUiState = _friendListUiState.asStateFlow()
+    val isInCall: StateFlow<Boolean> = callManager.isInCall
 
     init {
         ///////////////////////////////////////////////
@@ -49,6 +53,22 @@ class ChatViewModel(
             }.launchIn(viewModelScope)
         }
         refreshFriends()
+        // lets an incoming call be received even before the user starts one themselves
+        callManager.connectSignaling(AppConfig.USER_ID, AppConfig.SIGNALING_WS_URL)
+    }
+
+    /** No-op for a Palette (group calling isn't supported - mesh-only, DM calls only). */
+    fun onCallClicked(conversationId: Long) {
+        if (callManager.isInCall.value) {
+            callManager.endCall()
+            return
+        }
+        val peerSteamId = _chatsUiState.value.conversations
+            .filterIsInstance<Chat>()
+            .find { it.id == conversationId }
+            ?.chatTitle?.steamId
+            ?: return
+        callManager.startCall(conversationId, peerSteamId)
     }
 
     /**

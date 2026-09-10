@@ -24,7 +24,11 @@ dependencies {
 
 android {
     namespace = "com.raaveinm.picasso"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    compileSdk {
+        version = release(libs.versions.android.compileSdk.get().toInt()) {
+            minorApiLevel = libs.versions.android.minorSdk.get().toInt()
+        }
+    }
 
     defaultConfig {
         applicationId = "com.raaveinm.picasso"

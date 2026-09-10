@@ -10,6 +10,7 @@ import com.raaveinm.core.database.entities.api.game.toEntity
 import com.raaveinm.core.database.entities.api.game.toGameCategoriesEntities
 import com.raaveinm.core.database.entities.api.game.toGameMediaEntities
 import com.raaveinm.picasso.data.ApiClient
+import kotlinx.coroutines.CancellationException
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -29,6 +30,14 @@ class GameStoreRepository(
 
     suspend fun refreshMissingDetails(appIds: List<Int>) {
         val cached = gameDao.getCachedAppIds().toSet()
-        appIds.filterNot { it in cached }.forEach { refreshGameDetails(it) }
+        appIds.filterNot { it in cached }.forEach { appId ->
+            try {
+                refreshGameDetails(appId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                println("GameStoreRepository.refreshMissingDetails: appId=$appId failed: $e")
+            }
+        }
     }
 }

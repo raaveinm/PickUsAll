@@ -12,18 +12,18 @@ data class Game(
     @SerialName("steam_appid")
     val steamAppId: Int,
     val name: String,
-    val type: String?,
+    val type: String? = null,
     @SerialName("short_description")
-    val shortDescription: String?,
+    val shortDescription: String? = null,
     @SerialName("about_the_game")
-    val aboutGame: String?,
+    val aboutGame: String? = null,
     @SerialName("detailed_description")
-    val detailedDescription: String?,
+    val detailedDescription: String? = null,
     @SerialName("supported_languages")
-    val supportedLanguages: String?,
+    val supportedLanguages: String? = null,
     @SerialName("header_image")
-    val headerImage: String?,
-    val website: String?,
+    val headerImage: String? = null,
+    val website: String? = null,
     val platforms: GameApiPlatforms,
     @SerialName("price_overview")
     val priceOverview: GameApiPriceOverview? = null,
