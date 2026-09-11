@@ -12,6 +12,7 @@ object Shapes {
     val smallShape = 8.dp
     val averageShape = 12.dp
 
+    val roundedSmall = RoundedCornerShape(smallShape)
     val roundedAverage = RoundedCornerShape(averageShape)
     val roundedSmoother = RoundedCornerShape(24.dp)
     val roundedSmoothest = RoundedCornerShape(32.dp)

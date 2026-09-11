@@ -1,5 +1,7 @@
 package com.raaveinm.picasso
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +16,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -52,6 +56,12 @@ fun App(
     val chatViewModel = koinViewModel<ChatViewModel>()
     val settingsViewModel = koinViewModel<SettingsViewModel>()
 
+    var isSideBarExpanded by remember { mutableStateOf(false) }
+    val animatedBlur by animateFloatAsState(
+        targetValue = if (!isSideBarExpanded) 0f else 64f,
+        animationSpec = tween(200)
+    )
+
     PicassoTheme {
         CoilInitializer()
 
@@ -85,7 +95,10 @@ fun App(
         Box(Modifier.background(gradientBrush)) {
             NavHost(
                 navController = navController,
-                modifier = Modifier.fillMaxSize().systemBarsPadding(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(animatedBlur.dp)
+                    .systemBarsPadding(),
                 contentAlignment = Alignment.Center,
                 startDestination = Canvas
             ) {
@@ -127,16 +140,26 @@ fun App(
                 fabModifier = Modifier,
                 selectedId = navigationSelected,
                 onItemClick = {
+                    if (it == SettingsTab) {
+                        isSideBarExpanded = !isSideBarExpanded
+                        navigationSelected = it
+                        return@NavBar
+                    }
+                    
+                    isSideBarExpanded = false
                     val screen = when (it) {
                         CanvasTab -> Canvas
                         ChatTab -> ChatGraph()
                         FriendsTab -> Friends
-                        SettingsTab -> Settings
                         else -> Canvas
                     }
                     openTab(screen, it)
                 },
             )
+
+            if (!isSideBarExpanded) return@Box
+
+
         }
     }
 }
