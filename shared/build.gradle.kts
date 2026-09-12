@@ -29,10 +29,6 @@ val userId: String = (localProperties.getProperty("USER_ID") ?: System.getenv("U
     ?.trimEnd('L', 'l')
     ?.takeIf { it.toLongOrNull() != null }
     ?: "0"
-/* Default targets the Android emulator's loopback to the host machine; override in local.properties */
-val signalingWsUrl: String = localProperties.getProperty("SIGNALING_WS_URL")
-    ?: System.getenv("SIGNALING_WS_URL")
-    ?: "ws://10.0.2.2:8000/ws"
 
 buildkonfig {
     packageName = "com.raaveinm.picasso"
@@ -41,7 +37,6 @@ buildkonfig {
     defaultConfigs {
         buildConfigField(STRING, "STEAM_API_KEY", apiKey)
         buildConfigField(LONG, "USER_ID", userId)
-        buildConfigField(STRING, "SIGNALING_WS_URL", signalingWsUrl)
     }
 }
 

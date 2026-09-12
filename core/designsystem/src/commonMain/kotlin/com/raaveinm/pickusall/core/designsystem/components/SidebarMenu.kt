@@ -40,7 +40,8 @@ fun SidebarMenu(
     Column(
         modifier = modifier
             .clip(Shapes.sideBarCardShape)
-            .background(MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = .72f)),
+            .background(MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = .72f))
+            .clickable(false) {},
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.End
     ) {

@@ -9,16 +9,21 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
 import com.raaveinm.picasso.ui.friends.fragments.FriendList
 import com.raaveinm.pickusall.core.designsystem.components.PicassoSearchBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import org.jetbrains.compose.resources.stringResource
 import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.friends_steam_private
 import pickusall.shared.generated.resources.search_bar_hint
 
 private val ContentWidth = 512.dp
@@ -33,16 +38,23 @@ private val ContentWidth = 512.dp
 fun FriendScreen(
     modifier: Modifier = Modifier,
     viewModel: ChatViewModel,
+    appViewModel: AppViewModel,
     onMessageClick: (Long?) -> Unit = {}
 ) {
     val state by viewModel.friendsUiState.collectAsState()
     val searchState = rememberTextFieldState()
     val query = searchState.text.toString()
+    var dismissed by remember { mutableStateOf(false) }
 
     val friends = remember(state.friends) { state.friends }
     val shownFriends = remember(friends, query) {
         if (query.isBlank()) friends
         else friends.filter { it.personaName.contains(query.trim(), ignoreCase = true) }
+    }
+
+    if (friends.isEmpty() && !dismissed) {
+        appViewModel.postMessage(WarnLevel.INFO, stringResource(Res.string.friends_steam_private))
+        dismissed = true
     }
 
     Column(

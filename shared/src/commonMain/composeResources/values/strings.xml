@@ -16,6 +16,9 @@
         <item>last played</item>
     </string-array>
 
+    <!--Friends-->
+    <string name="friends_steam_private">Steam Friendlist seems to be private</string>
+
     <!--text field hints-->
     <string name="search_bar_hint">search</string>
 

@@ -6,6 +6,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -19,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -136,6 +139,7 @@ fun App(
                     FriendScreen(
                         modifier = Modifier.safeContentPadding(),
                         viewModel = chatViewModel,
+                        appViewModel = appViewModel,
                         // TODO(start a new DM when there is no conversation with that friend yet)
                         onMessageClick = { chatId -> chatId?.let(::openChat) }
                     )
@@ -149,7 +153,9 @@ fun App(
             }
 
             NavBar(
-                modifier = Modifier.align(Alignment.BottomCenter)
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .zIndex(3f)
                     .padding(bottom = Dimensions.medium),
                 nestedModifier = Modifier,
                 fabModifier = Modifier,
@@ -176,29 +182,40 @@ fun App(
             // Side Menu
             ///////////////////////////////////////////////
 
-            AnimatedVisibility(
-                visible = appUiState.isSideBarExpanded,
-                modifier = Modifier
-                    .zIndex(2f)
-                    .align(Alignment.CenterEnd)
-                    .clip(Shapes.sideBarCardShape),
-                enter = expandHorizontally(
-                    expandFrom = Alignment.End,
-                    animationSpec = tween(300)
-                ),
-                exit = shrinkHorizontally(
-                    shrinkTowards = Alignment.End,
-                    animationSpec = tween(300)
-                )
-            ) {
-                SidebarMenu(
-                    Modifier
-                        .size(width = 320.dp, height = 640.dp),
-                    onSettingsClick = {
-                        openTab(Settings, SettingsTab)
-                        appViewModel.setSideBarExpanded(false)
-                    }
-                )
+            val sideNavBoxModifier =
+                if (appUiState.isSideBarExpanded)
+                    Modifier.fillMaxSize().zIndex(2f).clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                    ) { appViewModel.setSideBarExpanded(false) }
+                else
+                    Modifier.fillMaxSize()
+
+            Box(sideNavBoxModifier) {
+                AnimatedVisibility(
+                    visible = appUiState.isSideBarExpanded,
+                    modifier = Modifier
+                        .zIndex(2f)
+                        .align(Alignment.CenterEnd)
+                        .clip(Shapes.sideBarCardShape),
+                    enter = expandHorizontally(
+                        expandFrom = Alignment.End,
+                        animationSpec = tween(300)
+                    ),
+                    exit = shrinkHorizontally(
+                        shrinkTowards = Alignment.End,
+                        animationSpec = tween(300)
+                    )
+                ) {
+                    SidebarMenu(
+                        Modifier
+                            .size(width = 320.dp, height = 640.dp),
+                        onSettingsClick = {
+                            openTab(Settings, SettingsTab)
+                            appViewModel.setSideBarExpanded(false)
+                        }
+                    )
+                }
             }
 
             ///////////////////////////////////////////////

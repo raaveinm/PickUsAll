@@ -3,6 +3,7 @@ package com.raaveinm.picasso.ui.chat.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.raaveinm.core.database.dao.ChatDao
+import com.raaveinm.core.database.dao.ServerDao
 import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.database.entities.chat.toDto
 import com.raaveinm.core.model.chat.Chat
@@ -16,7 +17,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,6 +28,7 @@ private const val CHAT_HISTORY_PAGE_SIZE = 50
 
 class ChatViewModel(
     val chatDao: ChatDao,
+    private val serverDao: ServerDao,
     private val chatRepository: ChatRepository,
     private val friendsRepository: FriendsRepository,
     private val callManager: CallManager
@@ -53,8 +57,11 @@ class ChatViewModel(
             }.launchIn(viewModelScope)
         }
         refreshFriends()
-        // lets an incoming call be received even before the user starts one themselves
-        callManager.connectSignaling(AppConfig.USER_ID, AppConfig.SIGNALING_WS_URL)
+        serverDao.getAllServers()
+            .mapNotNull { servers -> servers.firstOrNull()?.url }
+            .filter { it.isNotBlank() }
+            .onEach { url -> callManager.connectSignaling(AppConfig.USER_ID, url) }
+            .launchIn(viewModelScope)
     }
 
     /** No-op for a Palette (group calling isn't supported - mesh-only, DM calls only). */

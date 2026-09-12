@@ -68,11 +68,7 @@ class CallManager(
                 signalingClient.incoming
                     .onEach(::handleIncoming)
                     .launchIn(scope)
-            } catch (e: CancellationException) {
-                throw e
             } catch (e: Exception) {
-                // Calling just won't work until connectivity to the signaling server
-                // is restored - the rest of the app (chat, friends, etc.) must not die.
                 signalingConnected = false
                 println("CallManager.connectSignaling failed: $e")
             }
