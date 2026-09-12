@@ -34,3 +34,22 @@ data class Palette(val groupId: Long)
 
 @Serializable
 data class UserProfile(val userId: Long)
+
+///////////////////////////////////////////////
+// Nested (Settings)
+///////////////////////////////////////////////
+
+@Serializable
+data object OptionList
+
+@Serializable
+data object Server
+
+@Serializable
+data object Application
+
+@Serializable
+data object Visual
+
+@Serializable
+data object Behaviour
