@@ -1,30 +1,38 @@
 package com.raaveinm.picasso
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.canvas.CanvasScreen
 import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
 import com.raaveinm.picasso.ui.chat.ChatScreen
@@ -37,9 +45,13 @@ import com.raaveinm.picasso.ui.navigation.Settings
 import com.raaveinm.picasso.ui.settings.SettingsScreen
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
 import com.raaveinm.pickusall.core.designsystem.components.NavBar
+import com.raaveinm.pickusall.core.designsystem.components.SidebarMenu
+import com.raaveinm.pickusall.core.designsystem.components.WarnBox
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
+import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
+import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import org.koin.compose.viewmodel.koinViewModel
 
 private const val CanvasTab = 0
@@ -55,17 +67,16 @@ fun App(
     val canvasViewModel = koinViewModel<CanvasViewModel>()
     val chatViewModel = koinViewModel<ChatViewModel>()
     val settingsViewModel = koinViewModel<SettingsViewModel>()
+    val appViewModel = koinViewModel<AppViewModel>()
+    val appUiState by appViewModel.uiState.collectAsState()
 
-    var isSideBarExpanded by remember { mutableStateOf(false) }
     val animatedBlur by animateFloatAsState(
-        targetValue = if (!isSideBarExpanded) 0f else 64f,
-        animationSpec = tween(200)
+        targetValue = if (!appUiState.isSideBarExpanded) 0f else 64f,
+        animationSpec = tween(400)
     )
 
     PicassoTheme {
         CoilInitializer()
-
-        var navigationSelected by remember { mutableStateOf(CanvasTab) }
 
         fun openTab(route: Any, tab: Int) {
             navController.navigate(route) {
@@ -73,7 +84,7 @@ fun App(
                 launchSingleTop = true
                 restoreState = true
             }
-            navigationSelected = tab
+            appViewModel.selectTab(tab)
         }
 
         fun openChat(chatId: Long) {
@@ -81,7 +92,7 @@ fun App(
                 popUpTo<Canvas> { saveState = true }
                 launchSingleTop = true
             }
-            navigationSelected = ChatTab
+            appViewModel.selectTab(ChatTab)
         }
 
         val gradientBrush = Brush.verticalGradient(
@@ -91,6 +102,10 @@ fun App(
                 MaterialTheme.colorScheme.inverseOnSurface
             )
         )
+
+        ///////////////////////////////////////////////
+        // Main Navigation Screen
+        ///////////////////////////////////////////////
 
         Box(Modifier.background(gradientBrush)) {
             NavHost(
@@ -138,15 +153,15 @@ fun App(
                     .padding(bottom = Dimensions.medium),
                 nestedModifier = Modifier,
                 fabModifier = Modifier,
-                selectedId = navigationSelected,
+                selectedId = appUiState.selectedTab,
                 onItemClick = {
                     if (it == SettingsTab) {
-                        isSideBarExpanded = !isSideBarExpanded
-                        navigationSelected = it
+                        appViewModel.toggleSideBar()
+                        appViewModel.selectTab(it)
                         return@NavBar
                     }
-                    
-                    isSideBarExpanded = false
+
+                    appViewModel.setSideBarExpanded(false)
                     val screen = when (it) {
                         CanvasTab -> Canvas
                         ChatTab -> ChatGraph()
@@ -157,9 +172,78 @@ fun App(
                 },
             )
 
-            if (!isSideBarExpanded) return@Box
+            ///////////////////////////////////////////////
+            // Side Menu
+            ///////////////////////////////////////////////
 
+            AnimatedVisibility(
+                visible = appUiState.isSideBarExpanded,
+                modifier = Modifier
+                    .zIndex(2f)
+                    .align(Alignment.CenterEnd)
+                    .clip(Shapes.sideBarCardShape),
+                enter = expandHorizontally(
+                    expandFrom = Alignment.End,
+                    animationSpec = tween(300)
+                ),
+                exit = shrinkHorizontally(
+                    shrinkTowards = Alignment.End,
+                    animationSpec = tween(300)
+                )
+            ) {
+                SidebarMenu(
+                    Modifier
+                        .size(width = 320.dp, height = 640.dp),
+                    onSettingsClick = {
+                        openTab(Settings, SettingsTab)
+                        appViewModel.setSideBarExpanded(false)
+                    }
+                )
+            }
 
+            ///////////////////////////////////////////////
+            // Error Container
+            ///////////////////////////////////////////////
+
+            Button( // debug
+                onClick = {
+                    appViewModel.postMessage(
+                        level = listOf(WarnLevel.WARN, WarnLevel.ERROR, WarnLevel.INFO).random(),
+                        text = "a long long long long trace message"
+                    )
+                },
+                modifier = Modifier.size(24.dp).align(Alignment.TopEnd).zIndex(2f),
+                content = {Text("WL")}
+            )
+
+            AnimatedVisibility(
+                visible = appUiState.message != null,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .sizeIn(maxWidth = 1024.dp)
+                    .zIndex(3f)
+                    .padding(
+                        top = Dimensions.large,
+                        start = Dimensions.medium,
+                        end = Dimensions.medium
+                    )
+                    .clip(Shapes.roundedSmall),
+                enter = expandHorizontally(
+                    expandFrom = Alignment.End,
+                    animationSpec = tween(300)
+                ),
+                exit = shrinkHorizontally(
+                    shrinkTowards = Alignment.End,
+                    animationSpec = tween(300)
+                )
+            ) {
+                WarnBox(
+                    modifier = Modifier,
+                    level = appUiState.message?.level ?: WarnLevel.WARN,
+                    what = appUiState.message?.text ?: "",
+                    onDismissClicked = { appViewModel.dismissMessage() }
+                )
+            }
         }
     }
 }

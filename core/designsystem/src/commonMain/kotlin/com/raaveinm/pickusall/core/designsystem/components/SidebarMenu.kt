@@ -39,16 +39,16 @@ fun SidebarMenu(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(32.dp,8.dp,8.dp,32.dp))
+            .clip(Shapes.sideBarCardShape)
             .background(MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = .72f)),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.End
     ) {
         Box(Modifier
             .clip(Shapes.roundedSmall)
             .background(MaterialTheme.colorScheme.inverseOnSurface)) {
             UserMiniProfile(
-                modifier = Modifier.padding(top = Dimensions.medium),
+                modifier = Modifier.padding(top = Dimensions.extraSmall),
                 iconLink = "",
                 username = "username",
                 isOnline = true,
@@ -59,7 +59,10 @@ fun SidebarMenu(
             )
         }
         Spacer(Modifier.size(width = 2.dp, height = space))
+
         // For additional content
+        Box {}
+
         Spacer(Modifier.size(width = 2.dp, height = space))
         Row(
             Modifier
@@ -72,6 +75,7 @@ fun SidebarMenu(
             Icon(
                 Icons.Default.Settings,
                 contentDescription = "settings_field",
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(Dimensions.medium).size(36.dp)
             )
             val text = MaterialTheme.typography.bodyMedium

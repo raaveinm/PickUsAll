@@ -20,4 +20,6 @@ object Shapes {
 
     val incomeChatShape = RoundedCornerShape(0.dp, averageShape, averageShape, averageShape)
     val outcomeShape =  RoundedCornerShape(averageShape, averageShape, 0.dp, averageShape)
+
+    val sideBarCardShape = RoundedCornerShape(32.dp,8.dp,8.dp,32.dp)
 }
