@@ -31,15 +31,14 @@ private val ContentWidth = 512.dp
 /**
  * Everyone the current user shares a conversation with.
  *
- * @param onMessageClick called with the id of the DM to open. `null` when there is no
- * conversation with that friend yet.
+ * @param onMessageClick called with the id of the DM to open, creating it first if none exists yet.
  */
 @Composable
 fun FriendScreen(
     modifier: Modifier = Modifier,
     viewModel: ChatViewModel,
     appViewModel: AppViewModel,
-    onMessageClick: (Long?) -> Unit = {}
+    onMessageClick: (Long) -> Unit = {}
 ) {
     val state by viewModel.friendsUiState.collectAsState()
     val searchState = rememberTextFieldState()
@@ -72,7 +71,7 @@ fun FriendScreen(
             modifier = Modifier.fillMaxSize().sizeIn(maxWidth = ContentWidth),
             friendList = shownFriends,
             emptyPlaceholder = if (query.isBlank()) "no artists around" else "nobody answers to \"$query\"",
-            onMessageClick = { friend -> onMessageClick(viewModel.dmWith(friend.steamId)) }
+            onMessageClick = { friend -> viewModel.dmWith(friend.steamId, onMessageClick) }
         )
     }
 }

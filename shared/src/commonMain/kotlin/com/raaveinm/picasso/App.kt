@@ -131,6 +131,7 @@ fun App(
                     ChatScreen(
                         modifier = Modifier.safeContentPadding(),
                         viewModel = chatViewModel,
+                        appViewModel = appViewModel,
                         selectedChatId = route.selectedChatId,
                         nestedNavHostController = rememberNavController()
                     )
@@ -140,8 +141,7 @@ fun App(
                         modifier = Modifier.safeContentPadding(),
                         viewModel = chatViewModel,
                         appViewModel = appViewModel,
-                        // TODO(start a new DM when there is no conversation with that friend yet)
-                        onMessageClick = { chatId -> chatId?.let(::openChat) }
+                        onMessageClick = ::openChat
                     )
                 }
                 composable<Settings> {
@@ -229,7 +229,7 @@ fun App(
                         text = "a long long long long trace message"
                     )
                 },
-                modifier = Modifier.size(24.dp).align(Alignment.TopEnd).zIndex(2f),
+                modifier = Modifier.zIndex(2f).padding(top = 48.dp).size(24.dp).align(Alignment.TopEnd),
                 content = {Text("WL")}
             )
 
@@ -240,7 +240,7 @@ fun App(
                     .sizeIn(maxWidth = 1024.dp)
                     .zIndex(3f)
                     .padding(
-                        top = Dimensions.large,
+                        top = Dimensions.extraLarge,
                         start = Dimensions.medium,
                         end = Dimensions.medium
                     )

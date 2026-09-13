@@ -12,6 +12,7 @@ import com.raaveinm.features.impl_webrtc.CallManager
 import com.raaveinm.picasso.AppConfig
 import com.raaveinm.picasso.data.repository.ChatRepository
 import com.raaveinm.picasso.data.repository.FriendsRepository
+import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -93,6 +94,9 @@ class ChatViewModel(
             } catch (e: Exception) {
                 // TODO: surface a real error state once there's a UI for it; for now
                 // a failed refresh just leaves the last cached friend list in place.
+                viewModelScope.launch {
+                    _chatsUiState.update {it.copy(warning = Pair(WarnLevel.ERROR, "refreshFriends failed: $e")) }
+                }
                 println("ChatViewModel.refreshFriends failed: $e")
             } finally {
                 _friendListUiState.update { it.copy(isRefreshing = false) }
@@ -129,10 +133,24 @@ class ChatViewModel(
         }
     }
 
-    fun dmWith(steamId: Long): Long? = _chatsUiState.value.conversations
-        .filterIsInstance<Chat>()
-        .firstOrNull { it.chatTitle.steamId == steamId }
-        ?.id
+    fun dmWith(steamId: Long, onResult: (Long) -> Unit) {
+        val existing = _chatsUiState.value.conversations
+            .filterIsInstance<Chat>()
+            .firstOrNull { it.chatTitle.steamId == steamId }
+            ?.id
+        if (existing != null) {
+            onResult(existing)
+            return
+        }
+        viewModelScope.launch {
+            val chatId = chatDao.findOrCreateDm(
+                serverId = 3, // TODO replace with actual
+                remoteId = steamId,
+                chatTitleSteamId = steamId
+            )
+            onResult(chatId)
+        }
+    }
 
     fun retrieveChatHistory(conversationId: Long) {
         val state = _chatsUiState.value

@@ -9,7 +9,6 @@ import com.raaveinm.features.impl_webrtc.signaling.SdpPayload
 import com.raaveinm.features.impl_webrtc.signaling.SignalingClient
 import com.raaveinm.features.impl_webrtc.signaling.SignalingEnvelope
 import com.raaveinm.features.impl_webrtc.signaling.SignalingMessageType
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,8 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /*

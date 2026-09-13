@@ -19,6 +19,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.chat.fragments.AllChats
 import com.raaveinm.picasso.ui.chat.fragments.UserActions
 import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
@@ -38,6 +39,7 @@ private val SidebarWidth = 320.dp
 fun ChatScreen(
     modifier: Modifier = Modifier,
     viewModel: ChatViewModel = koinViewModel(),
+    appViewModel: AppViewModel,
     selectedChatId: Long? = null,
     nestedNavHostController: NavHostController
 ) {
@@ -46,6 +48,10 @@ fun ChatScreen(
 
     LaunchedEffect(selectedChatId) {
         if (selectedChatId != null) viewModel.setSelectedChat(selectedChatId)
+    }
+
+    LaunchedEffect(state.warning) {
+        if (state.warning != null) appViewModel.postMessage(state.warning!!.first, state.warning!!.second)
     }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -106,9 +112,8 @@ fun ChatScreen(
                             onBack = { nestedNavHostController.popBackStack() },
                             showTopBar = true,
                             onAddToGroupClick = {}, //TODO(complete add group logic)
-                            // TODO(start a new DM when there is no conversation with them yet)
                             onMessageClick = {
-                                viewModel.dmWith(route.userId)?.let { chatId ->
+                                viewModel.dmWith(route.userId) { chatId ->
                                     viewModel.setSelectedChat(chatId)
                                     val returned = nestedNavHostController.popBackStack(
                                         route = ChatWithUser(chatId = chatId),
@@ -193,10 +198,8 @@ fun ChatScreen(
                                 onBack = { viewModel.setSelectedUser(null) },
                                 onAddToGroupClick = {}, // TODO(same)
                                 // opening the DM in the middle column also loads its history
-                                // TODO(start a new DM when there is no conversation with them yet)
                                 onMessageClick = {
-                                    viewModel.dmWith(selectedUser.steamId)
-                                        ?.let(viewModel::setSelectedChat)
+                                    viewModel.dmWith(selectedUser.steamId, viewModel::setSelectedChat)
                                 }
                             )
                             selectedPalette != null -> GroupScreen(

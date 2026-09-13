@@ -61,6 +61,15 @@ interface ChatDao {
         return conversationId
     }
 
+    @Query("SELECT conversationId FROM Chats WHERE chatTitleSteamId = :steamId LIMIT 1")
+    suspend fun findDmConversationId(steamId: Long): Long?
+
+    @Transaction
+    suspend fun findOrCreateDm(serverId: Long, remoteId: Long, chatTitleSteamId: Long): Long {
+        findDmConversationId(chatTitleSteamId)?.let { return it }
+        return createNewDM(serverId = serverId, remoteId = remoteId, chatTitleSteamId = chatTitleSteamId)
+    }
+
     @Query(
         "SELECT steamId, communityVisibilityState, profileState, personaName, commentPermission, " +
                 "profileUrl, avatar, avatarMedium, avatarFull, avatarHash, lastLogOff, personaState, " +
