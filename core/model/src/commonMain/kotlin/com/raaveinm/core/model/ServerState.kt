@@ -8,5 +8,6 @@ data class ServerState(
     val url: String,
     val name: String? = null,
     val addedAt: Long,
-    val reachable: Boolean? = false,
+    var ping: Int? = null,
+    var reachable: Boolean? = false,
 )

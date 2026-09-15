@@ -27,15 +27,15 @@ data class OwnedGame(
     @SerialName("has_community_visible_stats")
     val hasCommunityVisibleStats: Boolean = false, // Community Stats? (absent when false)
     @SerialName("playtime_windows_forever")
-    val playtimeWindowsForever: Int?,           // \
+    val playtimeWindowsForever: Int? = null,    // \
     @SerialName("playtime_mac_forever")
-    val playtimeMacForever: Int?,               //  | Platform
+    val playtimeMacForever: Int? = null,        //  | Platform
     @SerialName("playtime_linux_forever")
-    val playtimeLinuxForever: Int?,             //  | Specific Playtime
+    val playtimeLinuxForever: Int? = null,      //  | Specific Playtime
     @SerialName("playtime_deck_forever")
-    val playtimeDeckForever: Int?,              // /
+    val playtimeDeckForever: Int? = null,       // /
     @SerialName("rtime_last_played")
-    val rtimeLastPlayed: Int,                   // Timestamp
+    val rtimeLastPlayed: Int = 0,               // Timestamp (absent when never played)
     @SerialName("playtime_disconnected")
-    val playtimeDisconnected: Int?              // Playtime accrued while Steam client was offline
+    val playtimeDisconnected: Int? = null       // Playtime accrued while Steam client was offline
 )

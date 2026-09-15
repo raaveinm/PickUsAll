@@ -72,6 +72,7 @@ fun ServerScreen(
                 ServerInfo(
                     modifier = Modifier,
                     serverState = serverState,
+                    onNetworkPing = { viewModel.pingServer(server = serverState) },
                     onEditClick = { dialog = ServerDialog.Edit(serverState) },
                     onDeleteClick = { dialog = ServerDialog.Delete(serverState) }
                 )

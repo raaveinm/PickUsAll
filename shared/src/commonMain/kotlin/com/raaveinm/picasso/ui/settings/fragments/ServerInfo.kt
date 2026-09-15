@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.raaveinm.core.model.ServerState
+import com.raaveinm.picasso.ui.actions.TimeConverter.toDate
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 
@@ -49,6 +52,7 @@ fun ServerInfo(
         url = "127.0.0.1",
         addedAt = 83764598
     ),
+    onNetworkPing: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onDeleteClick: (server: ServerState) -> Unit = {}
 ) {
@@ -95,18 +99,35 @@ fun ServerInfo(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(Dimensions.small)
         ) {
-            Text(
-                text = serverState.name?.takeIf { it.isNotBlank() } ?: serverState.url,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                softWrap = false,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
             val typo = MaterialTheme.typography.labelSmall
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-//                Box(Modifier.size(8.dp).clip(Shapes.circleShape).background(statusColor))
+                Text(
+                    text = serverState.name?.takeIf { it.isNotBlank() } ?: serverState.url,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    softWrap = false,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(Modifier.size(12.dp))
+
+                if (serverState.ping != null){
+                    Text(
+                        text = "${serverState.ping} ms",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontFamily = typo.fontFamily,
+                        fontStyle = typo.fontStyle,
+                        fontWeight = typo.fontWeight,
+                        fontSize = typo.fontSize,
+                        softWrap = false,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = when(serverState.reachable) {
                         true -> { Icons.Default.CloudDone }
@@ -117,6 +138,7 @@ fun ServerInfo(
                     contentDescription = "status_icon",
                     modifier = Modifier.size(16.dp)
                 )
+
                 if (serverState.name!= null) {
                     Text(
                         text = " ${serverState.url}",
@@ -132,7 +154,7 @@ fun ServerInfo(
                     )
                 }
                 Text(
-                    text = " added at ${serverState.addedAt}",
+                    text = " added at ${serverState.addedAt.toDate}",
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontFamily = typo.fontFamily,
                     fontStyle = typo.fontStyle,
@@ -143,6 +165,14 @@ fun ServerInfo(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+        }
+
+        IconButton(onClick = onNetworkPing) {
+            Icon(
+                imageVector = Icons.Default.Radar,
+                contentDescription = "ping_server",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
 
         IconButton(onClick = onEditClick) {

@@ -8,6 +8,7 @@ import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.database.entities.chat.toDto
 import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Palette
+import com.raaveinm.core.model.toWsUrl
 import com.raaveinm.features.impl_webrtc.CallManager
 import com.raaveinm.picasso.AppConfig
 import com.raaveinm.picasso.data.repository.ChatRepository
@@ -61,7 +62,7 @@ class ChatViewModel(
         serverDao.getAllServers()
             .mapNotNull { servers -> servers.firstOrNull()?.url }
             .filter { it.isNotBlank() }
-            .onEach { url -> callManager.connectSignaling(AppConfig.USER_ID, url) }
+            .onEach { url -> callManager.connectSignaling(AppConfig.USER_ID, url.toWsUrl()) }
             .launchIn(viewModelScope)
     }
 

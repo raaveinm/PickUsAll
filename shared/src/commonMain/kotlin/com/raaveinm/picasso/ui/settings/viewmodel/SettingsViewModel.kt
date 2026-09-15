@@ -6,25 +6,44 @@ import com.raaveinm.core.database.dao.ServerDao
 import com.raaveinm.core.database.entities.server.Servers
 import com.raaveinm.core.database.entities.server.toModel
 import com.raaveinm.core.model.ServerState
+import com.raaveinm.core.model.toHttpBaseUrl
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Clock.System
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
 class SettingsViewModel(
-    private val serverDao: ServerDao
+    private val serverDao: ServerDao,
+    private val httpClient: HttpClient
 ) : ViewModel() {
 
-    val serverStates: StateFlow<List<ServerState>> = serverDao.getAllServers()
-        .map { servers -> servers.map { it.toModel(reachable = null) } }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    private val pingResults = MutableStateFlow<Map<Long, PingResult>>(emptyMap())
+
+    val serverStates: StateFlow<List<ServerState>> = combine(
+        serverDao.getAllServers(),
+        pingResults
+    ) { servers, pings ->
+        servers.map { server ->
+            val result = pings[server.id]
+            server.toModel(reachable = result?.reachable).apply { ping = result?.ping }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     @OptIn(ExperimentalTime::class)
     fun addServer(url: String, name: String) {
@@ -34,7 +53,7 @@ class SettingsViewModel(
                     id = 0,
                     url = url,
                     name = name.takeIf { it.isNotBlank() },
-                    added = Clock.System.now().epochSeconds
+                    added = System.now().epochSeconds
                 )
             )
         }
@@ -66,13 +85,37 @@ class SettingsViewModel(
         }
     }
 
+    ///////////////////////////////////////////////
+    // Server Pings
+    ///////////////////////////////////////////////
+
     /**
-     * Template for a real reachability probe once picassobackend exists to answer one.
-     * Not wired to any call site yet — every server's `reachable` stays null (unknown)
-     * until this is implemented and hooked up (e.g. called from [serverStates]'s mapping).
+     * Fired from [com.raaveinm.picasso.ui.settings.screens.ServerScreen]'s ping button.
+     * Result is published into [pingResults], which [serverStates] combines back in —
+     * mutating [server]'s own `var`s wouldn't do anything, since it's a plain data class
+     * snapshot handed to Compose, not observed state.
      */
-    suspend fun pingServer(server: ServerState): Boolean? {
-        // TODO: replace with a real network probe against server.url
-        return null
+    @OptIn(ExperimentalTime::class)
+    fun pingServer(server: ServerState) {
+        pingResults.update { it + (server.id to PingResult(reachable = null, ping = null)) }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                var elapsed = 0
+                val reachable = try {
+                    val timeStamp = System.now()
+                    val res = withTimeoutOrNull(7000.milliseconds) {
+                        httpClient.get("${server.url.toHttpBaseUrl()}/ping").status.value in 200..299
+                    } ?: false
+                    elapsed = (System.now().toEpochMilliseconds() - timeStamp.toEpochMilliseconds()).toInt()
+                    res
+                } catch (_: Exception) { // TODO pass as an exception to AppViewModel to print for user
+                    false
+                }
+                PingResult(reachable = reachable, ping = if (reachable) elapsed else null)
+            }
+            pingResults.update { it + (server.id to result) }
+        }
     }
+
+    private data class PingResult(val reachable: Boolean?, val ping: Int?)
 }
