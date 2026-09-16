@@ -1,7 +1,6 @@
 package com.raaveinm.features.impl_webrtc.signaling
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocketSession
@@ -20,15 +19,16 @@ import kotlinx.serialization.json.Json
 /*
  * One long-lived WS connection to PicassoBackend's /ws, carrying only RTC
  * signaling frames - chat has its own (still TODO'd) wire path in ChatRepository.
- * CIO is used as the engine because it's the only one available on every KMP
- * target this module builds for (android/ios/jvm), unlike okhttp/darwin.
+ * Engine is per-platform (signalingHttpClientEngine) rather than hardcoded CIO:
+ * CIO cannot do TLS at all on Kotlin/Native, so a hardcoded CIO client could
+ * never open wss:// on iOS - see SignalingHttpEngine.kt.
  */
 class SignalingClient {
     private val json = Json {
         ignoreUnknownKeys = true
         explicitNulls = false
     }
-    private val client = HttpClient(CIO) { install(WebSockets) }
+    private val client = HttpClient(signalingHttpClientEngine()) { install(WebSockets) }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private var session: DefaultClientWebSocketSession? = null

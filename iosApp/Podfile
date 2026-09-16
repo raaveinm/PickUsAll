@@ -1,0 +1,8 @@
+platform :ios, '18.2'
+
+target 'iosApp' do
+  use_frameworks!
+
+  # Provides the compiled WebRTC runtime
+  pod 'WebRTC-SDK', '125.6422.07'
+end

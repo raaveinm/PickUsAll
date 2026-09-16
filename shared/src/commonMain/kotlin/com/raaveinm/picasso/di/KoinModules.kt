@@ -3,6 +3,7 @@ package com.raaveinm.picasso.di
 import com.raaveinm.features.impl_webrtc.CallManager
 import com.raaveinm.features.impl_webrtc.signaling.SignalingClient
 import com.raaveinm.picasso.data.ApiClient
+import com.raaveinm.picasso.data.httpClientEngine
 import com.raaveinm.picasso.data.repository.ChatRepository
 import com.raaveinm.picasso.data.repository.FriendsRepository
 import com.raaveinm.picasso.data.repository.GameStoreRepository
@@ -23,7 +24,7 @@ import org.koin.mp.KoinPlatformTools
 
 private val sharedModule = module {
     single {
-        HttpClient {
+        HttpClient(httpClientEngine()) {
             install(ContentNegotiation) {
                 json(Json { ignoreUnknownKeys = true })
             }
