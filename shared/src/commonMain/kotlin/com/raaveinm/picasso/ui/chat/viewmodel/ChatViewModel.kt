@@ -41,6 +41,8 @@ class ChatViewModel(
     val  friendsUiState = _friendListUiState.asStateFlow()
     val isInCall: StateFlow<Boolean> = callManager.isInCall
 
+    private var currentServerId: Long? = null
+
     init {
         ///////////////////////////////////////////////
         // Init chat ui state
@@ -60,9 +62,10 @@ class ChatViewModel(
         }
         refreshFriends()
         serverDao.getAllServers()
-            .mapNotNull { servers -> servers.firstOrNull()?.url }
-            .filter { it.isNotBlank() }
-            .onEach { url -> callManager.connectSignaling(AppConfig.USER_ID, url.toWsUrl()) }
+            .mapNotNull { servers -> servers.firstOrNull() }
+            .onEach { server -> currentServerId = server.id }
+            .filter { it.url.isNotBlank() }
+            .onEach { server -> callManager.connectSignaling(AppConfig.USER_ID, server.url.toWsUrl()) }
             .launchIn(viewModelScope)
     }
 
@@ -143,9 +146,16 @@ class ChatViewModel(
             onResult(existing)
             return
         }
+        val serverId = currentServerId
+        if (serverId == null) {
+            _chatsUiState.update {
+                it.copy(warning = Pair(WarnLevel.ERROR, "dmWith failed: no known server to create the conversation on"))
+            }
+            return
+        }
         viewModelScope.launch {
             val chatId = chatDao.findOrCreateDm(
-                serverId = 3, // TODO replace with actual
+                serverId = serverId,
                 remoteId = steamId,
                 chatTitleSteamId = steamId
             )

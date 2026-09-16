@@ -20,7 +20,7 @@ fun CoilInitializer() {
                 add(
                     KtorNetworkFetcherFactory(
                         httpClient = {
-                            HttpClient {
+                            HttpClient(httpClientEngine()) {
                                 followRedirects = true
                                 defaultRequest {
                                     header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")

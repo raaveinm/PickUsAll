@@ -71,7 +71,7 @@ class CanvasViewModel(
             } catch (e: Exception) {
                 // TODO: surface a real error state once there's a UI for it; for now
                 // a failed refresh just leaves the last cached library in place.
-                println("CanvasViewModel.refreshLibrary failed: $e")
+                println("CanvasViewModel.refreshLibrary failed: ${e.stackTraceToString()}")
             } finally {
                 _isRefreshing.value = false
             }

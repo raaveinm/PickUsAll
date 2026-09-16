@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +58,12 @@ fun ServerScreen(
 ) {
     val serverStates by viewModel.serverStates.collectAsState()
     var dialog by remember { mutableStateOf<ServerDialog?>(null) }
+
+    LaunchedEffect(serverStates.map { it.id }) {
+        serverStates.forEach { server ->
+            if (server.reachable != true) viewModel.pingServer(server)
+        }
+    }
 
     val animatedBlur by animateFloatAsState(
         targetValue = if (dialog != null) 16f else 0f,
