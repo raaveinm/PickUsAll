@@ -6,6 +6,8 @@ import com.raaveinm.core.database.dao.GameDao
 import com.raaveinm.core.database.dao.UserDao
 import com.raaveinm.core.database.entities.api.game.toCommunityContent
 import com.raaveinm.core.database.entities.api.user.toDto
+import com.raaveinm.core.database.entities.game.GameQueue
+import com.raaveinm.core.database.entities.game.toDto
 import com.raaveinm.core.model.game.LibraryOrder
 import com.raaveinm.picasso.AppConfig
 import com.raaveinm.picasso.data.repository.GameStoreRepository
@@ -35,8 +37,9 @@ class CanvasViewModel(
         combine(
             userDao.getUserLibrary(AppConfig.USER_ID),
             gameDao.observeGamesWithDetails(),
+            gameDao.observeQueue(AppConfig.USER_ID),
             _libraryOrder
-        ) { library, gamesWithDetails, order ->
+        ) { library, gamesWithDetails, queue, order ->
             val sortedLibrary = when (order) {
                 LibraryOrder.NAME -> library.sortedBy { it.name }
                 LibraryOrder.PLAYTIME -> library.sortedByDescending { it.playtimeForever }
@@ -45,7 +48,8 @@ class CanvasViewModel(
             CanvasUiState(
                 userLibrary = sortedLibrary.map { it.toDto() },
                 libraryOrder = order,
-                communityContent = gamesWithDetails.toCommunityContent(library)
+                communityContent = gamesWithDetails.toCommunityContent(library),
+                gameQueue = queue.map { it.toDto() }
             )
         }.onEach { state -> _uiState.update { state } }.launchIn(viewModelScope)
 
@@ -60,8 +64,35 @@ class CanvasViewModel(
         _libraryOrder.update { order }
     }
 
+    fun reorderQueue(orderedGameIds: List<Int>) {
+        viewModelScope.launch {
+            gameDao.reorderQueue(AppConfig.USER_ID, orderedGameIds)
+        }
+    }
+
+    fun addToQueue(gameId: Int, priority: Int) {
+        viewModelScope.launch {
+            try {
+                gameStoreRepository.refreshMissingDetails(listOf(gameId))
+                if (gameId !in gameDao.getCachedAppIds()) {
+                    println("CanvasViewModel.addToQueue: appId=$gameId has no Games row after refresh, not adding")
+                    return@launch
+                }
+                gameDao.addToQueue(
+                    GameQueue(id = gameId.toLong(), userId = AppConfig.USER_ID, gameId = gameId, priority = priority)
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // TODO: surface a real error state once there's a UI for it (e.g.
+                // invalid appId that Steam's store API doesn't recognize).
+                println("CanvasViewModel.addToQueue failed: ${e.stackTraceToString()}")
+            }
+        }
+    }
+
     fun refreshLibrary() {
-        if (_isRefreshing.value) return // ignore an overlapping pull/entry-refresh
+        if (_isRefreshing.value) return
         viewModelScope.launch {
             _isRefreshing.value = true
             try {

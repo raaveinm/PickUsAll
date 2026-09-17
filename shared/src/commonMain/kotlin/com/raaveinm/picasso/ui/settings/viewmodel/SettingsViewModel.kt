@@ -45,6 +45,10 @@ class SettingsViewModel(
         initialValue = emptyList()
     )
 
+    ///////////////////////////////////////////////
+    // Server Manipulation
+    ///////////////////////////////////////////////
+
     @OptIn(ExperimentalTime::class)
     fun addServer(url: String, name: String) {
         viewModelScope.launch {
@@ -114,8 +118,16 @@ class SettingsViewModel(
                 PingResult(reachable = reachable, ping = if (reachable) elapsed else null)
             }
             pingResults.update { it + (server.id to result) }
+            serverDao.updatePing(server.id, result.ping)
         }
     }
 
     private data class PingResult(val reachable: Boolean?, val ping: Int?)
+
+    ///////////////////////////////////////////////
+    // Server read-only
+    ///////////////////////////////////////////////
+
+    suspend fun getReachableServer(): ServerState? =
+        serverDao.getReachableServers().firstOrNull()?.toModel()
 }

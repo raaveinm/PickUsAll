@@ -22,4 +22,10 @@ interface ServerDao {
 
     @Query("SELECT * FROM Servers ORDER BY added DESC")
     fun getAllServers(): Flow<List<Servers>>
+
+    @Query("SELECT * FROM Servers where ping IS NOT NULL")
+    suspend fun getReachableServers(): List<Servers>
+
+    @Query("UPDATE Servers SET ping = :ping WHERE id = :serverId")
+    suspend fun updatePing(serverId: Long, ping: Int?)
 }

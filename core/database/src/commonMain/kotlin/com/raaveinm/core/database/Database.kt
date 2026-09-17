@@ -29,6 +29,7 @@ import com.raaveinm.core.database.entities.chat.Conversations
 import com.raaveinm.core.database.entities.chat.MessageData
 import com.raaveinm.core.database.entities.chat.PaletteMembers
 import com.raaveinm.core.database.entities.chat.Palettes
+import com.raaveinm.core.database.entities.game.GameQueue
 import com.raaveinm.core.database.entities.server.Servers
 
 @Database(entities = [
@@ -41,8 +42,10 @@ import com.raaveinm.core.database.entities.server.Servers
     GameDevelopers::class, GameGenres::class, GameMedia::class, GamePublishers::class, Games::class,
     Genres::class,
     // api - user
-    OwnedGames::class, SteamFriends::class, UserAchievements::class, Users::class
-                     ], version = 3)
+    OwnedGames::class, SteamFriends::class, UserAchievements::class, Users::class,
+    // game
+    GameQueue::class
+                     ], version = 4)
 @ColumnTypeConverters(RoomConverters::class)
 @ConstructedBy(DatabaseConstructor::class)
 abstract class PicassoDatabase : RoomDatabase() {
@@ -51,7 +54,7 @@ abstract class PicassoDatabase : RoomDatabase() {
     abstract fun getServerDao(): ServerDao
     abstract fun getUserDao(): UserDao
 }
-@Suppress("KotlinNoActualForExpect", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect object DatabaseConstructor : RoomDatabaseConstructor<PicassoDatabase> {
     override fun initialize(): PicassoDatabase
 }
@@ -61,7 +64,25 @@ val MIGRATION_1_2 = Migration(1, 2) { connection ->
 }
 
 val MIGRATION_2_3 = Migration(2, 3) { connection ->
-    // Existing rows predate the outbox: they only ever got into the DB by already
-    // having been synced/received, so backfilling them as SENT is correct, not a guess.
     connection.execSQL("ALTER TABLE MessageData ADD COLUMN status TEXT NOT NULL DEFAULT 'SENT'")
+}
+
+val MIGRATION_3_4 = Migration(3, 4) { connection ->
+    connection.execSQL("ALTER TABLE Servers ADD COLUMN ping INT DEFAULT NULL")
+    connection.execSQL(
+        """
+        CREATE TABLE GameQueue(
+            id INTEGER NOT NULL,
+            userId INTEGER NOT NULL
+                references Users(steamId)
+                    on delete cascade,
+            gameId INTEGER NOT NULL
+                references Games(steamAppId)
+                    on delete no action,
+            priority INTEGER NOT NULL,
+            primary key (id, userId)
+        )
+        """.trimIndent()
+    )
+    connection.execSQL("CREATE INDEX index_GameQueue_userId_priority ON GameQueue (userId, priority)")
 }

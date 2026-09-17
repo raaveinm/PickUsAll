@@ -22,14 +22,17 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.SettingsApplications
 import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -38,6 +41,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.navigation.Application
 import com.raaveinm.picasso.ui.navigation.Behaviour
 import com.raaveinm.picasso.ui.navigation.OptionList
@@ -47,15 +51,25 @@ import com.raaveinm.picasso.ui.settings.fragments.SettingsCard
 import com.raaveinm.picasso.ui.settings.screens.ServerScreen
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.no_reachable_servers
 
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel,
+    appViewModel: AppViewModel,
     nestedNavController: NavHostController = rememberNavController()
 ) {
+    val uriHandler = LocalUriHandler.current
+    val errorServerNotFound = stringResource(Res.string.no_reachable_servers)
+    val coroutineScope = rememberCoroutineScope()
+
     val items = remember {
-        listOf(
+        listOf<Triple<ImageVector, String, () -> Unit>>(
             Triple(Icons.Default.Lan, "Server") { // Server connection settings
                 nestedNavController.navigate(Server)
             },
@@ -69,6 +83,14 @@ fun SettingsScreen(
                 nestedNavController.navigate(Behaviour) // (how Picasso should react
             },                                  // on outer events (like calls / system startup)
             Triple(Icons.AutoMirrored.Filled.Article, "Docs") { // External links on git / docs / troubleshooting
+                coroutineScope.launch {
+                    val server = viewModel.getReachableServer()
+                    if (server == null) {
+                        appViewModel.postMessage(WarnLevel.ERROR, errorServerNotFound)
+                        return@launch
+                    }
+                    uriHandler.openUri("http://${server.url}/docs")
+                }
             }
         )
     }

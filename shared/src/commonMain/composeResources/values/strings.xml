@@ -2,6 +2,9 @@
     <!--Tool Strings-->
     <string name="app_name">Pick Us All</string>
 
+    <string name="cancel">Cancel</string>
+    <string name="done">Done</string>
+
     <!--Application-->
 
     <!--Canvas-->
@@ -16,6 +19,11 @@
         <item>last played</item>
     </string-array>
 
+
+    <string name="add_game_to_complete">Add Game</string>
+    <string name="game_id_field">Steam Game Id</string>
+    <string name="priority_field">Game Priority</string>
+
     <!--Friends-->
     <string name="friends_steam_private">Steam Friendlist seems to be private</string>
 
@@ -27,4 +35,7 @@
         <item>say "Hello"</item>
         <item>type here</item>
     </string-array>
+
+    <!--Settings screen-->
+    <string name="no_reachable_servers">No reachable servers found. Check out servers.</string>
 </resources>

@@ -70,9 +70,12 @@ fun CanvasScreen(
             } else {
                 ColourPicker(
                     modifier = Modifier
+                        .fillMaxSize()
                         .sizeIn(maxWidth = 1024.dp)
                         .padding(vertical = Dimensions.medium),
-                    communityContent = uiState.communityContent
+                    gameQueue = uiState.gameQueue,
+                    onReorder = viewModel::reorderQueue,
+                    onAddToQueue = viewModel::addToQueue
                 )
             }
         }
@@ -83,7 +86,7 @@ fun CanvasScreen(
                 .zIndex(2f)
                 .padding(top = Dimensions.medium)
                 .sizeIn(maxWidth = 280.dp),
-            shape = FloatingActionButtonDefaults.shape, // RoundedCornerShape(16.dp)
+            shape = FloatingActionButtonDefaults.shape,
             color = Color.Transparent,
             shadowElevation = 6.dp,
             tonalElevation = 6.dp

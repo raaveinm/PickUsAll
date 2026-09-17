@@ -9,5 +9,6 @@ data class Servers(
     @PrimaryKey(autoGenerate = true) val id: Long,
     val url: String,
     val name: String?,
-    @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP") val added: Long
+    @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP") val added: Long,
+    val ping: Int? = null // if is null - server is not reachable
 )

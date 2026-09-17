@@ -34,7 +34,8 @@ fun GameCard(
     gameId: Int,
     sourceSize: String = GameCardSize.LIBRARY_600_X_900,
     text: String? = "blep",
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    enableGlowEffect: Boolean = true
 ) {
     val imageLink =
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$gameId/$sourceSize"
@@ -57,7 +58,8 @@ fun GameCard(
             modifier = Modifier,
             contentDescription = "game_card",
             contentScale = ContentScale.Crop,
-            enableGlowEffect = true,
+            enableGlowEffect = enableGlowEffect,
+            blurPadding = if (enableGlowEffect) 12.dp else 0.dp,
             cornerRadius = Shapes.averageShape
         )
 
@@ -99,3 +101,6 @@ fun GameCardPreviewCyberpunk() { GameCard(gameId = 1091500) }
 
 @Preview(device = Devices.DEFAULT) @Composable
 fun GameCardPreviewPlain() { GameCard(gameId = -1) }
+
+@Preview(device = Devices.DEFAULT) @Composable
+fun GameCardPreviewCyberpunk1() { GameCard(gameId = 1091500, enableGlowEffect = false) }

@@ -10,6 +10,8 @@ import com.raaveinm.core.database.entities.api.game.GameCategories
 import com.raaveinm.core.database.entities.api.game.GameMedia
 import com.raaveinm.core.database.entities.api.game.GameWithDetails
 import com.raaveinm.core.database.entities.api.game.Games
+import com.raaveinm.core.database.entities.game.GameQueue
+import com.raaveinm.core.database.entities.game.GameQueueWithGame
 import kotlinx.coroutines.flow.Flow
 
 //
@@ -40,4 +42,25 @@ interface GameDao {
     @Transaction
     @Query("select * from Games")
     fun observeGamesWithDetails(): Flow<List<GameWithDetails>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun addToQueue(item: GameQueue)
+
+    @Transaction
+    @Query(
+        "SELECT gameQueue.*, games.* FROM GameQueue AS gameQueue " +
+            "JOIN Games AS games ON games.steamAppId = gameQueue.gameId " +
+            "WHERE gameQueue.userId = :userId ORDER BY gameQueue.priority ASC"
+    )
+    fun observeQueue(userId: Long): Flow<List<GameQueueWithGame>>
+
+    @Query("UPDATE GameQueue SET priority = :priority WHERE gameId = :gameId AND userId = :userId")
+    suspend fun updateQueuePriority(userId: Long, gameId: Int, priority: Int)
+
+    @Transaction
+    suspend fun reorderQueue(userId: Long, orderedGameIds: List<Int>) {
+        orderedGameIds.forEachIndexed { index, gameId ->
+            updateQueuePriority(userId, gameId, index)
+        }
+    }
 }

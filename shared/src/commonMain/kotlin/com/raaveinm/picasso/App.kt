@@ -147,7 +147,8 @@ fun App(
                 composable<Settings> {
                     SettingsScreen(
                         modifier = Modifier.safeContentPadding(),
-                        viewModel = settingsViewModel
+                        viewModel = settingsViewModel,
+                        appViewModel = appViewModel
                     )
                 }
             }
