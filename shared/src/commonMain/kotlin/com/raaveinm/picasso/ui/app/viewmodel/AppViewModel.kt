@@ -1,10 +1,16 @@
 package com.raaveinm.picasso.ui.app.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.raaveinm.picasso.ui.actions.ClipboardHelper
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 data class AppMessage(
     val level: WarnLevel,
@@ -14,7 +20,8 @@ data class AppMessage(
 data class AppUiState(
     val selectedTab: Int = 0,
     val isSideBarExpanded: Boolean = false,
-    val message: AppMessage? = null
+    val message: AppMessage? = null,
+    val dismissTimer: Boolean = false
 )
 
 /**
@@ -27,6 +34,11 @@ data class AppUiState(
 class AppViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState = _uiState.asStateFlow()
+    private var dismissJob: Job? = null
+
+    ///////////////////////////////////////////////
+    // Navigation
+    ///////////////////////////////////////////////
 
     fun selectTab(tab: Int) {
         _uiState.update { it.copy(selectedTab = tab) }
@@ -40,11 +52,28 @@ class AppViewModel : ViewModel() {
         _uiState.update { it.copy(isSideBarExpanded = !it.isSideBarExpanded) }
     }
 
+    ///////////////////////////////////////////////
+    // Logging
+    ///////////////////////////////////////////////
+
     fun postMessage(level: WarnLevel, text: String) {
+        dismissJob?.cancel()
+
         _uiState.update { it.copy(message = AppMessage(level, text)) }
+
+        dismissJob = viewModelScope.launch {
+            delay(7000.milliseconds)
+            _uiState.update { it.copy(message = null) }
+        }
     }
 
     fun dismissMessage() {
+        dismissJob?.cancel()
+        dismissJob = null
         _uiState.update { it.copy(message = null) }
+    }
+
+    fun copyMessage() {
+        ClipboardHelper.setText(uiState.value.message?.text ?: "no_err")
     }
 }

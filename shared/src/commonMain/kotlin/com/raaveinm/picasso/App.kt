@@ -259,6 +259,7 @@ fun App(
                     modifier = Modifier,
                     level = appUiState.message?.level ?: WarnLevel.WARN,
                     what = appUiState.message?.text ?: "",
+                    onCopyClicked = { appViewModel.copyMessage() },
                     onDismissClicked = { appViewModel.dismissMessage() }
                 )
             }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,24 +34,25 @@ fun WarnBox(
     modifier: Modifier = Modifier,
     level: WarnLevel = WarnLevel.WARN,
     what: String = "unknown",
+    onCopyClicked: () -> Unit = {},
     onDismissClicked: () -> Unit = {}
 ) {
     val colorScheme: Triple<Color, Color, Color> = when(level){
         WarnLevel.INFO -> Triple(
             MaterialTheme.colorScheme.secondaryContainer,
             MaterialTheme.colorScheme.onSecondaryContainer,
-            MaterialTheme.colorScheme.secondary.copy(alpha = .48f)
+            MaterialTheme.colorScheme.secondary.copy(alpha = .64f)
         )
 
         WarnLevel.WARN -> Triple(
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.onPrimaryContainer,
-            MaterialTheme.colorScheme.primary.copy(alpha = .48f)
+            MaterialTheme.colorScheme.secondary,
+            MaterialTheme.colorScheme.onSecondary,
+            MaterialTheme.colorScheme.primary.copy(alpha = .64f)
         )
         WarnLevel.ERROR -> Triple(
             MaterialTheme.colorScheme.errorContainer,
             MaterialTheme.colorScheme.onErrorContainer,
-            MaterialTheme.colorScheme.error.copy(alpha = .48f)
+            MaterialTheme.colorScheme.error.copy(alpha = .64f)
         )
     }
 
@@ -74,6 +76,18 @@ fun WarnBox(
                     .padding(Dimensions.small)
                     .weight(1f)
             )
+            Box(
+                modifier = Modifier
+                    .clip(Shapes.circleShape)
+                    .background(Color.Transparent)
+                    .clickable { onCopyClicked() }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CopyAll,
+                    tint = colorScheme.second,
+                    contentDescription = "copy_err_message"
+                )
+            }
             Box(
                 modifier = Modifier
                     .clip(Shapes.circleShape)

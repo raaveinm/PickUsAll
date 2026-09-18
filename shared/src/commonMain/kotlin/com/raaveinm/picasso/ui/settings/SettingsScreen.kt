@@ -31,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -125,7 +124,8 @@ fun SettingsScreen(
             composable<Server> {
                 ServerScreen(
                     modifier = Modifier.padding(start = if (isCompact) 0.dp else 164.dp).fillMaxSize(),
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    appViewModel = appViewModel
                 )
             }
             composable<Application> {

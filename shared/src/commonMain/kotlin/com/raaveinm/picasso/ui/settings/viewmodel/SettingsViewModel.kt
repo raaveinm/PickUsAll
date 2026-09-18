@@ -7,6 +7,7 @@ import com.raaveinm.core.database.entities.server.Servers
 import com.raaveinm.core.database.entities.server.toModel
 import com.raaveinm.core.model.ServerState
 import com.raaveinm.core.model.toHttpBaseUrl
+import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
@@ -100,7 +101,7 @@ class SettingsViewModel(
      * snapshot handed to Compose, not observed state.
      */
     @OptIn(ExperimentalTime::class)
-    fun pingServer(server: ServerState) {
+    fun pingServer(server: ServerState, postMessage: (WarnLevel, String) -> Unit = { _,_-> }) {
         pingResults.update { it + (server.id to PingResult(reachable = null, ping = null)) }
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
@@ -112,7 +113,8 @@ class SettingsViewModel(
                     } ?: false
                     elapsed = (System.now().toEpochMilliseconds() - timeStamp.toEpochMilliseconds()).toInt()
                     res
-                } catch (_: Exception) { // TODO pass as an exception to AppViewModel to print for user
+                } catch (_: Exception) {
+                    postMessage(WarnLevel.WARN, "SERVER REACHABILITY ERROR: sp_e100")
                     false
                 }
                 PingResult(reachable = reachable, ping = if (reachable) elapsed else null)

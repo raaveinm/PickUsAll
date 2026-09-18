@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.raaveinm.core.model.ServerState
+import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.settings.fragments.DeleteServerCard
 import com.raaveinm.picasso.ui.settings.fragments.EditServerCard
 import com.raaveinm.picasso.ui.settings.fragments.NewServerCard
@@ -54,7 +55,8 @@ private sealed interface ServerDialog {
 @Composable
 fun ServerScreen(
     modifier: Modifier = Modifier,
-    viewModel: SettingsViewModel
+    viewModel: SettingsViewModel,
+    appViewModel: AppViewModel
 ) {
     val serverStates by viewModel.serverStates.collectAsState()
     var dialog by remember { mutableStateOf<ServerDialog?>(null) }
@@ -79,7 +81,10 @@ fun ServerScreen(
                 ServerInfo(
                     modifier = Modifier,
                     serverState = serverState,
-                    onNetworkPing = { viewModel.pingServer(server = serverState) },
+                    onNetworkPing = { viewModel.pingServer(
+                        server = serverState,
+                        postMessage = { l, m -> appViewModel.postMessage(l, m) }
+                    ) },
                     onEditClick = { dialog = ServerDialog.Edit(serverState) },
                     onDeleteClick = { dialog = ServerDialog.Delete(serverState) }
                 )
