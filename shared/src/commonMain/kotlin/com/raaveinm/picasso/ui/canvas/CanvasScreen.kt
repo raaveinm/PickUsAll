@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,6 +31,7 @@ import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
 import com.raaveinm.pickusall.core.designsystem.components.RefreshBox
 import com.raaveinm.pickusall.core.designsystem.components.Switch
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 import org.jetbrains.compose.resources.stringArrayResource
 import org.koin.compose.viewmodel.koinViewModel
 import pickusall.shared.generated.resources.Res
@@ -39,6 +41,7 @@ import pickusall.shared.generated.resources.switch_options
 @Composable
 fun CanvasScreen(
     modifier: Modifier = Modifier,
+    topNavModifier: Modifier = Modifier,
     viewModel: CanvasViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -57,11 +60,15 @@ fun CanvasScreen(
             if (selectedSwitch == 0) {
                 RefreshBox(
                     modifier = Modifier
+                        .zIndex(2.5f)
                         .fillMaxSize()
                         .sizeIn(maxWidth = 1024.dp),
                     onRefresh = { viewModel.refreshLibrary() },
                     isRefreshing = isRefreshing
                 ) {
+
+                }
+                Box(Modifier.fillMaxSize().zIndex(1f)) {
                     CanvasLibrary(
                         modifier = Modifier.fillMaxSize(),
                         libraryList = uiState.userLibrary
@@ -72,7 +79,7 @@ fun CanvasScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .sizeIn(maxWidth = 1024.dp)
-                        .padding(vertical = Dimensions.medium),
+                        .padding(PaddingValues(top = PlatformSpecificDim.contentPaddingMedium)),
                     gameQueue = uiState.gameQueue,
                     onReorder = viewModel::reorderQueue,
                     onAddToQueue = viewModel::addToQueue
@@ -87,9 +94,7 @@ fun CanvasScreen(
                 .padding(top = Dimensions.medium)
                 .sizeIn(maxWidth = 280.dp),
             shape = FloatingActionButtonDefaults.shape,
-            color = Color.Transparent,
-            shadowElevation = 6.dp,
-            tonalElevation = 6.dp
+            color = Color.Transparent
         ) {
             Column(
                 modifier = Modifier.padding(Dimensions.small),
@@ -97,7 +102,7 @@ fun CanvasScreen(
                 verticalArrangement = Arrangement.spacedBy(Dimensions.small)
             ) {
                 Switch(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = topNavModifier.fillMaxWidth(),
                     selected = selectedSwitch,
                     onSelected = { selectedSwitch = it },
                     options = options,

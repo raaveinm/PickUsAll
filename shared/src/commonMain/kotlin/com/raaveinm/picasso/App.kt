@@ -11,10 +11,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -52,6 +50,7 @@ import com.raaveinm.pickusall.core.designsystem.components.SidebarMenu
 import com.raaveinm.pickusall.core.designsystem.components.WarnBox
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
+import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
@@ -115,21 +114,21 @@ fun App(
                 navController = navController,
                 modifier = Modifier
                     .fillMaxSize()
-                    .blur(animatedBlur.dp)
-                    .systemBarsPadding(),
+                    .blur(animatedBlur.dp),
                 contentAlignment = Alignment.Center,
                 startDestination = Canvas
             ) {
                 composable<Canvas> {
                     CanvasScreen(
                         modifier = Modifier,
-                        canvasViewModel
+                        topNavModifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
+                        viewModel = canvasViewModel
                     )
                 }
                 composable<ChatGraph> { backStackEntry ->
                     val route = backStackEntry.toRoute<ChatGraph>()
                     ChatScreen(
-                        modifier = Modifier.safeContentPadding(),
+                        modifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
                         viewModel = chatViewModel,
                         appViewModel = appViewModel,
                         selectedChatId = route.selectedChatId,
@@ -138,7 +137,7 @@ fun App(
                 }
                 composable<Friends> {
                     FriendScreen(
-                        modifier = Modifier.safeContentPadding(),
+                        modifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
                         viewModel = chatViewModel,
                         appViewModel = appViewModel,
                         onMessageClick = ::openChat
@@ -146,7 +145,7 @@ fun App(
                 }
                 composable<Settings> {
                     SettingsScreen(
-                        modifier = Modifier.safeContentPadding(),
+                        modifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
                         viewModel = settingsViewModel,
                         appViewModel = appViewModel
                     )

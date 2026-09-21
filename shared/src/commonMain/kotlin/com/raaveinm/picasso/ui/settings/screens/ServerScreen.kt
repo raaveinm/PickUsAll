@@ -4,8 +4,10 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -72,10 +74,15 @@ fun ServerScreen(
         animationSpec = tween(300)
     )
 
-    Box(modifier.fillMaxSize().sizeIn(maxWidth = 1024.dp).padding(horizontal = Dimensions.medium)) {
+    Box(modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().blur(animatedBlur.dp).padding(Dimensions.small),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.small)
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(animatedBlur.dp)
+                .sizeIn(maxWidth = 1024.dp)
+                .padding(horizontal = Dimensions.medium),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.small),
+            contentPadding = PaddingValues(vertical = Dimensions.extraLarge)
         ) {
             items(serverStates, key = { it.id }) { serverState ->
                 ServerInfo(
@@ -101,10 +108,10 @@ fun ServerScreen(
                     .fillMaxSize()
                     .zIndex(2f)
                     .background(Color.Black.copy(alpha = 0.4f))
-                    .clickable { dialog = null },
+                    .clickable(indication = null, interactionSource = MutableInteractionSource()) { dialog = null },
                 contentAlignment = Alignment.Center
             ) {
-                Box(modifier = Modifier.clickable(onClick = {})) {
+                Box(modifier = Modifier.clickable(indication = null, interactionSource = MutableInteractionSource(), onClick = {})) {
                     when (currentDialog) {
                         is ServerDialog.New -> NewServerCard(
                             onDismiss = { dialog = null },

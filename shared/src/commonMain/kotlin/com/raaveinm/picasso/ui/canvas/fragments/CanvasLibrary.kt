@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.picasso.ui.actions.libraryRedirect
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
-import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 
 //
 // Created by Kirill "Raaveinm" on 8/18/26.
@@ -31,7 +31,10 @@ fun CanvasLibrary(
 
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minCellSize),
-            contentPadding = PaddingValues(vertical = Dimensions.paddingAboveAverage),
+            contentPadding = PaddingValues(
+                top = PlatformSpecificDim.contentPaddingAdvanced,
+                bottom = PlatformSpecificDim.contentPaddingLarge
+            ),
             verticalArrangement = Arrangement.Center,
             horizontalArrangement = Arrangement.Center,
         ) {
