@@ -76,7 +76,11 @@ fun AddGameCard(
                 }
                 Spacer(Modifier.width(Dimensions.small))
                 Button(
-                    onClick = { onSubmit(gameId.toInt(), priority.toInt()) },
+                    onClick = { onSubmit(
+                        gameId.toInt(),
+                        try { priority.toInt()
+                        } catch (_: Exception) { -1 }
+                    ) },
                     enabled = gameId.isNotBlank()
                 ) {
                     Text(stringResource(Res.string.done))
