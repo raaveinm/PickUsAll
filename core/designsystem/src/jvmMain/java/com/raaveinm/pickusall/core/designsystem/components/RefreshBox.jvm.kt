@@ -21,14 +21,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isMetaPressed
-import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
+import com.raaveinm.pickusall.core.designsystem.keybinding.AppKeyMap
+import com.raaveinm.pickusall.core.designsystem.keybinding.Commands
+import com.raaveinm.pickusall.core.designsystem.keybinding.IS_APPLE
+import com.raaveinm.pickusall.core.designsystem.keybinding.toChordOrNull
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 
@@ -57,14 +55,13 @@ actual fun RefreshBox(
                 .clickable(!isRefreshing) { onRefresh() }
                 .focusRequester(focusRequester)
                 .onPreviewKeyEvent { event ->
-                    when {
-                        event.type == KeyEventType.KeyDown &&
-                                (event.isCtrlPressed || event.isMetaPressed) &&
-                                event.key == Key.R && !isRefreshing -> {
-                            onRefresh()
-                            true
-                        }
-                        else -> false
+                    val chord = event.toChordOrNull(IS_APPLE) ?: return@onPreviewKeyEvent false
+                    val triggersRefresh = AppKeyMap.bindingsFor(chord).any { it.command == Commands.REFRESH }
+                    if (triggersRefresh && !isRefreshing) {
+                        onRefresh()
+                        true
+                    } else {
+                        false
                     }
                 }
                 .onFocusChanged(
