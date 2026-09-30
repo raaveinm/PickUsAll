@@ -31,7 +31,7 @@ fun FriendList(
 
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(vertical = Dimensions.large),
+        contentPadding = PaddingValues(vertical = Dimensions.paddingLarge),
         verticalArrangement = Arrangement.spacedBy(Dimensions.small)
     ) {
         if (friendList.isEmpty()) {

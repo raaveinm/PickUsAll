@@ -25,7 +25,7 @@
     <string name="priority_field">Game Priority</string>
 
     <!--Friends-->
-    <string name="friends_steam_private">Steam Friendlist seems to be private</string>
+    <string name="friends_steam_private">FRIEND LIST UPDATE ERR: flu_400</string>
 
     <!--text field hints-->
     <string name="search_bar_hint">search</string>

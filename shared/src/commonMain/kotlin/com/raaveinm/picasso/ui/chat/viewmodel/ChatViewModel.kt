@@ -95,13 +95,11 @@ class ChatViewModel(
                 friendsRepository.refresh()
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
-                // TODO: surface a real error state once there's a UI for it; for now
-                // a failed refresh just leaves the last cached friend list in place.
+            } catch (_: Exception) {
                 viewModelScope.launch {
-                    _chatsUiState.update {it.copy(warning = Pair(WarnLevel.ERROR, "refreshFriends failed: $e")) }
+                    _chatsUiState.update {it.copy(warning = Pair(WarnLevel.ERROR, "FRIEND LIST UPDATE ERR: flu_400")) }
                 }
-                println("ChatViewModel.refreshFriends failed: $e")
+                println("ChatViewModel.refreshFriends failed")
             } finally {
                 _friendListUiState.update { it.copy(isRefreshing = false) }
             }

@@ -12,13 +12,13 @@ import com.raaveinm.core.model.game.LibraryOrder
 import com.raaveinm.picasso.AppConfig
 import com.raaveinm.picasso.data.repository.GameStoreRepository
 import com.raaveinm.picasso.data.repository.OwnedGamesRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 class CanvasViewModel(
@@ -100,8 +100,7 @@ class CanvasViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                // TODO: surface a real error state once there's a UI for it; for now
-                // a failed refresh just leaves the last cached library in place.
+//                _uiState.update {it.copy(warning = Pair(WarnLevel.ERROR, "GAME LIB UPDATE ERR: glue_400")) }
                 println("CanvasViewModel.refreshLibrary failed: ${e.stackTraceToString()}")
             } finally {
                 _isRefreshing.value = false

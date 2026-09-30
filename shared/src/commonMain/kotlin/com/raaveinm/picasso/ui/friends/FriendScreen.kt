@@ -1,6 +1,6 @@
 package com.raaveinm.picasso.ui.friends
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,10 +15,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
 import com.raaveinm.picasso.ui.friends.fragments.FriendList
 import com.raaveinm.pickusall.core.designsystem.components.PicassoSearchBar
+import com.raaveinm.pickusall.core.designsystem.components.RefreshBox
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import org.jetbrains.compose.resources.stringResource
@@ -56,22 +58,32 @@ fun FriendScreen(
         dismissed = true
     }
 
-    Column(
-        modifier = modifier.fillMaxSize().padding(horizontal = Dimensions.medium),
-        horizontalAlignment = Alignment.CenterHorizontally
+    RefreshBox(
+        modifier = Modifier.fillMaxSize(),
+        onRefresh = { viewModel.refreshFriends() },
+        isRefreshing = state.isRefreshing
     ) {
-        PicassoSearchBar(
-            modifier = Modifier.sizeIn(maxWidth = ContentWidth).fillMaxWidth()
-                .padding(top = Dimensions.medium),
-            textFieldState = searchState,
-            placeholder = stringResource(Res.string.search_bar_hint)
-        )
+        Box(
+            modifier = modifier.fillMaxSize().padding(horizontal = Dimensions.medium),
+            contentAlignment = Alignment.Center
+        ) {
+            PicassoSearchBar(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .zIndex(.5f)
+                    .sizeIn(maxWidth = ContentWidth)
+                    .fillMaxWidth()
+                    .padding(top = Dimensions.large),
+                textFieldState = searchState,
+                placeholder = stringResource(Res.string.search_bar_hint)
+            )
 
-        FriendList(
-            modifier = Modifier.fillMaxSize().sizeIn(maxWidth = ContentWidth),
-            friendList = shownFriends,
-            emptyPlaceholder = if (query.isBlank()) "no artists around" else "nobody answers to \"$query\"",
-            onMessageClick = { friend -> viewModel.dmWith(friend.steamId, onMessageClick) }
-        )
+            FriendList(
+                modifier = Modifier.sizeIn(maxWidth = (ContentWidth + Dimensions.extraLarge)).fillMaxSize(),
+                friendList = shownFriends,
+                emptyPlaceholder = if (query.isBlank()) "no artists around" else "nobody answers to \"$query\"",
+                onMessageClick = { friend -> viewModel.dmWith(friend.steamId, onMessageClick) }
+            )
+        }
     }
 }
