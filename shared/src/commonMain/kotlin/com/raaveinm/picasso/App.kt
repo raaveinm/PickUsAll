@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
@@ -42,7 +41,9 @@ import com.raaveinm.picasso.ui.friends.FriendScreen
 import com.raaveinm.picasso.ui.navigation.Canvas
 import com.raaveinm.picasso.ui.navigation.ChatGraph
 import com.raaveinm.picasso.ui.navigation.Friends
+import com.raaveinm.picasso.ui.navigation.Profile
 import com.raaveinm.picasso.ui.navigation.Settings
+import com.raaveinm.picasso.ui.profile.ProfileScreen
 import com.raaveinm.picasso.ui.settings.SettingsScreen
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
 import com.raaveinm.pickusall.core.designsystem.components.NavBar
@@ -54,15 +55,18 @@ import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import com.raaveinm.pickusall.core.designsystem.utils.CoilInitializer
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.unauthorized
 
 private const val CanvasTab = 0
 private const val ChatTab = 1
 private const val FriendsTab = 2
 private const val SettingsTab = 3
+private const val ProfileTab = 4
 
 @Composable
-@Preview
 fun App(
     navController: NavHostController = rememberNavController()
 ) {
@@ -150,6 +154,9 @@ fun App(
                         appViewModel = appViewModel
                     )
                 }
+                composable<Profile> {
+                    ProfileScreen()
+                }
             }
 
             NavBar(
@@ -172,6 +179,7 @@ fun App(
                         CanvasTab -> Canvas
                         ChatTab -> ChatGraph()
                         FriendsTab -> Friends
+                        ProfileTab -> Profile
                         else -> Canvas
                     }
                     openTab(screen, it)
@@ -208,12 +216,19 @@ fun App(
                     )
                 ) {
                     SidebarMenu(
-                        Modifier
-                            .size(width = 320.dp, height = 640.dp),
+                        modifier = Modifier.size(width = 320.dp, height = 640.dp),
+                        onProfileClick = {
+                            openTab(Profile, ProfileTab)
+                            appViewModel.setSideBarExpanded(false)
+                        },
                         onSettingsClick = {
                             openTab(Settings, SettingsTab)
                             appViewModel.setSideBarExpanded(false)
-                        }
+                        },
+                        profileId = appUiState.user?.steamId,
+                        profileIcon = appUiState.user?.avatarMedium?:"",
+                        profileName = appUiState.user?.personaName?:stringResource(Res.string.unauthorized),
+                        personaState = appUiState.user?.personaState?:0
                     )
                 }
             }

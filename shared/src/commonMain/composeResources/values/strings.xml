@@ -6,6 +6,7 @@
     <string name="done">Done</string>
 
     <!--Application-->
+    <string name="unauthorized">Unauthorized</string>
 
     <!--Canvas-->
     <string-array name="switch_options">

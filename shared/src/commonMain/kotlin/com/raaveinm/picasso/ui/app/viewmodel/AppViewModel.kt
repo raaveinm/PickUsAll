@@ -2,6 +2,7 @@ package com.raaveinm.picasso.ui.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.ui.actions.ClipboardHelper
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import kotlinx.coroutines.Job
@@ -21,7 +22,8 @@ data class AppUiState(
     val selectedTab: Int = 0,
     val isSideBarExpanded: Boolean = false,
     val message: AppMessage? = null,
-    val dismissTimer: Boolean = false
+    val dismissTimer: Boolean = false,
+    val user: User? = null
 )
 
 /**

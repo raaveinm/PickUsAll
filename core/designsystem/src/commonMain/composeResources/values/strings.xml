@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings">settings</string>
+    <string name="username_default">username</string>
+
+    <!--settings-->
+    <string name="settings_general">General</string>
+    <string name="settings_avatar">Avatar</string>
+    <string name="settings_profile_background">Profile Background</string>
+    <string name="settings_mini_profile">Mini Profile</string>
+    <string name="settings_privacy">Privacy Settings</string>
+    <string name="log_off">Log Off</string>
+    <string name="log_in">Log In</string>
 </resources>

@@ -19,6 +19,9 @@ data object Friends
 @Serializable
 data object Settings
 
+@Serializable
+data object Profile
+
 ///////////////////////////////////////////////
 // Nested (chat graph)
 ///////////////////////////////////////////////
