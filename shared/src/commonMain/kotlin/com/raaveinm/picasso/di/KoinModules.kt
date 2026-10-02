@@ -3,7 +3,9 @@ package com.raaveinm.picasso.di
 import com.raaveinm.features.impl_webrtc.CallManager
 import com.raaveinm.features.impl_webrtc.signaling.SignalingClient
 import com.raaveinm.picasso.data.ApiClient
+import com.raaveinm.picasso.data.AuthApi
 import com.raaveinm.picasso.data.httpClientEngine
+import com.raaveinm.picasso.data.repository.AuthRepository
 import com.raaveinm.picasso.data.repository.ChatRepository
 import com.raaveinm.picasso.data.repository.FriendsRepository
 import com.raaveinm.picasso.data.repository.GameStoreRepository
@@ -31,10 +33,12 @@ private val sharedModule = module {
         }
     }
     single { ApiClient(get()) }
+    single { AuthApi(get()) }
     single { OwnedGamesRepository(get(), get()) }
     single { GameStoreRepository(get(), get()) }
     single { ChatRepository(get()) }
     single { FriendsRepository(get(), get()) }
+    single { AuthRepository(get(), get(), get()) }
     single { CallManager(SignalingClient()) }
     viewModelOf(::AppViewModel)
     viewModelOf(::CanvasViewModel)

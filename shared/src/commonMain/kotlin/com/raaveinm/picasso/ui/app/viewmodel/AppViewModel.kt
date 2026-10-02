@@ -2,13 +2,26 @@ package com.raaveinm.picasso.ui.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.raaveinm.core.database.dao.UserDao
+import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.model.user.User
+import com.raaveinm.picasso.data.repository.AuthRepository
+import com.raaveinm.picasso.data.repository.LoginError
+import com.raaveinm.picasso.data.repository.LoginFailure
 import com.raaveinm.picasso.ui.actions.ClipboardHelper
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -23,8 +36,18 @@ data class AppUiState(
     val isSideBarExpanded: Boolean = false,
     val message: AppMessage? = null,
     val dismissTimer: Boolean = false,
-    val user: User? = null
-)
+    val user: User? = null,
+    /** True from the moment the browser is opened until the poll resolves or gives up. */
+    val isLoggingIn: Boolean = false,
+    /**
+     * Set once [login] has a URL to open; the UI consumes it, opens a browser, then
+     * calls [onLoginUrlOpened]. Kept as state rather than returned so the composable
+     * doesn't have to launch a coroutine to get it.
+     */
+    val pendingLoginUrl: String? = null
+) {
+    val isLoggedIn: Boolean get() = user != null
+}
 
 /**
  * Holds UI state shared across the whole app shell (bottom nav selection,
@@ -32,11 +55,94 @@ data class AppUiState(
  * screen. Other viewmodels/repositories can be pointed at [postMessage] as a
  * sink for cross-cutting failures (failed sends, sync errors, ...) once there's
  * a call site for that.
+ *
+ * Also owns the Steam login/logout the sidebar triggers - see [login] for why
+ * that's a two-step dance rather than one call.
  */
-class AppViewModel : ViewModel() {
+@OptIn(ExperimentalCoroutinesApi::class)
+class AppViewModel(
+    private val authRepository: AuthRepository,
+    private val userDao: UserDao
+) : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState = _uiState.asStateFlow()
     private var dismissJob: Job? = null
+    private var loginJob: Job? = null
+
+    init {
+        // The sidebar's identity follows the session: a Users row only exists once
+        // FriendsRepository/OwnedGamesRepository has fetched that profile from Steam,
+        // so this stays null for a moment after login and that's expected.
+        authRepository.session
+            .map { it?.userId }
+            .distinctUntilChanged()
+            .flatMapLatest { id -> if (id == null) flowOf(null) else userDao.observeUser(id) }
+            .onEach { row -> _uiState.update { it.copy(user = row?.toDto()) } }
+            .launchIn(viewModelScope)
+    }
+
+    ///////////////////////////////////////////////
+    // Auth
+    ///////////////////////////////////////////////
+
+    /**
+     * Step one of the login: resolves the active server, mints a nonce and puts the
+     * `/auth/steam/begin` URL in [AppUiState.pendingLoginUrl]. The *UI* has to open
+     * it, because Steam's consent page is a browser flow - there is nothing to show
+     * in-app. [onLoginUrlOpened] then starts polling for the token.
+     */
+    fun login() {
+        if (_uiState.value.isLoggingIn) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoggingIn = true) }
+            authRepository.startLogin()
+                .onSuccess { attempt ->
+                    _uiState.update { it.copy(pendingLoginUrl = attempt.url) }
+                    awaitLogin(attempt.state)
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isLoggingIn = false) }
+                    postMessage(WarnLevel.ERROR, error.describe())
+                }
+        }
+    }
+
+    /** Clears the one-shot URL so a recomposition doesn't open a second browser tab. */
+    fun onLoginUrlOpened() {
+        _uiState.update { it.copy(pendingLoginUrl = null) }
+    }
+
+    private fun awaitLogin(state: String) {
+        loginJob?.cancel()
+        loginJob = viewModelScope.launch {
+            try {
+                authRepository.awaitLogin(state)
+                    .onFailure { error -> postMessage(WarnLevel.WARN, error.describe()) }
+            } finally {
+                _uiState.update { it.copy(isLoggingIn = false) }
+            }
+        }
+    }
+
+    fun logout() {
+        loginJob?.cancel()
+        viewModelScope.launch {
+            try {
+                authRepository.logout()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // logout() already cleared the local session; nothing left to undo.
+            }
+            _uiState.update { it.copy(isLoggingIn = false, pendingLoginUrl = null) }
+        }
+    }
+
+    private fun Throwable.describe(): String = when ((this as? LoginError)?.failure) {
+        LoginFailure.NoServer -> "LOGIN FAILED: add a server in Settings first (auth_e100)"
+        LoginFailure.TimedOut -> "LOGIN TIMED OUT: the Steam sign-in wasn't completed (auth_e101)"
+        else -> "LOGIN FAILED: ${message ?: "unknown error"} (auth_e102)"
+    }
 
     ///////////////////////////////////////////////
     // Navigation

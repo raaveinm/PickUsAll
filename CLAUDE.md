@@ -1,6 +1,6 @@
 # PickUsAll (Picasso)
 
-KMP + Compose Multiplatform client (Android / Desktop / iOS). Backend (`picassobackend`, C++/Drogon/Postgres) is a separate repo, not part of this codebase.
+KMP + Compose Multiplatform client (Android / Desktop / iOS). Backend (`picassobackend`, C++/oat++/Postgres — see [decisions.md](brainstorm/decisions.md#server-stack-picassobackend) for the Drogon→oat++ switch) is a separate repo, not part of this codebase.
 
 Product context, terminology (Artist/Palette/Color/...), business model, and roadmap live in [brainstorm/brainstorm.md](brainstorm/brainstorm.md) and [brainstorm/pipeline.md](brainstorm/pipeline.md) — read those first, don't duplicate them here. Keep `pipeline.md`'s "Status snapshot" table updated at the end of a work session; it's the source of truth for "what's actually done" vs the stage plan.
 
@@ -15,7 +15,7 @@ Product context, terminology (Artist/Palette/Color/...), business model, and roa
 
 ## Database: client cache, not backend
 
-`core/database`'s tables (`Servers`, `Conversations`, `Chats`, `Palettes`, `PaletteMembers`, `MessageData`, plus the Steam catalog cache tables) are the **local Room cache on the client**, per [multi-server client & sync](brainstorm/brainstorm.md#multi-server-client--sync) — a client can hold connections to several backend servers at once. This is why:
+`core/database`'s tables (`Servers`, `Conversations`, `Chats`, `Palettes`, `PaletteMembers`, `MessageData`, plus the Steam catalog cache tables) are the **local Room cache on the client**, per [multi-server client & sync](brainstorm/brainstorm.md#multi-server-client--sync) — a client can *know about* several backend servers, but connects to exactly one **active** one at a time (switchable in settings; switching resyncs against the new active server — see [decisions.md](brainstorm/decisions.md#architecture) for why simultaneous live connections were dropped). This is why:
 
 - `Servers` table = the client's list of known backend URLs (`url`, `name`, `added`), not a backend concept.
 - `Conversations.serverId` = FK to which known server a cached conversation belongs to.
@@ -31,7 +31,7 @@ The cache exists to economize Steam API calls, not to hoard data forever — mos
 - `Users`, `OwnedGames`, `UserAchievements` each carry a required `fetchedAt: Long` (epoch, no DB default) — it's caching metadata, not part of the Steam API shape, which is why `User.toEntity(fetchedAt: Long)` takes it as a parameter instead of deriving it. Whoever fetches from the API is the only one who knows "when".
 - `UserDao.pruneStaleUsers(selfSteamId, cutoff)` deletes a `Users` row only if it's both stale (`fetchedAt < cutoff`) **and** unreachable — not self, not a friend, not a participant in any DM/Palette. Existing `ON DELETE CASCADE` FKs already clean up that user's `OwnedGames`/`UserAchievements`/`PaletteMembers` rows — don't add separate deletes for those.
 - `SteamFriends` is never a pruning target: it can only ever hold rows for the local user (Steam's API doesn't expose a friend's friend list), so a friend can never become "unreachable" through it.
-- Not wired to a call site yet. It doesn't strictly need `features/auth` to compile — `AppConfig.USER_ID` could pass as `selfSteamId` today — but it needs `features/auth` to be *meaningful*: right now every install has the same one hardcoded identity, so "self" isn't really a per-user concept yet. Once real auth lands, call it once per app session start with the actual logged-in user's steamId.
+- Not wired to a call site yet. Real auth has now landed (see "Auth" below), so "self" *is* a per-user concept and `selfSteamId` has a real value to take — call it once per app session start with `AuthRepository.session`'s `userId`.
 - A friend's `Users` row is *never* deleted by this sweep (breaks the friend list if it's gone), but their `OwnedGames`/`UserAchievements` still carry their own `fetchedAt` — that's for the repository layer (see below) to decide "stale, re-fetch" without needing eviction.
 
 ## Repository layer
@@ -59,6 +59,20 @@ This project uses the newer `androidx.room3` KMP artifact, which differs from cl
 - **On iOS/Native, `Dispatchers.IO` needs `import kotlinx.coroutines.IO`** in addition to `import kotlinx.coroutines.Dispatchers` — it's an internal member on Native without that extension import.
 - **`DatabaseFactory` (expect/actual, in `core/database`) has a different constructor per platform** (Android needs `Context`, iOS/JVM don't) — it can't be constructed from common code. Each platform entry point builds its own `DatabaseFactory` and feeds it into `databaseModule(factory)` (a Koin module providing `PicassoDatabase` + all DAOs). Pattern verified against Google's official [Fruitties KMP Room sample](https://github.com/android/kotlin-multiplatform-samples/tree/main/Fruitties).
 
+## Auth (Steam OpenID via picassobackend)
+
+Identity is a **session**, not a build constant. `AppConfig.USER_ID` is gone; `AppConfig` now only carries `STEAM_API_KEY`.
+
+- `core/datastore` persists the session (`UserAuthToken`: opaque token + steamId + expiry) in a Preferences DataStore. `AuthTokenStore.session: Flow<UserAuthToken?>` is the single source of truth — **null emission is the logged-out state**, there's no separate boolean. `AuthDataStoreFactory` is expect/actual with a per-platform constructor for exactly the same reason `DatabaseFactory` is, and is wired in per entry point via `authDataStoreModule(...)`.
+- Every viewmodel `flatMapLatest`es its DAO queries over that flow rather than reading an id once — logging in or out has to *re-subscribe* the queries, not just re-run them. Repositories (`FriendsRepository.refresh(self)`, `OwnedGamesRepository.refresh(selfSteamId)`) take the id as a parameter; same rationale as `User.toEntity(fetchedAt)`, only the caller knows.
+
+**Why the login is three-legged.** Steam's consent page is a browser flow and its redirect lands in the *browser*, a different process — the app can never read the response to `/auth/steam/return`. So: the app mints a one-time `state` nonce and opens `/auth/steam/begin?state=<nonce>`; the backend parks the minted token under that nonce; the app claims it from `/auth/steam/poll?state=<nonce>`. Consequences worth knowing:
+
+- The nonce is the *only* thing guarding a parked token, hence `secureNonce()` is expect/actual over a real CSPRNG (`SecureRandom` / `SecRandomCopyBytes`) — **not** `kotlin.random.Random`. It's hex so it survives a query string unescaped.
+- Parked tokens are single-use and expire in 5 min server-side (`PENDING_LOGIN_TTL_MS`); `LOGIN_POLL_TIMEOUT` is deliberately under that. A 204 from `poll` means "not ready", "already claimed" and "expired" indistinguishably, by design.
+- `logout()` clears locally *first*, then tells the server — a logout the user asked for must stick even with no network.
+- The WS upgrade carries the **session token**, not the steamId. `SignalingClient` used to send `Bearer <steamId>` matching an older dev-mode stand-in on the backend; that is now rejected. `CallManager.disconnectSignaling()` exists because `connectSignaling` self-guards against reconnects, so without an explicit teardown a logout would leave the socket authenticated as the previous user and silently refuse to reconnect as the next one.
+
 ## Koin DI
 
 Platform-level init, not the composable-scoped `KoinApplication`:
@@ -83,8 +97,7 @@ Compiling `core:database` alone is the fastest way to check an entity/DAO/migrat
 
 ## Known WIP / gaps
 
-- No auth (`features/auth` not started) — every install shares one hardcoded identity from `local.properties`/`AppConfig`. See "Cache rotation" above for one concrete thing this blocks.
 - `ChatRepository.sendToServer()` is a `TODO()` — chat messages persist locally (outbox, see above) but never actually leave the device.
-- No `picassobackend` integration at all — the client currently only talks to Steam's public Web API and its own local Room cache. This is what `sendToServer()`, real multi-server support, and the self-host tier are all waiting on.
-- `SettingsScreen`/`SettingsViewModel` are empty placeholders (tab exists in nav, does nothing).
+- Beyond auth, no `picassobackend` integration — the client otherwise only talks to Steam's public Web API and its own local Room cache. This is what `sendToServer()`, real multi-server support, and the self-host tier are all waiting on.
+- `SettingsViewModel` does server CRUD + reachability pings (not the empty placeholder it once was), but there's still no **active server** selection — "active" is hardcoded as first-of-list in both `ChatViewModel`'s signaling and `AuthRepository.activeServerBaseUrl()`. Logging in therefore requires a server to already exist in Settings; `LoginFailure.NoServer` is the error surfaced when none does.
 - `features:colorpicker`, `features:chat`, `features:audio` modules were never built — the Color Picker and Chat *features* exist and work, just live in `shared` instead (see Module map above). Full status: [pipeline.md](brainstorm/pipeline.md)'s status snapshot.

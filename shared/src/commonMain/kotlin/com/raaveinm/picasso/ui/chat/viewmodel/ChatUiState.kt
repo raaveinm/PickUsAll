@@ -12,5 +12,6 @@ data class ChatUiState(
     val hasMoreChatHistory: Boolean = true,
     val selectedChat: Long? = null,
     val selectedUser: User? = null,
-    val warning: Pair<WarnLevel, String>? = null
+    val warning: Pair<WarnLevel, String>? = null,
+    val selfSteamId: Long? = null
 )

@@ -20,11 +20,14 @@ import io.ktor.client.request.parameter
 //
 const val PLAYER_SUMMARIES_LIMIT = 100
 
+/**
+ * Steam's public Web API. Deliberately has no notion of "the current user" - every
+ * call takes the steamId it acts on, because identity now comes from the
+ * authenticated session (see `AuthRepository`) and is resolved by the caller.
+ */
 class ApiClient(private val httpClient: HttpClient) {
     private val steamApi: String
         get() = AppConfig.STEAM_API_KEY
-    val userId: Long
-        get() = AppConfig.USER_ID
 
     ///////////////////////////////////////////////
     // User's profile fetch
@@ -61,10 +64,10 @@ class ApiClient(private val httpClient: HttpClient) {
     // User's owned games fetch
     ///////////////////////////////////////////////
 
-    suspend fun getOwnedGames(): List<OwnedGame> =
+    suspend fun getOwnedGames(steamId: Long): List<OwnedGame> =
         httpClient.get("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/") {
             parameter("key", steamApi)
-            parameter("steamid", userId)
+            parameter("steamid", steamId)
             parameter("include_appinfo", true)
             parameter("include_played_free_games", true)
             parameter("format", "json")

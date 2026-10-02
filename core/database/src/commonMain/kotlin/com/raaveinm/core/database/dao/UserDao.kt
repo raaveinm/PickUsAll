@@ -53,6 +53,9 @@ interface UserDao {
         """
     )
     suspend fun pruneStaleUsers(selfSteamId: Long, cutoff: Long): Int
+    @Query("SELECT * FROM Users WHERE steamId = :steamId")
+    fun observeUser(steamId: Long): Flow<Users?>
+
     @Query("select * from OwnedGames where userSteamId=:userId")
     fun getUserLibrary(userId: Long): Flow<List<OwnedGames>>
 

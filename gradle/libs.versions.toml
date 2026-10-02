@@ -1,5 +1,6 @@
 [versions]
 agp = "9.3.2"
+datastoreCore = "1.2.1"
 navigationCompose = "2.9.2"
 kotlinx-serialization = "1.11.0"
 android-compileSdk = "37"
@@ -19,6 +20,7 @@ kotlinx-coroutines = "1.11.0"
 material3 = "1.11.0-alpha07"
 kotlinx-datetime = "0.8.0"
 kotlinStdlib = "2.4.10"
+okio = "3.9.1" # pinned to what androidx.datastore 1.2.1 already resolves to
 runner = "1.7.0"
 core = "1.7.0"
 coil = "3.5.0"
@@ -32,6 +34,8 @@ ksp = "2.3.11"
 koin = "4.2.2"
 
 [libraries]
+androidx-datastore-core = { module = "androidx.datastore:datastore-core", version.ref = "datastoreCore" }
+androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastoreCore" }
 androidx-material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version = "1.7.3" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
@@ -58,6 +62,7 @@ compose-material3 = { module = "org.jetbrains.compose.material3:material3", vers
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
@@ -71,6 +76,7 @@ ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kto
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 ktor-client-contentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinxJson = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 webrtc-kmp = { module = "com.shepeliev:webrtc-kmp", version.ref = "webrtc-kmp" }
 webrtc-android = { module = "io.getstream:stream-webrtc-android", version.ref = "webrtc-android" }
 webrtc-java = { module = "dev.onvoid.webrtc:webrtc-java", version.ref = "webrtc-java" }

@@ -16,7 +16,6 @@ import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Conversation
 import com.raaveinm.core.model.chat.MessageData
 import com.raaveinm.core.model.chat.Palette
-import com.raaveinm.picasso.AppConfig
 import com.raaveinm.picasso.ui.chat.fragments.ChatMessages
 import com.raaveinm.pickusall.core.designsystem.components.ChatTextBar
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
@@ -35,7 +34,8 @@ fun ChatWithUserScreen(
     onSendMessage: (String) -> Unit = {},
     onCallClicked: () -> Unit = {},
     callState: Boolean = false,
-    messageData: List<MessageData>
+    messageData: List<MessageData>,
+    selfSteamId: Long?
 ) {
     if (conversation == null) return
 
@@ -68,7 +68,7 @@ fun ChatWithUserScreen(
                 .fillMaxSize()
                 .zIndex(0f)
                 .align(Alignment.Center),
-            user = AppConfig.USER_ID,
+            user = selfSteamId ?: 0L,
             messages = messageData,
             onLoadMore = onLoadMoreHistory,
             contentPadding = PaddingValues(top = Dimensions.paddingAboveAverage, bottom = Dimensions.paddingLarge)

@@ -40,6 +40,7 @@ import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import org.jetbrains.compose.resources.stringResource
 import pickusall.core.designsystem.generated.resources.Res
 import pickusall.core.designsystem.generated.resources.log_in
+import pickusall.core.designsystem.generated.resources.log_in_pending
 import pickusall.core.designsystem.generated.resources.log_off
 import pickusall.core.designsystem.generated.resources.settings
 import pickusall.core.designsystem.generated.resources.settings_avatar
@@ -55,8 +56,10 @@ fun SidebarMenu(
     modifier: Modifier = Modifier,
     onSettingsClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onAuthClick: () -> Unit = {},
+    isAuthInProgress: Boolean = false,
     space: Dp = 48.dp,
-    profileId: Long? = null,
+    profileId: Long? = 1234,
     profileIcon: String = "",
     profileName: String = stringResource(Res.string.username_default),
     personaState: Int = 0
@@ -94,41 +97,45 @@ fun SidebarMenu(
             verticalArrangement = Arrangement.spacedBy(Dimensions.small)
         ) {
             val color = MaterialTheme.colorScheme.onSurface
+            val settingList = listOf(
+                Triple(Icons.Outlined.Public, stringResource(Res.string.settings_general), "info"),
+                Triple(Icons.Outlined.AccountCircle, stringResource(Res.string.settings_avatar), "avatar"),
+                Triple(Icons.Outlined.Wallpaper, stringResource(Res.string.settings_profile_background), "background"),
+                Triple(Icons.Outlined.ManageAccounts, stringResource(Res.string.settings_mini_profile), "miniprofile"),
+                Triple(Icons.Outlined.Shield, stringResource(Res.string.settings_privacy), "settings")
+            )
             AnimatedVisibility(
                 visible = isLoggedIn,
                 enter = expandVertically(),
                 exit = shrinkVertically()
-            ){
-                val settingList = listOf(
-                    Triple(Icons.Outlined.Public, stringResource(Res.string.settings_general), "info"),
-                    Triple(Icons.Outlined.AccountCircle, stringResource(Res.string.settings_avatar), ""),
-                    Triple(Icons.Outlined.Wallpaper, stringResource(Res.string.settings_profile_background), ""),
-                    Triple(Icons.Outlined.ManageAccounts, stringResource(Res.string.settings_mini_profile), ""),
-                    Triple(Icons.Outlined.Shield, stringResource(Res.string.settings_privacy), "")
-                )
-
-                settingList.forEach {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = Dimensions.small)
-                            .clip(Shapes.roundedSmall)
-                            .clickable { uriHandler.openUri("https://steamcommunity.com/users/$profileId/edit/${it.third}") }
-                            .background(inverseOnSurface)
-                            .padding(Dimensions.small),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = it.first, tint = color, contentDescription = null)
-                        Text(
-                            text = it.second,
-                            color = color,
-                            modifier = Modifier.weight(1f),
-                            fontSize = text.fontSize,
-                            fontStyle = text.fontStyle,
-                            fontWeight = text.fontWeight,
-                            fontFamily = text.fontFamily,
-                            textAlign = TextAlign.Center,
-                        )
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.small)
+                ) {
+                    settingList.forEach {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = Dimensions.small)
+                                .clip(Shapes.roundedSmall)
+                                .clickable { uriHandler.openUri("https://steamcommunity.com/profiles/$profileId/edit/${it.third}") }
+                                .background(inverseOnSurface)
+                                .padding(Dimensions.small),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(imageVector = it.first, tint = color, contentDescription = null)
+                            Text(
+                                text = it.second,
+                                color = color,
+                                modifier = Modifier.weight(1f),
+                                fontSize = text.fontSize,
+                                fontStyle = text.fontStyle,
+                                fontWeight = text.fontWeight,
+                                fontFamily = text.fontFamily,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                     }
                 }
             }
@@ -138,7 +145,7 @@ fun SidebarMenu(
                     .fillMaxWidth()
                     .padding(horizontal = Dimensions.small)
                     .clip(Shapes.roundedSmall)
-                    .clickable { /*TODO*/ }
+                    .clickable(enabled = !isAuthInProgress) { onAuthClick() }
                     .background(if (isLoggedIn) MaterialTheme.colorScheme.errorContainer else inverseOnSurface)
                     .padding(Dimensions.small),
                 verticalAlignment = Alignment.CenterVertically
@@ -149,7 +156,13 @@ fun SidebarMenu(
                         else Icons.AutoMirrored.Outlined.Login,
                     tint = color, contentDescription = null)
                 Text(
-                    text = stringResource(if (isLoggedIn) Res.string.log_off else Res.string.log_in),
+                    text = stringResource(
+                        when {
+                            isAuthInProgress -> Res.string.log_in_pending
+                            isLoggedIn -> Res.string.log_off
+                            else -> Res.string.log_in
+                        }
+                    ),
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
                     fontSize = text.fontSize,

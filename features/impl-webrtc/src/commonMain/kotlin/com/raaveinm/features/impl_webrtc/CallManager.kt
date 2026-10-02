@@ -56,12 +56,12 @@ class CallManager(
      * kick this off without the rest of the app depending on - or crashing from -
      * whether the signaling server happens to be reachable right now.
      */
-    fun connectSignaling(steamId: Long, wsUrl: String) {
+    fun connectSignaling(authToken: String, wsUrl: String) {
         if (signalingConnected) return
         signalingConnected = true
         scope.launch {
             try {
-                signalingClient.connect(steamId, wsUrl)
+                signalingClient.connect(authToken, wsUrl)
                 signalingClient.incoming
                     .onEach(::handleIncoming)
                     .launchIn(scope)
@@ -70,6 +70,18 @@ class CallManager(
                 println("CallManager.connectSignaling failed: $e")
             }
         }
+    }
+
+    /**
+     * Drops the signaling socket and any live call. Required on logout: the socket
+     * is authenticated as a specific session, so leaving it open would keep the
+     * server talking to a user who signed out, and [connectSignaling]'s own
+     * idempotence guard would then silently refuse to reconnect as the next user.
+     */
+    fun disconnectSignaling() {
+        if (signalingConnected) endCall()
+        signalingConnected = false
+        signalingClient.close()
     }
 
     /* Caller/offer path. */

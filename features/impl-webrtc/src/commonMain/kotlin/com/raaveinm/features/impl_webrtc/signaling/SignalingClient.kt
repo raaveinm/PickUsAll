@@ -39,14 +39,18 @@ class SignalingClient {
      * Idempotent - a second call while already connected is a no-op, since
      * CallManager may be invoked once per ChatViewModel but should only ever
      * hold one signaling connection per app session.
+     *
+     * [authToken] is the opaque session token from /auth/steam/poll, NOT the
+     * steamId: the backend hashes it and looks up a real session, then derives the
+     * sender from that. Sending a steamId here (as this used to, matching an older
+     * dev-mode stand-in) is rejected with a 401 on the upgrade.
      */
-    suspend fun connect(steamId: Long, wsUrl: String) {
+    suspend fun connect(authToken: String, wsUrl: String) {
         if (session != null) return
 
-        println("SignalingClient.connect: dialing $wsUrl as $steamId")
+        println("SignalingClient.connect: dialing $wsUrl")
         val newSession = client.webSocketSession(urlString = wsUrl) {
-            /* Matches the backend's dev-mode auth: the token IS the steamId. */
-            header("Authorization", "Bearer $steamId")
+            header("Authorization", "Bearer $authToken")
         }
         println("SignalingClient.connect: handshake complete")
         session = newSession

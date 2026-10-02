@@ -12,6 +12,7 @@ import com.raaveinm.core.database.entities.chat.Conversations
 import com.raaveinm.core.database.entities.chat.MessageData
 import com.raaveinm.core.database.entities.chat.toDto
 import com.raaveinm.core.database.entities.server.Servers
+import com.raaveinm.core.model.chat.MessageStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -65,7 +66,8 @@ class ChatHistoryPaginationTest {
                     conversationId = conversationId,
                     senderSteamId = if (i % 2 == 0) self.steamId else friend.steamId,
                     textMessage = "message #$i",
-                    timestamp = 1_700_000_000L + i
+                    timestamp = 1_700_000_000L + i,
+                    status = MessageStatus.SENT
                 )
             )
         }

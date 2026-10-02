@@ -19,10 +19,14 @@ class FriendsRepository(
     private val apiClient: ApiClient,
     private val userDao: UserDao
 ) {
+    /**
+     * [self] is passed in rather than read off the api client: identity now comes
+     * from the authenticated session, and only the caller observing that session
+     * knows who is actually logged in.
+     */
     @OptIn(ExperimentalTime::class)
-    suspend fun refresh() {
+    suspend fun refresh(self: Long) {
         val fetchedAt = Clock.System.now().epochSeconds
-        val self = apiClient.userId
         val friends = apiClient.getFriendList(self)
 
         val profiles = (listOf(self) + friends.map { it.steamId })

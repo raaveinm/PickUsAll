@@ -17,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
@@ -80,6 +82,19 @@ fun App(
         targetValue = if (!appUiState.isSideBarExpanded) 0f else 64f,
         animationSpec = tween(400)
     )
+
+    ///////////////////////////////////////////////
+    // Steam login hand-off
+    ///////////////////////////////////////////////
+
+    // Steam's consent page is a browser flow, so the login leaves the app here and
+    // comes back through AuthRepository's poll - nothing arrives via this composable.
+    val uriHandler = LocalUriHandler.current
+    LaunchedEffect(appUiState.pendingLoginUrl) {
+        val url = appUiState.pendingLoginUrl ?: return@LaunchedEffect
+        uriHandler.openUri(url)
+        appViewModel.onLoginUrlOpened()
+    }
 
     PicassoTheme {
         CoilInitializer()
@@ -225,6 +240,10 @@ fun App(
                             openTab(Settings, SettingsTab)
                             appViewModel.setSideBarExpanded(false)
                         },
+                        onAuthClick = {
+                            if (appUiState.isLoggedIn) appViewModel.logout() else appViewModel.login()
+                        },
+                        isAuthInProgress = appUiState.isLoggingIn,
                         profileId = appUiState.user?.steamId,
                         profileIcon = appUiState.user?.avatarMedium?:"",
                         profileName = appUiState.user?.personaName?:stringResource(Res.string.unauthorized),

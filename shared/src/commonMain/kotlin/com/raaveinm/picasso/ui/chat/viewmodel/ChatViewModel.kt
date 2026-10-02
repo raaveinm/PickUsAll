@@ -10,30 +10,39 @@ import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.Palette
 import com.raaveinm.core.model.toWsUrl
 import com.raaveinm.features.impl_webrtc.CallManager
-import com.raaveinm.picasso.AppConfig
+import com.raaveinm.picasso.data.repository.AuthRepository
 import com.raaveinm.picasso.data.repository.ChatRepository
 import com.raaveinm.picasso.data.repository.FriendsRepository
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val CHAT_HISTORY_PAGE_SIZE = 50
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModel(
     val chatDao: ChatDao,
     private val serverDao: ServerDao,
     private val chatRepository: ChatRepository,
     private val friendsRepository: FriendsRepository,
-    private val callManager: CallManager
+    private val callManager: CallManager,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     private val _chatsUiState = MutableStateFlow(ChatUiState())
     private val _friendListUiState = MutableStateFlow(FriendsUiState())
@@ -42,6 +51,12 @@ class ChatViewModel(
     val isInCall: StateFlow<Boolean> = callManager.isInCall
 
     private var currentServerId: Long? = null
+
+    /** The logged-in steamId, or null when signed out. Keys the friend list and signaling. */
+    private val selfSteamId = authRepository.session
+        .map { it?.userId }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {
         ///////////////////////////////////////////////
@@ -55,17 +70,38 @@ class ChatViewModel(
         ///////////////////////////////////////////////
         // friend list
         ///////////////////////////////////////////////
-        viewModelScope.launch{
-            chatDao.getUserFriends(AppConfig.USER_ID).onEach { friends ->
+        selfSteamId
+            .flatMapLatest { id -> if (id == null) flowOf(emptyList()) else chatDao.getUserFriends(id) }
+            .onEach { friends ->
                 _friendListUiState.update { it.copy(friends = friends.map { user -> user.toDto() }) }
-            }.launchIn(viewModelScope)
-        }
-        refreshFriends()
-        serverDao.getAllServers()
-            .mapNotNull { servers -> servers.firstOrNull() }
-            .onEach { server -> currentServerId = server.id }
-            .filter { it.url.isNotBlank() }
-            .onEach { server -> callManager.connectSignaling(AppConfig.USER_ID, server.url.toWsUrl()) }
+            }
+            .launchIn(viewModelScope)
+
+        selfSteamId
+            .onEach { id ->
+                _chatsUiState.update { it.copy(selfSteamId = id) }
+                // Re-pull on sign-in, not only at construction.
+                if (id != null) refreshFriends()
+            }
+            .launchIn(viewModelScope)
+
+        ///////////////////////////////////////////////
+        // Signaling
+        ///////////////////////////////////////////////
+
+        combine(
+            serverDao.getAllServers().map { servers -> servers.firstOrNull() },
+            authRepository.session
+        ) { server, session -> server to session }
+            .onEach { (server, _) -> currentServerId = server?.id }
+            .distinctUntilChanged()
+            .onEach { (server, session) ->
+                if (server == null || session == null || server.url.isBlank()) {
+                    callManager.disconnectSignaling()
+                    return@onEach
+                }
+                callManager.connectSignaling(session.token, server.url.toWsUrl())
+            }
             .launchIn(viewModelScope)
     }
 
@@ -90,9 +126,10 @@ class ChatViewModel(
     fun refreshFriends() {
         if (_friendListUiState.value.isRefreshing) return
         viewModelScope.launch {
+            val self = authRepository.session.first()?.userId ?: return@launch
             _friendListUiState.update { it.copy(isRefreshing = true) }
             try {
-                friendsRepository.refresh()
+                friendsRepository.refresh(self)
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
@@ -186,7 +223,8 @@ class ChatViewModel(
     fun sendMessage(conversationId: Long, text: String) {
         if (text.isBlank()) return
         viewModelScope.launch {
-            chatRepository.sendMessage(conversationId, AppConfig.USER_ID, text)
+            val self = authRepository.session.first()?.userId ?: return@launch
+            chatRepository.sendMessage(conversationId, self, text)
             if (_chatsUiState.value.selectedChat == conversationId) {
                 _chatsUiState.update { it.copy(chatHistory = emptyList(), hasMoreChatHistory = true) }
                 retrieveChatHistory(conversationId)

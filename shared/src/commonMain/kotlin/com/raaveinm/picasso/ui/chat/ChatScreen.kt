@@ -99,7 +99,8 @@ fun ChatScreen(
                         onSendMessage = { text -> viewModel.sendMessage(route.chatId, text) },
                         onCallClicked = { viewModel.onCallClicked(route.chatId) },
                         callState = isInCall,
-                        messageData = state.chatHistory
+                        messageData = state.chatHistory,
+                        selfSteamId = state.selfSteamId,
                     )
                 }
                 composable<UserProfile> { backStackEntry ->
@@ -181,7 +182,8 @@ fun ChatScreen(
                         onSendMessage = { text -> state.selectedChat?.let { viewModel.sendMessage(it, text) } },
                         onCallClicked = { state.selectedChat?.let { viewModel.onCallClicked(it) } },
                         callState = isInCall,
-                        messageData = state.chatHistory
+                        messageData = state.chatHistory,
+                        selfSteamId = state.selfSteamId,
                     )
                 }
                 if (showThirdColumn) {

@@ -14,12 +14,12 @@ class OwnedGamesRepository(
     private val userDao: UserDao
 ) {
     @OptIn(ExperimentalTime::class)
-    suspend fun refresh() {
+    suspend fun refresh(selfSteamId: Long) {
         val fetchedAt = Clock.System.now().epochSeconds
-        val summary = apiClient.getPlayerSummary(apiClient.userId)
-            ?: error("GetPlayerSummaries returned no player for steamId=${apiClient.userId}")
+        val summary = apiClient.getPlayerSummary(selfSteamId)
+            ?: error("GetPlayerSummaries returned no player for steamId=$selfSteamId")
         userDao.addUser(summary.toEntity(fetchedAt))
-        val games = apiClient.getOwnedGames()
-        userDao.addOwnedGames(games.map { it.toEntity(apiClient.userId, fetchedAt) })
+        val games = apiClient.getOwnedGames(selfSteamId)
+        userDao.addOwnedGames(games.map { it.toEntity(selfSteamId, fetchedAt) })
     }
 }
