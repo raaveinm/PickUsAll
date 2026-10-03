@@ -73,6 +73,19 @@ Identity is a **session**, not a build constant. `AppConfig.USER_ID` is gone; `A
 - `logout()` clears locally *first*, then tells the server — a logout the user asked for must stick even with no network.
 - The WS upgrade carries the **session token**, not the steamId. `SignalingClient` used to send `Bearer <steamId>` matching an older dev-mode stand-in on the backend; that is now rejected. `CallManager.disconnectSignaling()` exists because `connectSignaling` self-guards against reconnects, so without an explicit teardown a logout would leave the socket authenticated as the previous user and silently refuse to reconnect as the next one.
 
+## Key bindings (hotkeys)
+
+Desktop shortcuts are user-rebindable and persisted. Currently exactly one command exists, `Commands.REFRESH` (default Ctrl/Cmd+R, consumed by the JVM `RefreshBox`); Android/iOS use pull-to-refresh and ignore the keymap.
+
+- `core/designsystem/.../keybinding/` — the model. `KeyMap` is an **immutable snapshot**; a rebind produces a new one via `KeyMap.withOverrides(...)`. Read it in composables through `LocalKeyMap` (defaults to factory bindings if nothing provides it).
+- `KeyMap`'s constructor `require`s consistency and **throws** — that's for hardcoded lists (`DEFAULT_BINDINGS`) only. Anything user-supplied goes through `check()` (returns a `RebindProblem?`) or `withOverrides()` (silently drops invalid overrides → command keeps its default). Never feed persisted data straight into the constructor: a stale/corrupt file would crash the app at startup.
+- `core/datastore/.../settings/` — `BehaviourSettingsStore` persists only the chords the user *changed*, as `key_binding_<Commands.name>` → `"keyCode,primary,shift,alt,control"`. Datastore can't see Compose, hence the primitive `StoredChord`; `KeyBindingRepository` (in `shared/data/repository`) maps to/from `KeyChord`. **`Commands.name` is the persistence key** — renaming a constant resets that binding (removing one is safe, unknown ids are ignored). Same for the encoding string: it's on users' disks.
+- There are now **two** `DataStore<Preferences>` singletons (`auth.preferences_pb`, `settings.preferences_pb`), told apart by Koin qualifier in `DataStoreModule.kt`, not by type. Both paths come from the same per-platform `AuthDataStoreFactory`, so entry points are unchanged. Session logout only removes auth keys and never touches bindings.
+- `ProvideKeyMap` (`shared/ui/app`, wraps `App`) collects `KeyBindingRepository.keyMap` into `LocalKeyMap`. Rebind UI lives in Settings → Behaviour: `KeyBindingsSection` is a single `LazyColumn` item; `SettingsViewModel` owns the recording state (`BehaviourState`).
+- `toChordOrNull` folds "primary" into the event (Cmd on Apple, **Ctrl elsewhere**) so events compare equal to `chord(key, SpecialKeys.PRIMARY)`. It used to report `isPrimary = isMetaPressed` on every platform while discarding Meta off-Apple, so the default Ctrl+R could never match on Linux/Windows — covered by `ToChordTest`. Consequence: `isControl` is never set by events (Ctrl is primary off-Apple, dropped on Apple).
+- Adding a command: add the enum constant, a default in `DEFAULT_BINDINGS`, and title/description in `CommandText.kt` (its `when`s are exhaustive, so it won't compile until you do). No migration needed.
+- Recording rejects: reserved system chords (Ctrl+C/V/X/A/Z/Q/W…), bare keys other than F1–F12 (they'd fire while typing — `Binding.allowWhileTyping` isn't honoured by `RefreshBox` yet), and chords another command owns. Plain Esc cancels a recording and can't be bound.
+
 ## Koin DI
 
 Platform-level init, not the composable-scoped `KoinApplication`:

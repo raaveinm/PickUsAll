@@ -34,6 +34,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.raaveinm.picasso.ui.app.ProvideKeyMap
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.canvas.CanvasScreen
 import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
@@ -72,6 +73,11 @@ private const val ProfileTab = 4
 fun App(
     navController: NavHostController = rememberNavController()
 ) {
+    ProvideKeyMap { AppContent(navController) }
+}
+
+@Composable
+private fun AppContent(navController: NavHostController) {
     val canvasViewModel = koinViewModel<CanvasViewModel>()
     val chatViewModel = koinViewModel<ChatViewModel>()
     val settingsViewModel = koinViewModel<SettingsViewModel>()
@@ -86,9 +92,6 @@ fun App(
     ///////////////////////////////////////////////
     // Steam login hand-off
     ///////////////////////////////////////////////
-
-    // Steam's consent page is a browser flow, so the login leaves the app here and
-    // comes back through AuthRepository's poll - nothing arrives via this composable.
     val uriHandler = LocalUriHandler.current
     LaunchedEffect(appUiState.pendingLoginUrl) {
         val url = appUiState.pendingLoginUrl ?: return@LaunchedEffect

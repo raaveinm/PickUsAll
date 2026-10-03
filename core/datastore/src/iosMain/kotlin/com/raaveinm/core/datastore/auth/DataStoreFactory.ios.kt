@@ -8,8 +8,12 @@ import platform.Foundation.NSUserDomainMask
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class AuthDataStoreFactory {
+    actual fun authDataStorePath(): String = pathOf(AUTH_DATASTORE_FILE)
+
+    actual fun settingsDataStorePath(): String = pathOf(SETTINGS_DATASTORE_FILE)
+
     @OptIn(ExperimentalForeignApi::class)
-    actual fun authDataStorePath(): String {
+    private fun pathOf(fileName: String): String {
         val documents: NSURL? = NSFileManager.defaultManager.URLForDirectory(
             directory = NSDocumentDirectory,
             inDomain = NSUserDomainMask,
@@ -17,6 +21,6 @@ actual class AuthDataStoreFactory {
             create = false,
             error = null
         )
-        return requireNotNull(documents?.path) { "no documents directory" } + "/" + AUTH_DATASTORE_FILE
+        return requireNotNull(documents?.path) { "no documents directory" } + "/" + fileName
     }
 }

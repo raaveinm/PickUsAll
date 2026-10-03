@@ -47,6 +47,7 @@ import com.raaveinm.picasso.ui.navigation.OptionList
 import com.raaveinm.picasso.ui.navigation.Server
 import com.raaveinm.picasso.ui.navigation.Visual
 import com.raaveinm.picasso.ui.settings.fragments.SettingsCard
+import com.raaveinm.picasso.ui.settings.screens.BehaviourScreen
 import com.raaveinm.picasso.ui.settings.screens.ServerScreen
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
@@ -103,6 +104,7 @@ fun SettingsScreen(
             navController = nestedNavController,
             startDestination = OptionList
         ) {
+            val nestedModifier = Modifier.padding(start = if (isCompact) 0.dp else 164.dp).fillMaxSize()
             composable<OptionList> {
                 LazyVerticalGrid(
                     modifier = modifier.fillMaxSize(),
@@ -123,7 +125,7 @@ fun SettingsScreen(
 
             composable<Server> {
                 ServerScreen(
-                    modifier = Modifier.padding(start = if (isCompact) 0.dp else 164.dp).fillMaxSize(),
+                    modifier = nestedModifier,
                     viewModel = viewModel,
                     appViewModel = appViewModel
                 )
@@ -133,6 +135,11 @@ fun SettingsScreen(
             composable<Visual> {
             }
             composable<Behaviour> {
+                BehaviourScreen(
+                    viewModel = viewModel,
+                    appViewModel = appViewModel,
+                    modifier = nestedModifier
+                )
             }
         }
 

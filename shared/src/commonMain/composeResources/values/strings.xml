@@ -38,5 +38,24 @@
     </string-array>
 
     <!--Settings screen-->
+
+    <!--Server settings-->
     <string name="no_reachable_servers">No reachable servers found. Check out servers.</string>
+
+    <!--Behavior settings-->
+    <string name="key_binding">Key binding</string>
+    <string name="rebind">Rebind</string>
+    <string name="reset_binding">Reset</string>
+
+    <string name="command_refresh_title">Refresh</string>
+    <string name="command_refresh_desc">Reload the current list (library, friends)</string>
+
+    <string name="status_hint">Press “Rebind” to change a shortcut.</string>
+    <string name="status_recording">Press the new shortcut for “%1$s”… (Esc to cancel)</string>
+    <string name="status_rebound">“%1$s” is now %2$s</string>
+    <string name="status_reset">“%1$s” is back to %2$s</string>
+    <string name="status_cancelled">Rebinding cancelled</string>
+    <string name="status_rejected_reserved">%1$s is reserved for system shortcuts, pick another one</string>
+    <string name="status_rejected_needs_modifier">%1$s would trigger while typing, hold Ctrl, Alt or Shift (or use a function key)</string>
+    <string name="status_rejected_taken">%1$s is already used by “%2$s”</string>
 </resources>

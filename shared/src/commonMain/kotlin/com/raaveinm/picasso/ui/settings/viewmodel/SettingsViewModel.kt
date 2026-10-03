@@ -1,5 +1,6 @@
 package com.raaveinm.picasso.ui.settings.viewmodel
 
+import androidx.compose.ui.input.key.Key
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.raaveinm.core.database.dao.ServerDao
@@ -7,6 +8,11 @@ import com.raaveinm.core.database.entities.server.Servers
 import com.raaveinm.core.database.entities.server.toModel
 import com.raaveinm.core.model.ServerState
 import com.raaveinm.core.model.toHttpBaseUrl
+import com.raaveinm.picasso.data.repository.KeyBindingRepository
+import com.raaveinm.pickusall.core.designsystem.keybinding.Commands
+import com.raaveinm.pickusall.core.designsystem.keybinding.KeyChord
+import com.raaveinm.pickusall.core.designsystem.keybinding.KeyMap
+import com.raaveinm.pickusall.core.designsystem.keybinding.RebindProblem
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -16,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,10 +34,35 @@ import kotlin.time.ExperimentalTime
 
 class SettingsViewModel(
     private val serverDao: ServerDao,
-    private val httpClient: HttpClient
+    private val httpClient: HttpClient,
+    private val keyBindingRepository: KeyBindingRepository
 ) : ViewModel() {
-
     private val pingResults = MutableStateFlow<Map<Long, PingResult>>(emptyMap())
+    private val recordingFor = MutableStateFlow<Commands?>(null)
+    private val notice = MutableStateFlow<Notice?>(null)
+
+    val behaviourState: StateFlow<BehaviourState> = combine(
+        keyBindingRepository.keyMap,
+        recordingFor,
+        notice
+    ) { keyMap, recording, lastNotice ->
+        BehaviourState(
+            bindings = Commands.entries.mapNotNull { command ->
+                val chord: KeyChord = keyMap.chordFor(command) ?: return@mapNotNull null
+                ChordBindings(
+                    command = command,
+                    chord = chord,
+                    isDefault = chord == KeyMap.defaultChordFor(command)
+                )
+            },
+            recordingFor = recording,
+            notice = lastNotice
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = BehaviourState()
+    )
 
     val serverStates: StateFlow<List<ServerState>> = combine(
         serverDao.getAllServers(),
@@ -45,6 +77,59 @@ class SettingsViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
+
+    ///////////////////////////////////////////////
+    // Key Bindings
+    ///////////////////////////////////////////////
+
+    fun startRecording(command: Commands) {
+        recordingFor.value = command
+        notice.value = null
+    }
+
+    fun cancelRecording() {
+        recordingFor.value = null
+        notice.value = Notice.Cancelled
+    }
+
+    /**
+     * Receives the chord pressed while [recordingFor] is set. Plain Escape is reserved for aborting,
+     * so it can never be bound. Anything [KeyMap.check] refuses ends the attempt with a [Notice.Rejected]
+     * instead of being saved; the user hits "Rebind" again to retry.
+     */
+    fun onChordCaptured(chord: KeyChord) {
+        val command: Commands = recordingFor.value ?: return
+        recordingFor.value = null // cleared synchronously: a second key event must not start a second save
+
+        if (chord == KeyChord(Key.Escape, isPrimary = false, isShift = false, isAlt = false, isControl = false)) {
+            notice.value = Notice.Cancelled
+            return
+        }
+
+        viewModelScope.launch {
+            val problem: RebindProblem? = keyBindingRepository.keyMap.first().check(command, chord)
+            if (problem != null) {
+                notice.value = Notice.Rejected(command, chord, problem)
+                return@launch
+            }
+            keyBindingRepository.rebind(command, chord)
+            notice.value = Notice.Rebound(command, chord)
+        }
+    }
+
+    fun resetBinding(command: Commands) {
+        recordingFor.value = null
+        viewModelScope.launch {
+            keyBindingRepository.reset(command)
+            KeyMap.defaultChordFor(command)?.let { notice.value = Notice.Reset(command, it) }
+        }
+    }
+
+    /** Called when the Behaviour screen goes away, so a half-finished recording doesn't greet the user next visit. */
+    fun clearKeyBindingFeedback() {
+        recordingFor.value = null
+        notice.value = null
+    }
 
     ///////////////////////////////////////////////
     // Server Manipulation

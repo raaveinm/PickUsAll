@@ -6,4 +6,7 @@ import android.content.Context
 actual class AuthDataStoreFactory(private val context: Context) {
     actual fun authDataStorePath(): String =
         context.filesDir.resolve(AUTH_DATASTORE_FILE).absolutePath
+
+    actual fun settingsDataStorePath(): String =
+        context.filesDir.resolve(SETTINGS_DATASTORE_FILE).absolutePath
 }
