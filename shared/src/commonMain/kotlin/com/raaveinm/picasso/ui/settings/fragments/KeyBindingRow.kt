@@ -1,5 +1,7 @@
 package com.raaveinm.picasso.ui.settings.fragments
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,15 +10,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,14 +45,19 @@ fun KeyBindingRow(
     onCancelClick: () -> Unit,
     onResetClick: () -> Unit,
 ) {
+    val tint = MaterialTheme.colorScheme.onSurface
+    val animatedBackground by animateColorAsState(
+        targetValue =
+            if (!isRecording) MaterialTheme.colorScheme.surfaceContainer
+            else MaterialTheme.colorScheme.surfaceVariant,
+        animationSpec = tween(300)
+    )
     Row(
         modifier = modifier
+            .sizeIn(maxWidth = 624.dp)
             .fillMaxWidth()
             .clip(Shapes.roundedAverage)
-            .background(
-                if (isRecording) MaterialTheme.colorScheme.tertiaryContainer
-                else MaterialTheme.colorScheme.primaryContainer
-            )
+            .background(animatedBackground)
             .padding(Dimensions.medium),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Dimensions.medium)
@@ -61,12 +69,12 @@ fun KeyBindingRow(
             Text(
                 text = binding.command.titleText(),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = tint
             )
             Text(
                 text = binding.command.descriptionText(),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = tint
             )
         }
 
@@ -86,7 +94,7 @@ fun KeyBindingRow(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "chord_reset",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            tint = tint,
                             modifier = Modifier.size(24.dp).padding(start = Dimensions.small)
                         )
                     }
@@ -95,15 +103,15 @@ fun KeyBindingRow(
                     Icon(
                         imageVector = Icons.Filled.RestartAlt,
                         contentDescription = "chord_reset",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        tint = tint,
                         modifier = Modifier.size(24.dp).clip(Shapes.circleShape).clickable { onResetClick() }
                     )
                 }
                 if (isRecording) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Undo,
+                        imageVector = Icons.Outlined.Cancel,
                         contentDescription = "chord_reset",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        tint = tint,
                         modifier = Modifier.size(24.dp).clip(Shapes.circleShape).clickable { onCancelClick() }
                     )
                 }

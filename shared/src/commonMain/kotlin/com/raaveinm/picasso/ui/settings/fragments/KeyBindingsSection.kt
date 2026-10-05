@@ -74,11 +74,6 @@ fun KeyBindingsSection(
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        StatusCard(
-            recordingFor = state.recordingFor,
-            notice = state.notice
-        )
-
         state.bindings.forEach { binding ->
             KeyBindingRow(
                 binding = binding,

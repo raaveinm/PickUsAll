@@ -1,20 +1,16 @@
 package com.raaveinm.picasso.ui.settings.screens
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
 
-//
-// Created by Kirill "Raaveinm" on 10/3/26.
-//
-
-// Behavior settings are platform related - Keybinding won't be relevant for mobile
-// but if there will be attached physical keyboard - default bindings will be handled
-
 @Composable
-expect fun BehaviourScreen(
+actual fun BehaviourScreen(
     viewModel: SettingsViewModel,
     appViewModel: AppViewModel,
-    modifier: Modifier = Modifier
-)
+    modifier: Modifier
+) {
+    Text("Android Settings")
+}

@@ -72,9 +72,7 @@ private const val ProfileTab = 4
 @Composable
 fun App(
     navController: NavHostController = rememberNavController()
-) {
-    ProvideKeyMap { AppContent(navController) }
-}
+) { ProvideKeyMap { AppContent(navController) } }
 
 @Composable
 private fun AppContent(navController: NavHostController) {

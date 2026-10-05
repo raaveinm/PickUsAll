@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.SettingsApplications
 import androidx.compose.material3.Icon
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -158,8 +158,8 @@ fun SettingsScreen(
                         Modifier
                             .fillMaxWidth()
                             .sizeIn(minHeight = 36.dp)
-                            .padding(horizontal = Dimensions.medium)
-                            .clickable(onClick = it.third),
+                            .clickable(onClick = it.third)
+                            .padding(horizontal = Dimensions.medium),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -169,7 +169,8 @@ fun SettingsScreen(
                         )
                         Text(
                             text = it.second,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(start = Dimensions.extraSmall)
                         )
                     }
                 }

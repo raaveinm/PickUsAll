@@ -37,13 +37,7 @@ data class AppUiState(
     val message: AppMessage? = null,
     val dismissTimer: Boolean = false,
     val user: User? = null,
-    /** True from the moment the browser is opened until the poll resolves or gives up. */
     val isLoggingIn: Boolean = false,
-    /**
-     * Set once [login] has a URL to open; the UI consumes it, opens a browser, then
-     * calls [onLoginUrlOpened]. Kept as state rather than returned so the composable
-     * doesn't have to launch a coroutine to get it.
-     */
     val pendingLoginUrl: String? = null
 ) {
     val isLoggedIn: Boolean get() = user != null
@@ -107,7 +101,6 @@ class AppViewModel(
         }
     }
 
-    /** Clears the one-shot URL so a recomposition doesn't open a second browser tab. */
     fun onLoginUrlOpened() {
         _uiState.update { it.copy(pendingLoginUrl = null) }
     }
