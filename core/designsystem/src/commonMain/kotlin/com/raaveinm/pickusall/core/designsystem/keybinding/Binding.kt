@@ -8,5 +8,5 @@ data class Binding(
     val chord: KeyChord,
     val command: Commands,
     val context: Context = Context.APPLICATION,
-    val allowWhileTyping: Boolean = chord.isPrimary
+    val allowWhileTyping: Boolean = chord.hasShortcutModifier
 )

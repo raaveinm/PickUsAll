@@ -51,9 +51,7 @@ class KeyMap(val bindings: List<Binding>) {
      */
     fun check(command: Commands, chord: KeyChord): RebindProblem? {
         if (chord in ReservedChords) return RebindProblem.Reserved
-
-        val hasModifier: Boolean = chord.isPrimary || chord.isShift || chord.isAlt || chord.isControl
-        if (!hasModifier && chord.key !in FUNCTION_KEYS) return RebindProblem.NeedsModifier
+        if (!chord.hasModifier && chord.key !in FUNCTION_KEYS) return RebindProblem.NeedsModifier
 
         val context: Context = byCommand[command]?.context ?: return null
         val owner: Binding? = bindings.firstOrNull {
@@ -79,7 +77,9 @@ class KeyMap(val bindings: List<Binding>) {
                 if (keyMap.check(command, chord) != null) return@forEach
                 keyMap = KeyMap(
                     keyMap.bindings.map {
-                        if (it.command == command) it.copy(chord = chord, allowWhileTyping = chord.isPrimary) else it
+                        if (it.command == command) {
+                            it.copy(chord = chord, allowWhileTyping = chord.hasShortcutModifier)
+                        } else it
                     }
                 )
             }
@@ -91,9 +91,12 @@ class KeyMap(val bindings: List<Binding>) {
             a == b || a == Context.APPLICATION || b == Context.APPLICATION
 
         private val ReservedChords = setOf(
-            chord(Key.C, SpecialKeys.PRIMARY), chord(Key.V, SpecialKeys.PRIMARY), chord(Key.X, SpecialKeys.PRIMARY),
-            chord(Key.A, SpecialKeys.PRIMARY), chord(Key.Z, SpecialKeys.PRIMARY), chord(Key.Z, SpecialKeys.PRIMARY, SpecialKeys.SHIFT),
-            chord(Key.Q, SpecialKeys.PRIMARY), chord(Key.W, SpecialKeys.PRIMARY),
+            chord(Key.C, SYSTEM_MODIFIER),
+            chord(Key.V, SYSTEM_MODIFIER),
+            chord(Key.X, SYSTEM_MODIFIER),
+            chord(Key.A, SYSTEM_MODIFIER),
+            chord(Key.Z, SYSTEM_MODIFIER),
+            chord(Key.Z, SYSTEM_MODIFIER, SpecialKeys.SHIFT),
         )
     }
 }

@@ -7,6 +7,7 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -35,6 +39,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.raaveinm.picasso.ui.app.ProvideKeyMap
+import com.raaveinm.picasso.ui.app.WindowActions
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.canvas.CanvasScreen
 import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
@@ -52,6 +57,10 @@ import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
 import com.raaveinm.pickusall.core.designsystem.components.NavBar
 import com.raaveinm.pickusall.core.designsystem.components.SidebarMenu
 import com.raaveinm.pickusall.core.designsystem.components.WarnBox
+import com.raaveinm.pickusall.core.designsystem.keybinding.Commands
+import com.raaveinm.pickusall.core.designsystem.keybinding.KeyMap
+import com.raaveinm.pickusall.core.designsystem.keybinding.LocalKeyMap
+import com.raaveinm.pickusall.core.designsystem.keybinding.toChordOrNull
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
@@ -71,16 +80,24 @@ private const val ProfileTab = 4
 
 @Composable
 fun App(
-    navController: NavHostController = rememberNavController()
-) { ProvideKeyMap { AppContent(navController) } }
+    navController: NavHostController = rememberNavController(),
+    windowActions: WindowActions = WindowActions.Unsupported
+) { ProvideKeyMap { AppContent(navController, windowActions) } }
 
 @Composable
-private fun AppContent(navController: NavHostController) {
+private fun AppContent(
+    navController: NavHostController,
+    windowActions: WindowActions
+) {
     val canvasViewModel = koinViewModel<CanvasViewModel>()
     val chatViewModel = koinViewModel<ChatViewModel>()
     val settingsViewModel = koinViewModel<SettingsViewModel>()
     val appViewModel = koinViewModel<AppViewModel>()
     val appUiState by appViewModel.uiState.collectAsState()
+
+    val focusRequester = remember { FocusRequester() }
+    val keyMap: KeyMap = LocalKeyMap.current
+    LaunchedEffect(focusRequester) { focusRequester.requestFocus() }
 
     val animatedBlur by animateFloatAsState(
         targetValue = if (!appUiState.isSideBarExpanded) 0f else 64f,
@@ -129,7 +146,25 @@ private fun AppContent(navController: NavHostController) {
         // Main Navigation Screen
         ///////////////////////////////////////////////
 
-        Box(Modifier.background(gradientBrush)) {
+        Box(
+            Modifier
+                .background(gradientBrush)
+                .focusRequester(focusRequester)
+                .onPreviewKeyEvent { event ->
+                    val chord = event.toChordOrNull() ?: return@onPreviewKeyEvent false
+                    val action: (() -> Unit)? = keyMap.bindingsFor(chord)
+                        .firstNotNullOfOrNull { binding ->
+                            when (binding.command) {
+                                Commands.QUIT_APPLICATION -> windowActions.onQuit
+                                Commands.MINIMIZE_APPLICATION -> windowActions.onToggleVisibility
+                                Commands.REFRESH -> null
+                            }
+                        }
+                    action?.invoke()
+                    action != null
+                }
+                .focusable()
+        ) {
             NavHost(
                 navController = navController,
                 modifier = Modifier

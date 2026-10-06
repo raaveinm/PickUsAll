@@ -1,0 +1,14 @@
+<resources>
+    <!--Tool Strings-->
+    <string name="app_name">Pick Us All</string>
+
+    <!--Tray-->
+    <string name="quit_application">Quit</string>
+    <string name="minimize_application">Minimize</string>
+
+    <!--Menu Items-->
+    <string name="quick_nav_menu">Menu</string>
+
+    <!--Menu Navigation-->
+    <string name="go_to_library">Library</string>
+</resources>

@@ -24,23 +24,27 @@ fun chord(key: Key, vararg spec: SpecialKeys) = KeyChord(
 
 /**
  * Turns a raw key event into the chord it represents, or `null` when it can't be one:
- * key releases, a modifier pressed on its own, or a modifier foreign to the platform.
+ * key releases, or a modifier pressed on its own.
  *
- * "Primary" is folded in here (Cmd on Apple, Ctrl elsewhere) so the result is comparable with
- * chords built via [chord]`(key, SpecialKeys.PRIMARY)`. Ctrl is therefore never reported as
- * [KeyChord.isControl]: off Apple it *is* primary, on Apple it is ignored.
+ * Every modifier is reported verbatim and identically on every platform - Meta becomes
+ * [KeyChord.isPrimary] (Cmd on Apple, Super/Windows key elsewhere) and Ctrl becomes
+ * [KeyChord.isControl]. Nothing is folded or dropped, so Ctrl+Q and Super+Q are two different
+ * bindable chords.
+ *
+ * The flip side is that a single chord no longer means "the OS shortcut modifier" on both
+ * Apple and non-Apple platforms, so hardcoded lists have to pick per platform - see
+ * [SYSTEM_MODIFIER].
  */
-fun KeyEvent.toChordOrNull(isApple: Boolean = false) : KeyChord? {
+fun KeyEvent.toChordOrNull() : KeyChord? {
     if (type != KeyEventType.KeyDown) return null       // Ignoring KeyUp so a shortcut never double click
     if (key in MODIFIER_KEYS) return null               // "Ctrl" alone is not a shortcut
-    if (isApple && isCtrlPressed) return null           // Ignoring ctrl on MacOS
-    if (!isApple && isMetaPressed) return null          // ignoring Meta on other platforms
+
     return KeyChord(
         key = key,
-        isPrimary = if (isApple) isMetaPressed else isCtrlPressed,
+        isPrimary = isMetaPressed,
         isAlt = isAltPressed,
         isShift = isShiftPressed,
-        isControl = false
+        isControl = isCtrlPressed
     )
 }
 
@@ -114,6 +118,10 @@ fun Key.displayName(): String = KEY_NAMES[this] ?: toString()
 // Key Mapping
 ///////////////////////////////////////////////
 
+val SYSTEM_MODIFIER: SpecialKeys = if (IS_APPLE) SpecialKeys.PRIMARY else SpecialKeys.CONTROL
+
 val DEFAULT_BINDINGS: List<Binding> = listOf(
-    Binding(chord(Key.R, SpecialKeys.PRIMARY), Commands.REFRESH)
+    Binding(chord(Key.R, SYSTEM_MODIFIER), Commands.REFRESH),               // Ctrl+R  / ⌘R
+    Binding(chord(Key.Q, SYSTEM_MODIFIER), Commands.QUIT_APPLICATION),      // Ctrl+Q  / ⌘Q
+    Binding(chord(Key.W, SYSTEM_MODIFIER), Commands.MINIMIZE_APPLICATION)   // Ctrl+W  / ⌘W
 )

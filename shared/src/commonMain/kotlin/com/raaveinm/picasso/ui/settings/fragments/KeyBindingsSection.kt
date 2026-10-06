@@ -18,7 +18,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import com.raaveinm.picasso.ui.settings.viewmodel.BehaviourState
 import com.raaveinm.pickusall.core.designsystem.keybinding.Commands
-import com.raaveinm.pickusall.core.designsystem.keybinding.IS_APPLE
 import com.raaveinm.pickusall.core.designsystem.keybinding.KeyChord
 import com.raaveinm.pickusall.core.designsystem.keybinding.toChordOrNull
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
@@ -61,7 +60,7 @@ fun KeyBindingsSection(
             .focusRequester(focusRequester)
             .onPreviewKeyEvent { event ->
                 if (!isRecording) return@onPreviewKeyEvent false
-                event.toChordOrNull(IS_APPLE)?.let(onChordCaptured)
+                event.toChordOrNull()?.let(onChordCaptured)
                 true
             }
             .focusable(),

@@ -24,7 +24,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.unit.dp
 import com.raaveinm.pickusall.core.designsystem.keybinding.Commands
-import com.raaveinm.pickusall.core.designsystem.keybinding.IS_APPLE
 import com.raaveinm.pickusall.core.designsystem.keybinding.KeyMap
 import com.raaveinm.pickusall.core.designsystem.keybinding.LocalKeyMap
 import com.raaveinm.pickusall.core.designsystem.keybinding.toChordOrNull
@@ -39,7 +38,7 @@ actual fun RefreshBox(
     content: @Composable BoxScope.()->Unit
 ) {
     val focusRequester = remember { FocusRequester() }
-    val keyMap: KeyMap = LocalKeyMap.current // user's persisted bindings, see ProvideKeyMap
+    val keyMap: KeyMap = LocalKeyMap.current
     LaunchedEffect(focusRequester) { focusRequester.requestFocus() }
 
     Box(
@@ -57,7 +56,7 @@ actual fun RefreshBox(
                 .clickable(!isRefreshing) { onRefresh() }
                 .focusRequester(focusRequester)
                 .onPreviewKeyEvent { event ->
-                    val chord = event.toChordOrNull(IS_APPLE) ?: return@onPreviewKeyEvent false
+                    val chord = event.toChordOrNull() ?: return@onPreviewKeyEvent false
                     val triggersRefresh = keyMap.bindingsFor(chord).any { it.command == Commands.REFRESH }
                     if (triggersRefresh && !isRefreshing) {
                         onRefresh()

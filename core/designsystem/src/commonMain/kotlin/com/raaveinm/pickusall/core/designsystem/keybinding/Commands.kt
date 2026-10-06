@@ -16,5 +16,7 @@ package com.raaveinm.pickusall.core.designsystem.keybinding
  */
 
 enum class Commands(val title: String) {
-    REFRESH("refresh"),             // Refresh/update action
+    REFRESH("refresh"),                         // Refresh/update action
+    QUIT_APPLICATION("quit"),                   // SIGTERM
+    MINIMIZE_APPLICATION("minimize_to_tray")    // Obviously
 }

@@ -49,6 +49,10 @@
 
     <string name="command_refresh_title">Refresh</string>
     <string name="command_refresh_desc">Reload the current list (library, friends)</string>
+    <string name="command_quit_application_title">Quit</string>
+    <string name="command_quit_application_desc">Quit application</string>
+    <string name="command_minimize_application_title">Minimize</string>
+    <string name="command_minimize_application_desc">Minimize application to system tray</string>
 
     <string name="status_hint">Press “Rebind” to change a shortcut.</string>
     <string name="status_recording">Press the new shortcut for “%1$s”… (Esc to cancel)</string>
