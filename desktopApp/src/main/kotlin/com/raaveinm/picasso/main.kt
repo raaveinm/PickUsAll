@@ -1,11 +1,7 @@
 package com.raaveinm.picasso
 
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -14,8 +10,8 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import com.raaveinm.core.database.DatabaseFactory
 import com.raaveinm.core.database.databaseModule
 import com.raaveinm.core.datastore.auth.AuthDataStoreFactory
@@ -41,13 +37,14 @@ fun main() {
     }
 
     application {
-        var isVisible by rememberSaveable { mutableStateOf(true) }
+        val windowState = rememberWindowState(size = DpSize(1200.dp, 900.dp))
 
         val onQuit: () -> Unit = ::exitApplication
-        val onToggleVisibility: () -> Unit = { isVisible = !isVisible }
+        val onMinimize: () -> Unit = { windowState.isMinimized = true }
+        val onFocus: () -> Unit = {  }
 
         val windowActions: WindowActions = remember {
-            WindowActions(onQuit = onQuit, onToggleVisibility = onToggleVisibility)
+            WindowActions(onQuit = onQuit, onMinimize = onMinimize)
         }
 
         Tray(
@@ -64,15 +61,14 @@ fun main() {
                 label = stringResource(Res.string.minimize_application),
                 isEnabled = true,
                 shortcut = null,
-                onClick = onToggleVisibility
+                onClick = onMinimize
             )
         }
 
         Window(
             onCloseRequest = onQuit,
             title = stringResource(Res.string.app_name),
-            visible = isVisible,
-            state = WindowState(size = DpSize(1200.dp, 900.dp)),
+            state = windowState,
         ) {
             LaunchedEffect(Unit) {
                 window.minimumSize = Dimension(800, 600)

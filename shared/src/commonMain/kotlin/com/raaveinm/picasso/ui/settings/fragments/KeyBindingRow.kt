@@ -56,9 +56,9 @@ fun KeyBindingRow(
         modifier = modifier
             .sizeIn(maxWidth = 624.dp)
             .fillMaxWidth()
-            .clip(Shapes.roundedAverage)
+            .clip(Shapes.roundedExtraSmall)
             .background(animatedBackground)
-            .padding(Dimensions.medium),
+            .padding(Dimensions.small),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Dimensions.medium)
     ) {

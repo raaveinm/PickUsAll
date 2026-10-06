@@ -3,10 +3,8 @@ package com.raaveinm.picasso.ui.settings.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,6 +16,7 @@ import com.raaveinm.picasso.ui.settings.fragments.KeyBindingsSection
 import com.raaveinm.picasso.ui.settings.viewmodel.BehaviourState
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 
 @Composable
 actual fun BehaviourScreen(
@@ -31,13 +30,14 @@ actual fun BehaviourScreen(
         modifier = modifier,
         contentAlignment = Alignment.TopCenter
     ) {
-        LazyColumn( //TODO grid when item size more then 728.dp
-            modifier = Modifier
-                .fillMaxSize()
-                .sizeIn(maxWidth = 1024.dp)
-                .padding(horizontal = Dimensions.medium),
-            contentPadding = PaddingValues(vertical = Dimensions.extraLarge),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.large),
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(628.dp),
+            contentPadding = PaddingValues(
+                top = PlatformSpecificDim.contentPaddingMedium,
+                bottom = PlatformSpecificDim.contentPaddingLarge
+            ),
+            verticalArrangement = Arrangement.Top,
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.medium)
         ) {
 
             ///////////////////////////////////////////////

@@ -156,7 +156,7 @@ private fun AppContent(
                         .firstNotNullOfOrNull { binding ->
                             when (binding.command) {
                                 Commands.QUIT_APPLICATION -> windowActions.onQuit
-                                Commands.MINIMIZE_APPLICATION -> windowActions.onToggleVisibility
+                                Commands.MINIMIZE_APPLICATION -> windowActions.onMinimize
                                 Commands.REFRESH -> null
                             }
                         }

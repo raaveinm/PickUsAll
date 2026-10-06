@@ -9,9 +9,11 @@ import androidx.compose.ui.unit.dp
 //
 
 object Shapes {
+    val extraSmallShape = 6.dp
     val smallShape = 8.dp
     val averageShape = 12.dp
 
+    val roundedExtraSmall = RoundedCornerShape(extraSmallShape)
     val roundedSmall = RoundedCornerShape(smallShape)
     val roundedAverage = RoundedCornerShape(averageShape)
     val roundedSmoother = RoundedCornerShape(24.dp)

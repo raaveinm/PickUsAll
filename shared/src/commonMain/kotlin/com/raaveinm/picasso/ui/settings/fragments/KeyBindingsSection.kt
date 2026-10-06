@@ -64,7 +64,7 @@ fun KeyBindingsSection(
                 true
             }
             .focusable(),
-        verticalArrangement = Arrangement.spacedBy(Dimensions.medium)
+        verticalArrangement = Arrangement.spacedBy(Dimensions.small)
     ) {
         Text(
             modifier = Modifier.padding(start = Dimensions.small),
