@@ -17,16 +17,28 @@ import com.raaveinm.core.database.databaseModule
 import com.raaveinm.core.datastore.auth.AuthDataStoreFactory
 import com.raaveinm.core.datastore.authDataStoreModule
 import com.raaveinm.picasso.di.initKoin
+import com.raaveinm.picasso.ui.app.QuickDestination
 import com.raaveinm.picasso.ui.app.WindowActions
 import dev.nucleusframework.composenativetray.tray.api.Tray
 import java.awt.Dimension
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
+import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 import pickusall.desktopapp.generated.resources.Res
 import pickusall.desktopapp.generated.resources.app_name
+import pickusall.desktopapp.generated.resources.application_settings
+import pickusall.desktopapp.generated.resources.behavior_settings
+import pickusall.desktopapp.generated.resources.go_to_chat
+import pickusall.desktopapp.generated.resources.go_to_friends
 import pickusall.desktopapp.generated.resources.go_to_library
 import pickusall.desktopapp.generated.resources.minimize_application
+import pickusall.desktopapp.generated.resources.phrases
 import pickusall.desktopapp.generated.resources.quick_nav_menu
 import pickusall.desktopapp.generated.resources.quit_application
+import pickusall.desktopapp.generated.resources.server_settings
+import pickusall.desktopapp.generated.resources.settings_selector
+import pickusall.desktopapp.generated.resources.visual_settings
 
 fun main() {
     initKoin {
@@ -42,6 +54,10 @@ fun main() {
         val onQuit: () -> Unit = ::exitApplication
         val onMinimize: () -> Unit = { windowState.isMinimized = true }
         val onFocus: () -> Unit = {  }
+
+        val quickNavRequests = remember { Channel<QuickDestination>(Channel.CONFLATED) }
+        val quickNavFlow = remember { quickNavRequests.receiveAsFlow() }
+        fun goTo(destination: QuickDestination): () -> Unit = { quickNavRequests.trySend(destination) }
 
         val windowActions: WindowActions = remember {
             WindowActions(onQuit = onQuit, onMinimize = onMinimize)
@@ -67,7 +83,7 @@ fun main() {
 
         Window(
             onCloseRequest = onQuit,
-            title = stringResource(Res.string.app_name),
+            title = "${stringResource(Res.string.app_name)} :: ${stringArrayResource(Res.array.phrases).random()}",
             state = windowState,
         ) {
             LaunchedEffect(Unit) {
@@ -78,12 +94,21 @@ fun main() {
             {
                 MenuBar {
                     Menu(stringResource(Res.string.quick_nav_menu)) {
-                        Item(stringResource(Res.string.go_to_library), onClick = {})
+                        Item(stringResource(Res.string.go_to_library), onClick = goTo(QuickDestination.Library))
+                        Item(stringResource(Res.string.go_to_chat), onClick = goTo(QuickDestination.Chat))
+                        Item(stringResource(Res.string.go_to_friends), onClick = goTo(QuickDestination.Friends))
+
+                        Menu(stringResource(Res.string.settings_selector)) {
+                            Item(stringResource(Res.string.server_settings), onClick = goTo(QuickDestination.ServerSettings))
+                            Item(stringResource(Res.string.application_settings), onClick = goTo(QuickDestination.ApplicationSettings))
+                            Item(stringResource(Res.string.visual_settings), onClick = goTo(QuickDestination.VisualSettings))
+                            Item(stringResource(Res.string.behavior_settings), onClick = goTo(QuickDestination.BehaviourSettings))
+                        }
                     }
                 }
             }
 
-            App(windowActions = windowActions)
+            App(windowActions = windowActions, quickNavRequests = quickNavFlow)
         }
     }
 }

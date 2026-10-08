@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +40,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import com.raaveinm.picasso.ui.app.ProvideKeyMap
+import com.raaveinm.picasso.ui.app.QuickDestination
 import com.raaveinm.picasso.ui.app.WindowActions
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.canvas.CanvasScreen
@@ -46,11 +51,16 @@ import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
 import com.raaveinm.picasso.ui.chat.ChatScreen
 import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
 import com.raaveinm.picasso.ui.friends.FriendScreen
+import com.raaveinm.picasso.ui.navigation.Application
+import com.raaveinm.picasso.ui.navigation.Behaviour
 import com.raaveinm.picasso.ui.navigation.Canvas
 import com.raaveinm.picasso.ui.navigation.ChatGraph
 import com.raaveinm.picasso.ui.navigation.Friends
+import com.raaveinm.picasso.ui.navigation.OptionList
 import com.raaveinm.picasso.ui.navigation.Profile
+import com.raaveinm.picasso.ui.navigation.Server
 import com.raaveinm.picasso.ui.navigation.Settings
+import com.raaveinm.picasso.ui.navigation.Visual
 import com.raaveinm.picasso.ui.profile.ProfileScreen
 import com.raaveinm.picasso.ui.settings.SettingsScreen
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
@@ -81,13 +91,15 @@ private const val ProfileTab = 4
 @Composable
 fun App(
     navController: NavHostController = rememberNavController(),
-    windowActions: WindowActions = WindowActions.Unsupported
-) { ProvideKeyMap { AppContent(navController, windowActions) } }
+    windowActions: WindowActions = WindowActions.Unsupported,
+    quickNavRequests: Flow<QuickDestination> = emptyFlow()
+) { ProvideKeyMap { AppContent(navController, windowActions, quickNavRequests) } }
 
 @Composable
 private fun AppContent(
     navController: NavHostController,
-    windowActions: WindowActions
+    windowActions: WindowActions,
+    quickNavRequests: Flow<QuickDestination>
 ) {
     val canvasViewModel = koinViewModel<CanvasViewModel>()
     val chatViewModel = koinViewModel<ChatViewModel>()
@@ -114,6 +126,8 @@ private fun AppContent(
         appViewModel.onLoginUrlOpened()
     }
 
+    var pendingSettings by remember { mutableStateOf<Any?>(null) }
+
     PicassoTheme {
         CoilInitializer()
 
@@ -124,6 +138,26 @@ private fun AppContent(
                 restoreState = true
             }
             appViewModel.selectTab(tab)
+        }
+
+        LaunchedEffect(quickNavRequests) {
+            quickNavRequests.collect { destination ->
+                appViewModel.setSideBarExpanded(false)
+                when (destination) {
+                    QuickDestination.Library -> openTab(Canvas, CanvasTab)
+                    QuickDestination.Chat -> openTab(ChatGraph(), ChatTab)
+                    QuickDestination.Friends -> openTab(Friends, FriendsTab)
+                    else -> {
+                        pendingSettings = when (destination) {
+                            QuickDestination.ServerSettings -> Server
+                            QuickDestination.ApplicationSettings -> Application
+                            QuickDestination.VisualSettings -> Visual
+                            else -> Behaviour
+                        }
+                        openTab(Settings, SettingsTab)
+                    }
+                }
+            }
         }
 
         fun openChat(chatId: Long) {
@@ -199,7 +233,15 @@ private fun AppContent(
                     )
                 }
                 composable<Settings> {
+                    val settingsNavController = rememberNavController()
+                    LaunchedEffect(pendingSettings) {
+                        val target = pendingSettings ?: return@LaunchedEffect
+                        settingsNavController.popBackStack(OptionList, inclusive = false)
+                        settingsNavController.navigate(target)
+                        pendingSettings = null
+                    }
                     SettingsScreen(
+                        nestedNavController = settingsNavController,
                         modifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
                         viewModel = settingsViewModel,
                         appViewModel = appViewModel
