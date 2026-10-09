@@ -6,3 +6,12 @@ target 'iosApp' do
   # Provides the compiled WebRTC runtime
   pod 'WebRTC-SDK', '125.6422.07'
 end
+
+# WebRTC-SDK declares iOS 13.0, which current Xcode rejects (min 15.0); align pods with the app target.
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '18.2'
+    end
+  end
+end

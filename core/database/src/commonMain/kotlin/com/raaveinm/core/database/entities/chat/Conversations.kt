@@ -1,5 +1,6 @@
 package com.raaveinm.core.database.entities.chat
 
+import androidx.room3.ColumnInfo
 import androidx.room3.Entity
 import androidx.room3.ForeignKey
 import androidx.room3.Index
@@ -28,5 +29,7 @@ data class Conversations(
     val serverId: Long,
     val kind: String,
     val lastMessage: String?,
-    val remoteId: Long
+    val remoteId: Long,
+    @ColumnInfo(defaultValue = "0") val historyExhausted: Boolean = false,
+    @ColumnInfo(defaultValue = "1") val writable: Boolean = true
 )

@@ -66,8 +66,9 @@ class ChatHistoryPaginationTest {
                     conversationId = conversationId,
                     senderSteamId = if (i % 2 == 0) self.steamId else friend.steamId,
                     textMessage = "message #$i",
-                    timestamp = 1_700_000_000L + i,
-                    status = MessageStatus.SENT
+                    timestamp = 1_700_000_000_000L + i,        // epoch ms, the wire unit
+                    status = MessageStatus.SENT,
+                    clientMessageId = "client-msg-$i"
                 )
             )
         }

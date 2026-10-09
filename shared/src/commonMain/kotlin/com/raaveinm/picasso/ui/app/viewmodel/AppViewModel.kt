@@ -8,6 +8,7 @@ import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.data.repository.AuthRepository
 import com.raaveinm.picasso.data.repository.LoginError
 import com.raaveinm.picasso.data.repository.LoginFailure
+import com.raaveinm.picasso.data.sync.SyncCoordinator
 import com.raaveinm.picasso.ui.actions.ClipboardHelper
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import kotlinx.coroutines.CancellationException
@@ -56,7 +57,8 @@ data class AppUiState(
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppViewModel(
     private val authRepository: AuthRepository,
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val syncCoordinator: SyncCoordinator
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState = _uiState.asStateFlow()
@@ -64,9 +66,8 @@ class AppViewModel(
     private var loginJob: Job? = null
 
     init {
-        // The sidebar's identity follows the session: a Users row only exists once
-        // FriendsRepository/OwnedGamesRepository has fetched that profile from Steam,
-        // so this stays null for a moment after login and that's expected.
+        syncCoordinator.start()
+
         authRepository.session
             .map { it?.userId }
             .distinctUntilChanged()

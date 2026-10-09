@@ -2,7 +2,6 @@ package com.raaveinm.core.database.entities.chat
 
 import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.model.chat.Chat
-import com.raaveinm.core.model.chat.Conversation
 import com.raaveinm.core.model.chat.MessageData as MessageDataDto
 import com.raaveinm.core.model.chat.Palette
 import kotlinx.datetime.TimeZone
@@ -11,47 +10,19 @@ import kotlin.time.Instant
 
 /**
  * `core/model.chat.*` is a UI/domain model (embeds full `User` objects for the
- * screens to render directly), not a network wire DTO — so mapping it into Room's
- * flat, normalized entities means pulling `.steamId` off the embedded users here.
- * The local Room row is created separately; its autoGenerate id is resolved by the
- * caller (repository layer), same for serverId (connection context, not part of
- * the domain model).
+ * screens to render directly), not a network wire DTO. There is deliberately no
+ * UI-model -> entity direction any more: conversations enter Room from the server
+ * (`ChatDao.upsertServerConversation`), so a mapper that invented `remoteId = id`
+ * would only reintroduce the placeholder ids the server now replaces.
+ *
+ * Reading the chat list back out: listMessageData is intentionally left empty here -
+ * the list view only needs lastMessage, full history is loaded per opened conversation.
  */
-fun Conversation.toEntity(serverId: Long): Conversations = Conversations(
-    serverId = serverId,
-    kind = when (this) {
-        is Chat -> "chat"
-        is Palette -> "palette"
-    },
-    lastMessage = lastMessage,
-    remoteId = id
-)
-
-fun Chat.toEntity(localConversationId: Long): Chats = Chats(
-    conversationId = localConversationId,
-    chatTitleSteamId = chatTitle.steamId
-)
-
-fun Palette.toEntity(localConversationId: Long): Palettes = Palettes(
-    conversationId = localConversationId,
-    name = name
-)
-
-fun Palette.toMemberEntities(localConversationId: Long): List<PaletteMembers> =
-    members.map { member ->
-        PaletteMembers(
-            paletteConversationId = localConversationId,
-            userSteamId = member.steamId
-        )
-    }
-
-// Reverse direction, for reading the chat list back out of Room. listMessageData is
-// intentionally left empty here - the list view only needs lastMessage, full message
-// history is loaded separately per opened conversation.
 fun ChatWithTitle.toDto(): Chat = Chat(
     id = conversation.id,
     chatTitle = titleUser.toDto(),
-    lastMessage = conversation.lastMessage
+    lastMessage = conversation.lastMessage,
+    writable = conversation.writable
 )
 
 fun PaletteWithMembers.toDto(): Palette = Palette(
@@ -65,10 +36,13 @@ fun MessageWithSender.toDto(): MessageDataDto = MessageDataDto(
     user = sender.toDto(),
     textMessage = message.textMessage,
     timestamp = message.timestamp.toDisplayTime(),
-    status = message.status
+    status = message.status,
+    localId = message.id,
+    remoteId = message.remoteId
 )
 
+/** Room stores epoch MILLISECONDS (the wire unit); the UI model wants a display-ready "HH:mm". */
 private fun Long.toDisplayTime(): String {
-    val localDateTime = Instant.fromEpochSeconds(this).toLocalDateTime(TimeZone.currentSystemDefault())
+    val localDateTime = Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.currentSystemDefault())
     return "${localDateTime.hour.toString().padStart(2, '0')}:${localDateTime.minute.toString().padStart(2, '0')}"
 }

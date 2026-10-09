@@ -45,42 +45,27 @@ class CallManager(
     private var activeCall: WebRtcCallClient? = null
     private var activeConversationId: Long? = null
     private var activePeerSteamId: Long? = null
-    private var signalingConnected = false
 
     private val _isInCall = MutableStateFlow(false)
     val isInCall: StateFlow<Boolean> = _isInCall
 
-    /*
-     * Idempotent - safe to call once per ChatViewModel even across recompositions.
-     * Fire-and-forget by design: a caller (e.g. ChatViewModel.init) must be able to
-     * kick this off without the rest of the app depending on - or crashing from -
-     * whether the signaling server happens to be reachable right now.
-     */
-    fun connectSignaling(authToken: String, wsUrl: String) {
-        if (signalingConnected) return
-        signalingConnected = true
-        scope.launch {
-            try {
-                signalingClient.connect(authToken, wsUrl)
-                signalingClient.incoming
-                    .onEach(::handleIncoming)
-                    .launchIn(scope)
-            } catch (e: Exception) {
-                signalingConnected = false
-                println("CallManager.connectSignaling failed: $e")
-            }
-        }
+    init {
+        signalingClient.incoming
+            .onEach(::handleIncoming)
+            .launchIn(scope)
+
+        signalingClient.isConnected
+            .onEach { connected -> if (!connected && activeCall != null) teardown() }
+            .launchIn(scope)
     }
 
     /**
      * Drops the signaling socket and any live call. Required on logout: the socket
      * is authenticated as a specific session, so leaving it open would keep the
-     * server talking to a user who signed out, and [connectSignaling]'s own
-     * idempotence guard would then silently refuse to reconnect as the next user.
+     * server talking to a user who signed out.
      */
     fun disconnectSignaling() {
-        if (signalingConnected) endCall()
-        signalingConnected = false
+        if (activeCall != null) endCall()
         signalingClient.close()
     }
 

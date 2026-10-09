@@ -50,7 +50,7 @@ fun ChatScreen(
         if (selectedChatId != null) viewModel.setSelectedChat(selectedChatId)
     }
 
-    LaunchedEffect(state.warning) {
+    LaunchedEffect(state.warningSeq) {
         if (state.warning != null) appViewModel.postMessage(state.warning!!.first, state.warning!!.second)
     }
 

@@ -8,5 +8,6 @@ data class Chat(
     override val id: Long,
     val chatTitle: User,
     override val lastMessage: String? = null,
-    override val listMessageData: List<MessageData> = emptyList()
+    override val listMessageData: List<MessageData> = emptyList(),
+    val writable: Boolean = true
 ) : Conversation

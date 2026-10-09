@@ -8,6 +8,7 @@ import org.koin.dsl.module
 fun databaseModule(factory: DatabaseFactory) = module {
     single { factory.createDatabase() }
     single { get<PicassoDatabase>().getChatDao() }
+    single { get<PicassoDatabase>().getContactDao() }
     single { get<PicassoDatabase>().getGameDao() }
     single { get<PicassoDatabase>().getServerDao() }
     single { get<PicassoDatabase>().getUserDao() }

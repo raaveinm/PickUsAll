@@ -28,4 +28,11 @@ interface ServerDao {
 
     @Query("UPDATE Servers SET ping = :ping WHERE id = :serverId")
     suspend fun updatePing(serverId: Long, ping: Int?)
+
+    /** The `deletedCursor` the last successful POST /sync handed back; null = never synced with this server. */
+    @Query("UPDATE Servers SET deletedCursor = :cursor WHERE id = :serverId")
+    suspend fun updateDeletedCursor(serverId: Long, cursor: Long?)
+
+    @Query("SELECT deletedCursor FROM Servers WHERE id = :serverId")
+    suspend fun getDeletedCursor(serverId: Long): Long?
 }

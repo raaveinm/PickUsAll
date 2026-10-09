@@ -9,7 +9,6 @@ import com.raaveinm.core.model.chat.MessageStatus
 
 //
 // Created by Kirill "Raaveinm" on 8/23/26.
-// Copyright (c) 2026 Retrograde Mercury. All rights reserved.
 //
 
 @Entity(
@@ -30,7 +29,9 @@ import com.raaveinm.core.model.chat.MessageStatus
     // covers the conversationId FK and speeds up "messages in this conversation, ordered" queries
     indices = [
         Index(value = ["conversationId", "timestamp"]),
-        Index("senderSteamId")
+        Index("senderSteamId"),
+        Index(value = ["conversationId", "remoteId"], unique = true),
+        Index(value = ["clientMessageId"], unique = true)
     ]
 )
 data class MessageData(
@@ -39,5 +40,7 @@ data class MessageData(
     val senderSteamId: Long,
     val textMessage: String,
     val timestamp: Long,
-    val status: MessageStatus
+    val status: MessageStatus,
+    val clientMessageId: String,
+    val remoteId: Long? = null
 )
