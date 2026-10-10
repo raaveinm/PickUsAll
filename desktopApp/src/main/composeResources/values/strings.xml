@@ -5,9 +5,12 @@
     <!--Tray-->
     <string name="quit_application">Quit</string>
     <string name="minimize_application">Minimize</string>
+    <string name="minimize_to_tray">To tray</string>
+    <string name="restore_application">Show</string>
 
     <!--Menu Items-->
     <string name="quick_nav_menu">Menu</string>
+    <string name="steam_features">Steam</string>
 
     <!--Menu Navigation-->
     <string name="go_to_library">Library</string>
@@ -19,6 +22,9 @@
     <string name="application_settings">Application</string>
     <string name="visual_settings">Visual</string>
     <string name="behavior_settings">Behavior</string>
+
+    <!--Menu Steam Features-->
+    <string name="friend_window_search">Search by userID</string>
 
     <!--Eggs-->
     <string-array name="phrases">
