@@ -2,7 +2,6 @@ package com.raaveinm.picasso.ui.friends
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -15,18 +14,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
+import com.raaveinm.picasso.ui.friends.elements.FriendsMenuDestinations
+import com.raaveinm.picasso.ui.friends.elements.NestedFriendsMenu
 import com.raaveinm.picasso.ui.friends.fragments.FriendList
-import com.raaveinm.pickusall.core.designsystem.components.PicassoSearchBar
 import com.raaveinm.pickusall.core.designsystem.components.RefreshBox
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import org.jetbrains.compose.resources.stringResource
 import pickusall.shared.generated.resources.Res
 import pickusall.shared.generated.resources.friends_steam_private
-import pickusall.shared.generated.resources.search_bar_hint
+import pickusall.shared.generated.resources.no_artist_in_list
 
 private val ContentWidth = 512.dp
 
@@ -42,6 +41,8 @@ fun FriendScreen(
     appViewModel: AppViewModel,
     onMessageClick: (Long) -> Unit = {}
 ) {
+    var friendScreen by remember { mutableStateOf(FriendsMenuDestinations.FRIENDLIST) } // todo replace with nested navigation
+
     val state by viewModel.friendsUiState.collectAsState()
     val searchState = rememberTextFieldState()
     val query = searchState.text.toString()
@@ -67,22 +68,30 @@ fun FriendScreen(
             modifier = modifier.fillMaxSize().padding(horizontal = Dimensions.medium),
             contentAlignment = Alignment.Center
         ) {
-            PicassoSearchBar(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .zIndex(.5f)
-                    .sizeIn(maxWidth = ContentWidth)
-                    .fillMaxWidth()
-                    .padding(top = Dimensions.large),
-                textFieldState = searchState,
-                placeholder = stringResource(Res.string.search_bar_hint)
-            )
+//            PicassoSearchBar( // TODO move to the new screen
+//                modifier = Modifier
+//                    .align(Alignment.TopCenter)
+//                    .zIndex(.5f)
+//                    .sizeIn(maxWidth = ContentWidth)
+//                    .fillMaxWidth()
+//                    .padding(top = Dimensions.large),
+//                textFieldState = searchState,
+//                placeholder = stringResource(Res.string.search_bar_hint)
+//            )
 
             FriendList(
                 modifier = Modifier.sizeIn(maxWidth = (ContentWidth + Dimensions.extraLarge)).fillMaxSize(),
                 friendList = shownFriends,
-                emptyPlaceholder = if (query.isBlank()) "no artists around" else "nobody answers to \"$query\"",
+                emptyPlaceholder = stringResource(Res.string.no_artist_in_list),
                 onMessageClick = { friend -> viewModel.dmWith(friend.steamId, onMessageClick) }
+            )
+
+            NestedFriendsMenu(
+                modifier = Modifier
+                    .padding(bottom = Dimensions.paddingAverage, end = Dimensions.small)
+                    .align(Alignment.BottomEnd),
+                selectedMenu = friendScreen,
+                onMenuSelected = { friendScreen = it }
             )
         }
     }

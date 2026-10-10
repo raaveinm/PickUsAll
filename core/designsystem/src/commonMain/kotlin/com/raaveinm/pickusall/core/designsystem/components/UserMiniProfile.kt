@@ -42,7 +42,8 @@ fun UserMiniProfile(
     status: String,
     onMessageClick: () -> Unit = {},
     onSteamProfileRedirectClick: () -> Unit = {},
-    hideActionButtons: Boolean = false
+    hideActionButtons: Boolean = false,
+    actionButtons: (@Composable () -> Unit)? = null
 ) {
     Row(
         modifier = modifier
@@ -114,34 +115,35 @@ fun UserMiniProfile(
         ///////////////////////////////////////////////
 
         if (hideActionButtons) return@Row
+        if (actionButtons == null) {
+            Box(
+                Modifier
+                    .padding(horizontal = Dimensions.extraSmall)
+                    .clip(Shapes.circleShape)
+                    .clickable { onMessageClick() }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ChatBubbleOutline,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = "mini_profile/message",
+                    modifier = Modifier.padding(Dimensions.small)
+                )
+            }
 
-        Box(
-            Modifier
-                .padding(horizontal = Dimensions.extraSmall)
-                .clip(Shapes.circleShape)
-                .clickable { onMessageClick() }
-        ) {
-            Icon(
-                imageVector = Icons.Default.ChatBubbleOutline,
-                tint = MaterialTheme.colorScheme.onSurface,
-                contentDescription = "mini_profile/message",
-                modifier = Modifier.padding(Dimensions.small)
-            )
-        }
-
-        Box(
-            Modifier
-                .padding(end = Dimensions.extraSmall)
-                .clip(Shapes.circleShape)
-                .clickable { onSteamProfileRedirectClick() }
-        ) {
-            Icon(
-                imageVector = vectorResource(Res.drawable.ic_steam_icon),
-                tint = MaterialTheme.colorScheme.onSurface,
-                contentDescription = "mini_profile/steam",
-                modifier = Modifier.padding(Dimensions.small)
-            )
-        }
+            Box(
+                Modifier
+                    .padding(end = Dimensions.extraSmall)
+                    .clip(Shapes.circleShape)
+                    .clickable { onSteamProfileRedirectClick() }
+            ) {
+                Icon(
+                    imageVector = vectorResource(Res.drawable.ic_steam_icon),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = "mini_profile/steam",
+                    modifier = Modifier.padding(Dimensions.small)
+                )
+            }
+        } else { actionButtons() }
     }
 }
 

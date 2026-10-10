@@ -3,6 +3,9 @@
     <string name="settings">settings</string>
     <string name="username_default">username</string>
 
+    <string name="incoming_chat_request">Do you recognize this face?</string>
+    <string name="ban_artist_suggestion">Would you like to ban this stranger?</string>
+
     <!--settings-->
     <string name="settings_general">General</string>
     <string name="settings_avatar">Avatar</string>

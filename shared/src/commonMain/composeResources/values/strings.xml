@@ -27,6 +27,7 @@
 
     <!--Friends-->
     <string name="friends_steam_private">FRIEND LIST UPDATE ERR: flu_400</string>
+    <string name="no_artist_in_list">There are no known artist</string>
 
     <!--text field hints-->
     <string name="search_bar_hint">search</string>

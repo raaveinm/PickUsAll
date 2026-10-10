@@ -31,6 +31,7 @@ import androidx.compose.ui.window.v2.WindowBoundsProvider
 import androidx.compose.ui.window.v2.WindowPositionProvider
 import androidx.compose.ui.window.v2.WindowSizeProvider
 import androidx.compose.ui.window.v2.rememberWindowState
+import androidx.compose.ui.zIndex
 import com.raaveinm.core.database.DatabaseFactory
 import com.raaveinm.core.database.databaseModule
 import com.raaveinm.core.datastore.auth.AuthDataStoreFactory
@@ -129,7 +130,7 @@ fun main() {
             val secondWindowState = rememberWindowState(
                 initialBoundsProvider = WindowBoundsProvider(
                     positionProvider = WindowPositionProvider.CenteredOnScreen,
-                    sizeProvider = WindowSizeProvider.Fixed(DpSize(600.dp, 200.dp))
+                    sizeProvider = WindowSizeProvider.Unconstrained
                 )
             )
 
@@ -153,13 +154,14 @@ fun main() {
                                 .padding(8.dp)
                                 .size(24.dp)
                                 .clip(RoundedCornerShape(50.dp))
-                                .align(Alignment.CenterEnd)
+                                .align(Alignment.TopEnd)
                                 .background(MaterialTheme.colors.error)
+                                .zIndex(5f)
                                 .clickable(true) { isSecondWindow = false },
                             contentAlignment = Alignment.Center
-                        ) { Text("X") }
+                        ) { Text("X", color = MaterialTheme.colors.onError) }
+                        AppSideWindow()
                     }
-                    AppSecond()
                 }
             }
         }

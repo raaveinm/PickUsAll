@@ -16,9 +16,9 @@ object Shapes {
     val roundedExtraSmall = RoundedCornerShape(extraSmallShape)
     val roundedSmall = RoundedCornerShape(smallShape)
     val roundedAverage = RoundedCornerShape(averageShape)
-    val roundedSmoother = RoundedCornerShape(24.dp)
+    val roundedSmoother = RoundedCornerShape(16.dp)
     val roundedSmoothest = RoundedCornerShape(32.dp)
-    val circleShape = RoundedCornerShape(100.dp)
+    val circleShape = RoundedCornerShape(4096.dp)
 
     val incomeChatShape = RoundedCornerShape(0.dp, averageShape, averageShape, averageShape)
     val outcomeShape =  RoundedCornerShape(averageShape, averageShape, 0.dp, averageShape)
