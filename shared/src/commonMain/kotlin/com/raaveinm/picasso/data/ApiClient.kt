@@ -5,6 +5,7 @@ import com.raaveinm.core.model.responses.GetFriendListResponse
 import com.raaveinm.core.model.responses.GetGameStoreInfoResponse
 import com.raaveinm.core.model.responses.GetOwnedGamesResponse
 import com.raaveinm.core.model.responses.GetPlayerSummariesResponse
+import com.raaveinm.core.model.responses.ResolveVanityUrlResponse
 import com.raaveinm.core.model.user.Friend
 import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.core.model.user.User
@@ -47,6 +48,17 @@ class ApiClient(private val httpClient: HttpClient) {
             parameter("format", "json")
         }.body<GetPlayerSummariesResponse>().response.players
     }
+
+    /** The steamId behind a custom profile URL (`steamcommunity.com/id/<vanity>`), or null when Steam knows none. */
+    suspend fun resolveVanityUrl(vanity: String): Long? =
+        httpClient.get("https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/") {
+            parameter("key", steamApi)
+            parameter("vanityurl", vanity)
+            parameter("url_type", 1) // 1 = individual profile
+            parameter("format", "json")
+        }.body<ResolveVanityUrlResponse>().response
+            .takeIf { it.success == 1 }
+            ?.steamId?.toLongOrNull()
 
     ///////////////////////////////////////////////
     // User's friend list fetch

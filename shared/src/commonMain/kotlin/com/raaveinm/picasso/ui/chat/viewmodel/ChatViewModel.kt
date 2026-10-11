@@ -3,6 +3,7 @@ package com.raaveinm.picasso.ui.chat.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.raaveinm.core.database.dao.ChatDao
+import com.raaveinm.core.database.dao.UserDao
 import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.database.entities.chat.toDto
 import com.raaveinm.core.model.chat.Chat
@@ -16,12 +17,14 @@ import com.raaveinm.picasso.data.repository.ChatRepository
 import com.raaveinm.picasso.data.repository.ContactsRepository
 import com.raaveinm.picasso.data.repository.ConversationResult
 import com.raaveinm.picasso.data.repository.FriendsRepository
+import com.raaveinm.picasso.data.repository.ProfilesRepository
 import com.raaveinm.picasso.data.repository.SocialEvent
 import com.raaveinm.picasso.data.repository.SocialResult
 import com.raaveinm.picasso.data.sync.SyncCoordinator
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -52,18 +55,26 @@ class ChatViewModel(
     private val friendsRepository: FriendsRepository,
     private val callManager: CallManager,
     private val authRepository: AuthRepository,
-    private val syncCoordinator: SyncCoordinator
+    private val syncCoordinator: SyncCoordinator,
+    private val profilesRepository: ProfilesRepository,
+    private val userDao: UserDao
 ) : ViewModel() {
     private val _chatsUiState = MutableStateFlow(ChatUiState())
     private val _friendListUiState = MutableStateFlow(FriendsUiState())
     private val _socialUiState = MutableStateFlow(SocialUiState())
+    private val _searchUiState = MutableStateFlow(SearchUiState())
     val chatsUiState = _chatsUiState.asStateFlow()
     val friendsUiState = _friendListUiState.asStateFlow()
     val socialUiState = _socialUiState.asStateFlow()
+    val searchUiState = _searchUiState.asStateFlow()
     val isInCall: StateFlow<Boolean> = callManager.isInCall
 
     private val selectedChatId = MutableStateFlow<Long?>(null)
     private val historyLimit = MutableStateFlow(CHAT_HISTORY_PAGE_SIZE)
+
+    /** The Artist the last search resolved to; their cached `Users` row is what the search screen shows. */
+    private val searchedSteamId = MutableStateFlow<Long?>(null)
+    private var searchJob: Job? = null
 
     /**
      * Conversations whose older history the server could not (or would not) give us. Without
@@ -126,6 +137,11 @@ class ChatViewModel(
                 // Re-pull on sign-in, not only at construction.
                 if (id != null) refreshFriends()
             }
+            .launchIn(viewModelScope)
+
+        searchedSteamId
+            .flatMapLatest { id -> if (id == null) flowOf(null) else userDao.observeUser(id) }
+            .onEach { row -> _searchUiState.update { it.copy(result = row?.toDto()) } }
             .launchIn(viewModelScope)
 
         ///////////////////////////////////////////////
@@ -211,6 +227,29 @@ class ChatViewModel(
             } finally {
                 _friendListUiState.update { it.copy(isRefreshing = false) }
             }
+        }
+    }
+
+    ///////////////////////////////////////////////
+    // Artist search
+    ///////////////////////////////////////////////
+
+    /**
+     * Looks [query] up on Steam as a SteamID64, a profile URL or a vanity name. A newer query
+     * cancels the one still running; a blank one clears the result.
+     */
+    fun searchArtist(query: String) {
+        searchJob?.cancel()
+        val trimmed = query.trim()
+        _searchUiState.update { it.copy(query = trimmed, isSearching = trimmed.isNotEmpty(), notFound = false) }
+        if (trimmed.isEmpty()) {
+            searchedSteamId.value = null
+            return
+        }
+        searchJob = viewModelScope.launch {
+            val steamId = profilesRepository.lookup(trimmed)
+            searchedSteamId.value = steamId
+            _searchUiState.update { it.copy(isSearching = false, notFound = steamId == null) }
         }
     }
 
@@ -367,7 +406,7 @@ class ChatViewModel(
     }
 
     ///////////////////////////////////////////////
-    // Contacts (functions are wired; screens for them don't exist yet)
+    // Contacts
     ///////////////////////////////////////////////
 
     /** Asks [steamId] to become an ally. Works for a Steam friend, a typed steamId, or a palette member alike. */
@@ -383,6 +422,70 @@ class ChatViewModel(
 
     /** Removes a contact, or lifts a block. */
     fun removeContact(steamId: Long) = socialAction { contactsRepository.remove(steamId) }
+
+    /**
+     * One entry point for the contact screen's level buttons: moves [steamId] to [target]
+     * (null = stranger) from wherever they are now, choosing the call(s) that get there.
+     *
+     * - stranger: removes a contact / lifts a block, or declines / withdraws a pending request
+     * - [ContactLevel.IMPOSTER]: blocks, whatever the current state
+     * - [ContactLevel.ALLY] / [ContactLevel.FRIEND]: a tier change on an existing contact; for anyone
+     *   else an ally request (which accepts theirs if they already asked). A blocked Artist is unblocked
+     *   first. FRIEND can only be set once they are an ally, so a stranger gets the request only.
+     */
+    fun changeRelation(steamId: Long, target: ContactLevel?) {
+        val social = _socialUiState.value
+        val current = social.contacts.find { it.steamId == steamId }?.level
+        val pending = social.incomingRequests.any { it.steamId == steamId } ||
+            social.outgoingRequests.any { it.steamId == steamId }
+        if (current == target && (target != null || !pending)) return
+
+        viewModelScope.launch {
+            val result = when (target) {
+                null -> when {
+                    current != null -> contactsRepository.remove(steamId)
+                    pending -> contactsRepository.declineOrWithdraw(steamId)
+                    else -> SocialResult.OK
+                }
+                ContactLevel.IMPOSTER -> contactsRepository.setLevel(steamId, ContactLevel.IMPOSTER)
+                ContactLevel.ALLY, ContactLevel.FRIEND -> when (current) {
+                    ContactLevel.ALLY, ContactLevel.FRIEND -> contactsRepository.setLevel(steamId, target)
+                    ContactLevel.IMPOSTER -> {
+                        val unblocked = contactsRepository.remove(steamId)
+                        if (unblocked != SocialResult.OK) unblocked
+                        else contactsRepository.request(steamId).also(::reportRequest)
+                    }
+                    null -> contactsRepository.request(steamId).also(::reportRequest)
+                }
+            }
+            describe(result)?.let { warn(WarnLevel.WARN, it) }
+        }
+    }
+
+    /**
+     * "Accept" on a frozen DM: asks [steamId] to be allies again - which is an accept when they
+     * already asked - so the DM unfreezes once both sides agree.
+     */
+    fun resumeDm(steamId: Long) {
+        viewModelScope.launch {
+            val result = contactsRepository.request(steamId)
+            reportRequest(result)
+            describe(result)?.let { warn(WarnLevel.WARN, it) }
+        }
+    }
+
+    /** "Decline" on a frozen DM: silently declines their ally request if there is one; the DM stays frozen. */
+    fun declineFrozenDm(steamId: Long) {
+        if (_socialUiState.value.incomingRequests.none { it.steamId == steamId }) return
+        declineRequest(steamId)
+    }
+
+    /** A request that is only waiting for the other side says so - otherwise the button looks dead. */
+    private fun reportRequest(result: SocialResult) {
+        if (result == SocialResult.PENDING) {
+            warn(WarnLevel.INFO, "Ally request sent - it takes effect once it is accepted")
+        }
+    }
 
     fun acceptPaletteInvite(conversationRemoteId: Long) =
         socialAction { contactsRepository.acceptPaletteInvite(conversationRemoteId) }
@@ -403,6 +506,14 @@ class ChatViewModel(
     private fun warn(level: WarnLevel, text: String) {
         // warningSeq makes two identical messages in a row still count as two events for the screen
         _chatsUiState.update { it.copy(warning = Pair(level, text), warningSeq = it.warningSeq + 1) }
+    }
+
+    /**
+     * Called by the screen that showed [ChatUiState.warning]. Both Chat and Friends surface it, and
+     * a warning left in place would be posted again whenever one of them re-enters composition.
+     */
+    fun consumeWarning() {
+        _chatsUiState.update { it.copy(warning = null) }
     }
 
     /** A cached display name, falling back to the steamId for someone not fetched yet. */

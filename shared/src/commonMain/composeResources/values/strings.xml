@@ -25,9 +25,27 @@
     <string name="game_id_field">Steam Game Id</string>
     <string name="priority_field">Game Priority</string>
 
+    <!--Chat-->
+    <string name="chat_message_hint">Message</string>
+
     <!--Friends-->
     <string name="friends_steam_private">FRIEND LIST UPDATE ERR: flu_400</string>
     <string name="no_artist_in_list">There are no known artist</string>
+    <string name="no_incoming_requests">Nobody is knocking right now</string>
+    <string name="incoming_requests_left">%1$d more waiting</string>
+
+    <string name="contacts_friends">Friends</string>
+    <string name="contacts_allies">Allies</string>
+    <string name="contacts_incoming">Wants to be your ally</string>
+    <string name="contacts_outgoing">Ally request sent</string>
+    <string name="contacts_steam_friends">Steam friends</string>
+    <string name="contacts_blocked">Blocked</string>
+
+    <string name="search_profile_hint">SteamID64, profile URL or name</string>
+    <string name="search_searching">Searching…</string>
+    <string name="search_not_found">Nobody on Steam goes by that</string>
+    <string name="search_found_on_steam">Found on Steam</string>
+    <string name="search_known_artists">Known artists</string>
 
     <!--text field hints-->
     <string name="search_bar_hint">search</string>

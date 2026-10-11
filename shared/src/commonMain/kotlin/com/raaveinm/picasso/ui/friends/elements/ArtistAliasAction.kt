@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -29,31 +30,43 @@ import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 // Created by Kirill "Raaveinm" on 10/11/2026.
 //
 
+private const val INACTIVE_ALPHA: Float = 0.4f
+
 private data class Action(
-    val onClick: (ContactLevel?) -> Unit,
+    val level: ContactLevel?,
     val icon: ImageVector,
+    val tag: String,
     val colorPrimary: Color,
     val colorSecondary: Color
 )
 
-@Preview
+/**
+ * A mini profile whose buttons are the four relationship levels (blocked / stranger / ally /
+ * friend). The one matching [currentLevel] is drawn at full strength, the rest dimmed;
+ * tapping one reports the level the user wants to move to (null = stranger).
+ */
 @Composable
 fun ArtistAliasAction(
     modifier: Modifier = Modifier,
+    iconLink: String,
+    username: String,
+    isOnline: Boolean,
+    status: String,
+    currentLevel: ContactLevel?,                     // null = stranger (no contact row)
     onSetStatusClicker: (ContactLevel?) -> Unit = {},
 ) {
     UserMiniProfile(
         modifier = modifier,
-        iconLink = "",
-        username = "raaveinm",
-        isOnline = true,
-        status = "sample"
-    ){
+        iconLink = iconLink,
+        username = username,
+        isOnline = isOnline,
+        status = status
+    ) {
         val actions = listOf(
-            Action({ onSetStatusClicker(ContactLevel.IMPOSTER) }, Icons.Outlined.ThumbDown, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer),
-            Action({ onSetStatusClicker(null) }, Icons.Outlined.Visibility, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant),
-            Action({ onSetStatusClicker(ContactLevel.ALLY) }, Icons.Outlined.ThumbUp, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer),
-            Action({ onSetStatusClicker(ContactLevel.FRIEND) }, Icons.Outlined.Favorite, MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+            Action(ContactLevel.IMPOSTER, Icons.Outlined.ThumbDown, "alias_action/imposter", MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer),
+            Action(null, Icons.Outlined.Visibility, "alias_action/stranger", MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant),
+            Action(ContactLevel.ALLY, Icons.Outlined.ThumbUp, "alias_action/ally", MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer),
+            Action(ContactLevel.FRIEND, Icons.Outlined.Favorite, "alias_action/friend", MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
         )
 
         actions.forEach { elem ->
@@ -61,13 +74,26 @@ fun ArtistAliasAction(
                 modifier = Modifier
                     .padding(end = Dimensions.small)
                     .size(48.dp)
+                    .alpha(if (elem.level == currentLevel) 1f else INACTIVE_ALPHA)
                     .clip(Shapes.circleShape)
                     .background(elem.colorPrimary)
-                    .clickable { elem.onClick },
+                    .clickable { onSetStatusClicker(elem.level) },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = elem.icon, contentDescription = null, tint = elem.colorSecondary)
+                Icon(imageVector = elem.icon, contentDescription = elem.tag, tint = elem.colorSecondary)
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun ArtistAliasActionPreview() {
+    ArtistAliasAction(
+        iconLink = "",
+        username = "raaveinm",
+        isOnline = true,
+        status = "sample",
+        currentLevel = ContactLevel.ALLY
+    )
 }

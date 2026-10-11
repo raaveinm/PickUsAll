@@ -8,6 +8,7 @@ import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.data.repository.AuthRepository
 import com.raaveinm.picasso.data.repository.LoginError
 import com.raaveinm.picasso.data.repository.LoginFailure
+import com.raaveinm.picasso.data.sync.SignedOutCacheGuard
 import com.raaveinm.picasso.data.sync.SyncCoordinator
 import com.raaveinm.picasso.ui.actions.ClipboardHelper
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
@@ -58,7 +59,8 @@ data class AppUiState(
 class AppViewModel(
     private val authRepository: AuthRepository,
     private val userDao: UserDao,
-    private val syncCoordinator: SyncCoordinator
+    private val syncCoordinator: SyncCoordinator,
+    private val signedOutCacheGuard: SignedOutCacheGuard
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState = _uiState.asStateFlow()
@@ -66,7 +68,14 @@ class AppViewModel(
     private var loginJob: Job? = null
 
     init {
+        signedOutCacheGuard.start()
         syncCoordinator.start()
+
+        syncCoordinator.sessionRejected
+            .onEach {
+                postMessage(WarnLevel.WARN, "SIGNED OUT: the server no longer accepts this session, log in again (auth_e103)")
+            }
+            .launchIn(viewModelScope)
 
         authRepository.session
             .map { it?.userId }

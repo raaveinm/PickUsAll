@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
@@ -50,15 +51,21 @@ import pickusall.core.designsystem.generated.resources.incoming_chat_request
 // Created by Kirill "Raaveinm" on 10/10/2026.
 //
 
+/**
+ * "Do you recognize this face?" - one ally request (or a frozen DM) to answer.
+ * ✓ accepts; ✗ opens a second prompt that asks whether to block: its ✓ blocks, its ✗ (or a
+ * tap anywhere outside it) just declines and leaves the Artist a stranger.
+ */
 @Composable
 fun AcceptChatRequest(
+    modifier: Modifier = Modifier,
     inviteeName: String,
     inviteeIcon: String?,
     onAccept: () -> Unit = {},
     onReject: () -> Unit = {},  // Just stays as stranger
     onBlock: () -> Unit = {}    // Become Imposter
 ) {
-    Card(Modifier.size(width = 400.dp, height = 600.dp)) {
+    Card(modifier.sizeIn(maxWidth = 400.dp, maxHeight = 600.dp)) {
         Box {
             var isBlockConfirmation by remember { mutableStateOf(false) }
             val blurLevel by animateFloatAsState(
@@ -69,10 +76,10 @@ fun AcceptChatRequest(
                 modifier = Modifier
                     .blur(blurLevel.dp)
                     .clickable(
-                        interactionSource = MutableInteractionSource(),
+                        interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                         enabled = isBlockConfirmation
-                    ) { onReject() }
+                    ) { onReject(); isBlockConfirmation = false }
                     .fillMaxSize()
                     .padding(vertical = Dimensions.sMedium),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -218,5 +225,5 @@ private fun BlockRequest(onReject: () -> Unit = {}, onBlock: () -> Unit = {}) {
 @Preview
 @Composable
 fun AcceptChatRequestPreview() {
-    AcceptChatRequest("SNAKE", "https://avatars.fastly.steamstatic.com/869f38905d075f5cba191c845447b568aa6e44bf_full.jpg")
+    AcceptChatRequest(inviteeName = "SNAKE", inviteeIcon = "https://avatars.fastly.steamstatic.com/869f38905d075f5cba191c845447b568aa6e44bf_full.jpg")
 }

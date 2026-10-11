@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.WavingHand
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -57,9 +57,9 @@ fun NestedFriendsMenu(
             ) {
                 Icon(
                     imageVector = when (it){
-                        FriendsMenuDestinations.FRIENDLIST -> Icons.Outlined.WavingHand
-                        FriendsMenuDestinations.SEARCH -> Icons.Filled.Block
-                        FriendsMenuDestinations.CONTACTS -> Icons.Filled.Search
+                        FriendsMenuDestinations.FRIENDLIST -> Icons.Outlined.FavoriteBorder
+                        FriendsMenuDestinations.SEARCH -> Icons.Filled.Search
+                        FriendsMenuDestinations.CONTACTS -> Icons.Outlined.WavingHand
                         FriendsMenuDestinations.PENDING -> Icons.Default.Schedule
                     },
                     contentDescription = null,

@@ -25,7 +25,8 @@ fun FriendList(
     modifier: Modifier = Modifier,
     friendList: List<User>,
     emptyPlaceholder: String = "no artists around",
-    onMessageClick: (User) -> Unit = {}
+    onMessageClick: (User) -> Unit = {},
+    leadingActions: (@Composable (User) -> Unit)? = null // extra buttons before the default message / Steam ones
 ) {
     val uriHandler = LocalUriHandler.current
 
@@ -55,7 +56,8 @@ fun FriendList(
                 isOnline = friend.isOnline(),
                 status = status,
                 onMessageClick = { onMessageClick(friend) },
-                onSteamProfileRedirectClick = { uriHandler.openUri(friend.profileUrl) }
+                onSteamProfileRedirectClick = { uriHandler.openUri(friend.profileUrl) },
+                leadingActions = leadingActions?.let { buttons -> { buttons(friend) } }
             )
         }
     }

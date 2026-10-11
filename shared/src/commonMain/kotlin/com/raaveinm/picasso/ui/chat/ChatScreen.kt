@@ -19,6 +19,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.raaveinm.core.model.social.ContactLevel
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.chat.fragments.AllChats
 import com.raaveinm.picasso.ui.chat.fragments.UserActions
@@ -51,7 +52,9 @@ fun ChatScreen(
     }
 
     LaunchedEffect(state.warningSeq) {
-        if (state.warning != null) appViewModel.postMessage(state.warning!!.first, state.warning!!.second)
+        val warning = state.warning ?: return@LaunchedEffect
+        appViewModel.postMessage(warning.first, warning.second)
+        viewModel.consumeWarning()
     }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -98,6 +101,9 @@ fun ChatScreen(
                         onLoadMoreHistory = { viewModel.retrieveChatHistory(route.chatId) },
                         onSendMessage = { text -> viewModel.sendMessage(route.chatId, text) },
                         onCallClicked = { viewModel.onCallClicked(route.chatId) },
+                        onResumeDm = viewModel::resumeDm,
+                        onDeclineDm = viewModel::declineFrozenDm,
+                        onBlockDm = { viewModel.setContactLevel(it, ContactLevel.IMPOSTER) },
                         callState = isInCall,
                         messageData = state.chatHistory,
                         selfSteamId = state.selfSteamId,
@@ -181,6 +187,9 @@ fun ChatScreen(
                         onLoadMoreHistory = { state.selectedChat?.let(viewModel::retrieveChatHistory) },
                         onSendMessage = { text -> state.selectedChat?.let { viewModel.sendMessage(it, text) } },
                         onCallClicked = { state.selectedChat?.let { viewModel.onCallClicked(it) } },
+                        onResumeDm = viewModel::resumeDm,
+                        onDeclineDm = viewModel::declineFrozenDm,
+                        onBlockDm = { viewModel.setContactLevel(it, ContactLevel.IMPOSTER) },
                         callState = isInCall,
                         messageData = state.chatHistory,
                         selfSteamId = state.selfSteamId,

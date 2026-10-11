@@ -42,6 +42,17 @@ class AuthTokenStore(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    /** Clears the session only while it still holds [token] - one edit, so a login in between survives. */
+    suspend fun clearIfToken(token: String) {
+        dataStore.edit { prefs ->
+            if (prefs[AUTH_TOKEN] == token) {
+                prefs.remove(AUTH_TOKEN)
+                prefs.remove(AUTH_USER_ID)
+                prefs.remove(AUTH_EXPIRES_AT)
+            }
+        }
+    }
+
     /** One-shot read for callers that can't observe (e.g. building a request header). */
     suspend fun current(): UserAuthToken? = session.first()
 

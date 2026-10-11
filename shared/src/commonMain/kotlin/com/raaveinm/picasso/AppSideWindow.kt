@@ -32,8 +32,8 @@ fun AppSideWindow() {
     )
     if (isVisible) {
         AcceptChatRequest(
-            "SNAKE",
-            "https://avatars.fastly.steamstatic.com/869f38905d075f5cba191c845447b568aa6e44bf_full.jpg",
+            inviteeName = "SNAKE",
+            inviteeIcon = "https://avatars.fastly.steamstatic.com/869f38905d075f5cba191c845447b568aa6e44bf_full.jpg",
             onBlock = { isVisible = false },
             onAccept = { isVisible = false },
             onReject = { isVisible = false }

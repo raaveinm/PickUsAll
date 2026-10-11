@@ -7,6 +7,7 @@ import org.koin.dsl.module
 // own DatabaseFactory and passes it in here to get a Koin module with the DAOs.
 fun databaseModule(factory: DatabaseFactory) = module {
     single { factory.createDatabase() }
+    single { get<PicassoDatabase>().getAccountDao() }
     single { get<PicassoDatabase>().getChatDao() }
     single { get<PicassoDatabase>().getContactDao() }
     single { get<PicassoDatabase>().getGameDao() }

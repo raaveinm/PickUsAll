@@ -21,7 +21,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
@@ -48,10 +50,20 @@ class SyncCoordinator(
     private val contactsRepository: ContactsRepository,
     private val profiles: ProfileHydrator,
     private val onNothingToConnect: () -> Unit = {},
+    private val isSessionRejected: suspend (ServerContext) -> Boolean = { false }, // asks the server whether a failed connect was a 401
+    private val onSessionRejected: suspend (ServerContext) -> Unit = {},           // forgets that context's session, which makes the context go null
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 ) {
     private val _state = MutableStateFlow(ConnectionState.DISCONNECTED)
     val state: StateFlow<ConnectionState> = _state
+
+    /* The server a connection loop is running against, null once it has fully stopped. */
+    private val serving = MutableStateFlow<ServerContext?>(null)
+
+    private val _sessionRejected = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    /** Emits when the server refused the stored session and it was dropped (the user is signed out). */
+    val sessionRejected: SharedFlow<Unit> = _sessionRejected
 
     private var job: Job? = null
 
@@ -64,15 +76,25 @@ class SyncCoordinator(
                     _state.value = ConnectionState.DISCONNECTED
                     onNothingToConnect()
                 } else {
+                    serving.value = context
                     try {
                         keepConnected(context)
                     } finally {
                         socket.close()
                         _state.value = ConnectionState.DISCONNECTED
+                        serving.value = null
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Suspends until no connection loop is running - after a sign-out, that is the point
+     * from which nothing this coordinator started can still write into Room.
+     */
+    suspend fun awaitIdle() {
+        serving.first { it == null }
     }
 
     private suspend fun keepConnected(context: ServerContext) {
@@ -85,11 +107,36 @@ class SyncCoordinator(
                 throw e
             } catch (e: Exception) {
                 println("SyncCoordinator: connection to ${context.baseUrl} failed: $e")
+                /*
+                 * A refused session never heals by retrying (the server lost or revoked it),
+                 * so stop and sign out. The WS handshake error doesn't carry the status in a
+                 * usable form, hence the separate REST probe; an unreachable server answers
+                 * false here and keeps the ordinary backoff.
+                 */
+                if (dropRejectedSession(context)) return
             }
             _state.value = ConnectionState.DISCONNECTED
             delay(backoff.seconds)
             backoff = (backoff * 2).coerceAtMost(MAX_BACKOFF_SECONDS)
         }
+    }
+
+    /* True once the session was found rejected and forgotten; any failure on the way leaves it alone. */
+    private suspend fun dropRejectedSession(context: ServerContext): Boolean = try {
+        if (isSessionRejected(context)) {
+            println("SyncCoordinator: ${context.baseUrl} rejected the session, signing out")
+            // Before forgetting it: the cleared session cancels this very coroutine.
+            _sessionRejected.tryEmit(Unit)
+            onSessionRejected(context)
+            true
+        } else {
+            false
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        println("SyncCoordinator: could not drop the rejected session: $e")
+        false
     }
 
     private suspend fun runConnection(context: ServerContext) = coroutineScope {

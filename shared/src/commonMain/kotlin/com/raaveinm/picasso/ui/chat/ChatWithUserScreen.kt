@@ -17,12 +17,13 @@ import com.raaveinm.core.model.chat.Conversation
 import com.raaveinm.core.model.chat.MessageData
 import com.raaveinm.core.model.chat.Palette
 import com.raaveinm.picasso.ui.chat.fragments.ChatMessages
+import com.raaveinm.pickusall.core.designsystem.components.AcceptChatRequest
 import com.raaveinm.pickusall.core.designsystem.components.ChatTextBar
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import org.jetbrains.compose.resources.stringResource
 import pickusall.shared.generated.resources.Res
-import pickusall.shared.generated.resources.app_name
+import pickusall.shared.generated.resources.chat_message_hint
 
 @Composable
 fun ChatWithUserScreen(
@@ -33,6 +34,9 @@ fun ChatWithUserScreen(
     onLoadMoreHistory: () -> Unit = {},
     onSendMessage: (String) -> Unit = {},
     onCallClicked: () -> Unit = {},
+    onResumeDm: (Long) -> Unit = {},    // frozen DM: ask the counterpart to be allies again (accepts theirs if pending)
+    onDeclineDm: (Long) -> Unit = {},   // frozen DM: leave them a stranger
+    onBlockDm: (Long) -> Unit = {},     // frozen DM: block the counterpart
     callState: Boolean = false,
     messageData: List<MessageData>,
     selfSteamId: Long?
@@ -63,6 +67,21 @@ fun ChatWithUserScreen(
             onGoBackAction = onBack,
             onChatIconAction = { onUserIconClick(counterpart?.steamId ?: conversation.id) }
         )
+
+        if (counterpart != null && !conversation.writable) {
+            AcceptChatRequest(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(top = Dimensions.paddingAboveAverage, bottom = Dimensions.paddingAverage),
+                inviteeName = counterpart.personaName,
+                inviteeIcon = counterpart.avatarFull,
+                onAccept = { onResumeDm(counterpart.steamId) },
+                onReject = { onDeclineDm(counterpart.steamId); onBack() },
+                onBlock = { onBlockDm(counterpart.steamId); onBack() }
+            )
+            return@Box
+        }
+
         ChatMessages(
             modifier = Modifier
                 .fillMaxSize()
@@ -87,7 +106,7 @@ fun ChatWithUserScreen(
                 val text = messageFieldState.text.toString()
                 if (text.isNotBlank()) onSendMessage(text)
             },
-            hint = stringResource(Res.string.app_name),
+            hint = stringResource(Res.string.chat_message_hint),
             onCallClicked = onCallClicked,
             callState = callState
         )

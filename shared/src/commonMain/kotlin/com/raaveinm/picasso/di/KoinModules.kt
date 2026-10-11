@@ -15,11 +15,13 @@ import com.raaveinm.picasso.data.repository.OwnedGamesRepository
 import com.raaveinm.picasso.data.repository.ProfileHydrator
 import com.raaveinm.picasso.data.repository.ProfilesRepository
 import com.raaveinm.picasso.data.server.ActiveServer
+import com.raaveinm.picasso.data.server.ApiResult
 import com.raaveinm.picasso.data.server.ChatSocket
 import com.raaveinm.picasso.data.server.ChatTransport
 import com.raaveinm.picasso.data.server.ServerContextSource
 import com.raaveinm.picasso.data.server.ContactsApi
 import com.raaveinm.picasso.data.server.ConversationsApi
+import com.raaveinm.picasso.data.sync.SignedOutCacheGuard
 import com.raaveinm.picasso.data.sync.SyncCoordinator
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
@@ -65,9 +67,14 @@ private val sharedModule = module {
             chatRepository = get(),
             contactsRepository = get(),
             profiles = get(),
-            onNothingToConnect = { callManager.disconnectSignaling() }
+            onNothingToConnect = { callManager.disconnectSignaling() },
+            isSessionRejected = { context ->
+                (get<ContactsApi>().contacts(context) as? ApiResult.Rejected)?.status == 401
+            },
+            onSessionRejected = { context -> get<AuthRepository>().forgetRejectedSession(context.token) }
         )
     }
+    single { SignedOutCacheGuard(get<AuthRepository>().session, get(), get()) }
     single { FriendsRepository(get(), get()) }
     single { AuthRepository(get(), get(), get()) }
     single { KeyBindingRepository(get()) }

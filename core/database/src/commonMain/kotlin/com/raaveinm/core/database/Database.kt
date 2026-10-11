@@ -7,6 +7,7 @@ import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
 import androidx.room3.migration.Migration
 import androidx.sqlite.execSQL
+import com.raaveinm.core.database.dao.AccountDao
 import com.raaveinm.core.database.dao.ChatDao
 import com.raaveinm.core.database.dao.ContactDao
 import com.raaveinm.core.database.dao.GameDao
@@ -55,6 +56,7 @@ import com.raaveinm.core.database.entities.social.PaletteInvites
 @ColumnTypeConverters(RoomConverters::class)
 @ConstructedBy(DatabaseConstructor::class)
 abstract class PicassoDatabase : RoomDatabase() {
+    abstract fun getAccountDao(): AccountDao
     abstract fun getChatDao(): ChatDao
     abstract fun getContactDao(): ContactDao
     abstract fun getGameDao(): GameDao

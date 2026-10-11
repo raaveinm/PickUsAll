@@ -56,3 +56,19 @@ data object Visual
 
 @Serializable
 data object Behaviour
+
+///////////////////////////////////////////////
+// Nested (Friends)
+///////////////////////////////////////////////
+
+@Serializable
+data object FriendList
+
+@Serializable
+data object FriendSearch
+
+@Serializable
+data object FriendContacts
+
+@Serializable
+data object FriendPending

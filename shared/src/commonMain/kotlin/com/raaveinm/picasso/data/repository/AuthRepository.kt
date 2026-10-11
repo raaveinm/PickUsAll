@@ -124,6 +124,15 @@ class AuthRepository(
         }
     }
 
+    /**
+     * Drops the local session because the server refused [token] (it lost or revoked
+     * it). Nothing to tell the server. Only that exact token is dropped: a probe that
+     * answers late must not sign out a session the user started in the meantime.
+     */
+    suspend fun forgetRejectedSession(token: String) {
+        authTokenStore.clearIfToken(token)
+    }
+
     /*
      * "Active server" is still first-of-list, matching ChatViewModel's signaling
      * pick. Becomes a real selection once the multi-server switch in Settings lands.

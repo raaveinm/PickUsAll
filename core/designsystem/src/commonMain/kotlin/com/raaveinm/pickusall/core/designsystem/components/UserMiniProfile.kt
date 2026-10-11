@@ -43,7 +43,8 @@ fun UserMiniProfile(
     onMessageClick: () -> Unit = {},
     onSteamProfileRedirectClick: () -> Unit = {},
     hideActionButtons: Boolean = false,
-    actionButtons: (@Composable () -> Unit)? = null
+    leadingActions: (@Composable () -> Unit)? = null,   // extra buttons placed before the default message / Steam ones
+    actionButtons: (@Composable () -> Unit)? = null     // replaces the default buttons (and leadingActions) entirely
 ) {
     Row(
         modifier = modifier
@@ -116,6 +117,7 @@ fun UserMiniProfile(
 
         if (hideActionButtons) return@Row
         if (actionButtons == null) {
+            leadingActions?.invoke()
             Box(
                 Modifier
                     .padding(horizontal = Dimensions.extraSmall)
