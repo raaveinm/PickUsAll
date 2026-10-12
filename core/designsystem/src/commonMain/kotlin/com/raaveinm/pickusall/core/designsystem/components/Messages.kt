@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
@@ -76,7 +78,7 @@ fun Messages (
                         modifier = Modifier
                             .size(32.dp)
                             .clip(Shapes.circleShape),
-                error = painterResource(Res.drawable.ic_default_icon)
+                        error = painterResource(Res.drawable.ic_default_icon)
                     )
                 }
             }
@@ -88,6 +90,7 @@ fun Messages (
         Box(
             Modifier
                 .align(if (isSender) Alignment.End else Alignment.Start)
+                .sizeIn(maxWidth = 512.dp)
                 .clip(shape = if (isSender) { Shapes.outcomeShape } else { Shapes.incomeChatShape })
                 .background(if (!isSender) { MaterialTheme.colorScheme.primary }
                 else { MaterialTheme.colorScheme.secondary })
@@ -116,4 +119,19 @@ fun Messages (
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MessagesPreview() {
+    Messages(
+        iconLink = "",
+        username = "name",
+        textMessage = "hewwo",
+        timestamp = "2 Oct, 12:24",
+        isSender = true,
+        modifier = Modifier.padding(8.dp),
+        previousExisted = false,
+        isLast = true
+    )
 }

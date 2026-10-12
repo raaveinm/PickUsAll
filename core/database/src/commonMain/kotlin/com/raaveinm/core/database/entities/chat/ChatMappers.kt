@@ -5,7 +5,9 @@ import com.raaveinm.core.model.chat.Chat
 import com.raaveinm.core.model.chat.MessageData as MessageDataDto
 import com.raaveinm.core.model.chat.Palette
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
@@ -41,8 +43,35 @@ fun MessageWithSender.toDto(): MessageDataDto = MessageDataDto(
     remoteId = message.remoteId
 )
 
-/** Room stores epoch MILLISECONDS (the wire unit); the UI model wants a display-ready "HH:mm". */
-private fun Long.toDisplayTime(): String {
-    val localDateTime = Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.currentSystemDefault())
-    return "${localDateTime.hour.toString().padStart(2, '0')}:${localDateTime.minute.toString().padStart(2, '0')}"
+private val MONTH_NAMES: Array<String> = arrayOf(
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+)
+
+/** Room stores epoch MILLISECONDS (the wire unit); the UI model wants a display-ready string. */
+private fun Long.toDisplayTime(): String = formatMessageTime(
+    epochMs = this,
+    nowMs = Clock.System.now().toEpochMilliseconds(),
+    zone = TimeZone.currentSystemDefault()
+)
+
+/**
+ * Today's messages are "HH:mm"; older ones get the date in front ("12 Oct, 14:30"),
+ * plus the year when it is not the current one ("12 Oct 2025, 14:30").
+ * "Today" is judged in [zone], not in UTC.
+ */
+internal fun formatMessageTime(epochMs: Long, nowMs: Long, zone: TimeZone): String {
+    val moment = Instant.fromEpochMilliseconds(epochMs).toLocalDateTime(zone)
+    val today = Instant.fromEpochMilliseconds(nowMs).toLocalDateTime(zone).date
+    val hourMinute: String =
+        "${moment.hour.toString().padStart(2, '0')}:${moment.minute.toString().padStart(2, '0')}"
+
+    if (moment.date == today) return hourMinute
+
+    val dayAndMonth: String = "${moment.date.day} ${MONTH_NAMES[moment.date.month.number - 1]}"
+    return if (moment.date.year == today.year) {
+        "$dayAndMonth, $hourMinute"
+    } else {
+        "$dayAndMonth ${moment.date.year}, $hourMinute"
+    }
 }

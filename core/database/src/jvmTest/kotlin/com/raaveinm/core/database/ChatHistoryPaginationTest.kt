@@ -92,11 +92,11 @@ class ChatHistoryPaginationTest {
         assertTrue(page3.size < 10)
         assertEquals("message #0", page3.last().message.textMessage)
 
-        // mapper hydrates the correct User and a HH:mm timestamp string
+        // mapper hydrates the correct User; these messages are from 2023, so the date is included
         val dto = page1.first().toDto()
         assertEquals("message #24", dto.textMessage)
         assertEquals(self.steamId, dto.user.steamId) // #24 -> i=24, even -> self
-        assertTrue(Regex("""\d{2}:\d{2}""").matches(dto.timestamp))
+        assertTrue(Regex("""\d{1,2} [A-Z][a-z]{2} 2023, \d{2}:\d{2}""").matches(dto.timestamp))
 
         // accumulating pages the way the ViewModel does reconstructs the full, newest-first history
         val accumulated = (page1 + page2 + page3).map { it.message.textMessage }

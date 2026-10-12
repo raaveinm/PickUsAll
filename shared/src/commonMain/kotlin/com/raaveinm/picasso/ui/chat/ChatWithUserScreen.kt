@@ -1,15 +1,36 @@
 package com.raaveinm.picasso.ui.chat
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CopyAll
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.raaveinm.core.model.chat.Chat
@@ -21,6 +42,7 @@ import com.raaveinm.pickusall.core.designsystem.components.AcceptChatRequest
 import com.raaveinm.pickusall.core.designsystem.components.ChatTextBar
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import org.jetbrains.compose.resources.stringResource
 import pickusall.shared.generated.resources.Res
 import pickusall.shared.generated.resources.chat_message_hint
@@ -42,6 +64,7 @@ fun ChatWithUserScreen(
     selfSteamId: Long?
 ) {
     if (conversation == null) return
+    var isEditorMode by remember { mutableStateOf(false) }
 
     val counterpart = (conversation as? Chat)?.chatTitle
     val title = when (conversation) {
@@ -53,20 +76,69 @@ fun ChatWithUserScreen(
         is Palette -> conversation.members.firstOrNull()?.avatarMedium
     }
 
-    Box(
-        modifier.fillMaxSize()
-    ) {
-        ChatTopBar(
+    Box(modifier.fillMaxSize()) {
+        Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .zIndex(1f)
                 .sizeIn(maxWidth = 512.dp)
-                .padding(horizontal = Dimensions.medium),
-            chatName = title,
-            chatIcon = icon,
-            onGoBackAction = onBack,
-            onChatIconAction = { onUserIconClick(counterpart?.steamId ?: conversation.id) }
-        )
+                .padding(horizontal = Dimensions.medium)
+                .animateContentSize(tween(200)),
+        ) {
+            AnimatedVisibility (
+                visible = isEditorMode,
+                modifier = Modifier.align(Alignment.CenterVertically).clip(Shapes.circleShape),
+                enter = expandHorizontally(
+                    animationSpec = tween(300),
+                    expandFrom = Alignment.Start
+                ),
+                exit = shrinkHorizontally(
+                    animationSpec = tween(300),
+                    shrinkTowards = Alignment.Start
+                )
+            ) {
+                Row {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(horizontal = Dimensions.small)
+                            .size(48.dp)
+                            .clip(Shapes.circleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CopyAll,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(horizontal = Dimensions.small)
+                            .size(48.dp)
+                            .clip(Shapes.circleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteForever,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+
+            ChatTopBar(
+                modifier = Modifier.weight(1f),
+                chatName = title,
+                chatIcon = icon,
+                onGoBackAction = onBack,
+                onChatIconAction = { onUserIconClick(counterpart?.steamId ?: conversation.id) }
+            )
+        }
 
         if (counterpart != null && !conversation.writable) {
             AcceptChatRequest(
@@ -90,7 +162,9 @@ fun ChatWithUserScreen(
             user = selfSteamId ?: 0L,
             messages = messageData,
             onLoadMore = onLoadMoreHistory,
-            contentPadding = PaddingValues(top = Dimensions.paddingAboveAverage, bottom = Dimensions.paddingLarge)
+            contentPadding = PaddingValues(top = Dimensions.paddingAboveAverage, bottom = Dimensions.paddingLarge),
+            isEditorMode = isEditorMode,
+            onEditorModeToggle = { isEditorMode = !isEditorMode }
         )
         val messageFieldState = rememberTextFieldState()
         ChatTextBar(
