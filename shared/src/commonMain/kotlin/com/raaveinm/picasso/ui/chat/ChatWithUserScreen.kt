@@ -2,13 +2,11 @@ package com.raaveinm.picasso.ui.chat
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,10 +19,13 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,9 +44,11 @@ import com.raaveinm.pickusall.core.designsystem.components.ChatTextBar
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import pickusall.shared.generated.resources.Res
 import pickusall.shared.generated.resources.chat_message_hint
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun ChatWithUserScreen(
@@ -61,10 +64,14 @@ fun ChatWithUserScreen(
     onBlockDm: (Long) -> Unit = {},     // frozen DM: block the counterpart
     callState: Boolean = false,
     messageData: List<MessageData>,
-    selfSteamId: Long?
+    selfSteamId: Long?,
+    onCopyMessageData: (List<MessageData>) -> Unit = {},
+    onDeleteMessages: (List<Long>) -> Unit = {}
 ) {
     if (conversation == null) return
     var isEditorMode by remember { mutableStateOf(false) }
+    var buttonNotifyTimer by remember { mutableStateOf(false) }
+    val selectedMessages: MutableList<MessageData> = remember { mutableStateListOf() }
 
     val counterpart = (conversation as? Chat)?.chatTitle
     val title = when (conversation) {
@@ -74,6 +81,18 @@ fun ChatWithUserScreen(
     val icon = when (conversation) {
         is Chat -> conversation.chatTitle.avatarMedium
         is Palette -> conversation.members.firstOrNull()?.avatarMedium
+    }
+
+    LaunchedEffect(selectedMessages.size) {
+        if (selectedMessages.isEmpty()) isEditorMode = false
+    }
+
+    LaunchedEffect(buttonNotifyTimer) {
+        if (buttonNotifyTimer) {
+            delay(621.milliseconds)
+            isEditorMode = false
+            buttonNotifyTimer = false
+        }
     }
 
     Box(modifier.fillMaxSize()) {
@@ -104,11 +123,15 @@ fun ChatWithUserScreen(
                             .padding(horizontal = Dimensions.small)
                             .size(48.dp)
                             .clip(Shapes.circleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .clickable {
+                                onCopyMessageData(selectedMessages)
+                                buttonNotifyTimer = true
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CopyAll,
+                            imageVector = if (buttonNotifyTimer) Icons.Default.DoneAll else Icons.Default.CopyAll,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -119,13 +142,21 @@ fun ChatWithUserScreen(
                             .padding(horizontal = Dimensions.small)
                             .size(48.dp)
                             .clip(Shapes.circleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .clickable {
+                                val ownLocalIds: List<Long> = selectedMessages
+                                    .filter { it.user.steamId == selfSteamId }
+                                    .map { it.localId }
+                                if (ownLocalIds.isNotEmpty()) onDeleteMessages(ownLocalIds)
+                                selectedMessages.clear()
+                                isEditorMode = false
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.DeleteForever,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            tint = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                 }
@@ -164,7 +195,8 @@ fun ChatWithUserScreen(
             onLoadMore = onLoadMoreHistory,
             contentPadding = PaddingValues(top = Dimensions.paddingAboveAverage, bottom = Dimensions.paddingLarge),
             isEditorMode = isEditorMode,
-            onEditorModeToggle = { isEditorMode = !isEditorMode }
+            onEditorModeToggle = { isEditorMode = !isEditorMode },
+            selectedMessages = selectedMessages
         )
         val messageFieldState = rememberTextFieldState()
         ChatTextBar(

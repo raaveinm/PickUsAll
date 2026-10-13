@@ -89,7 +89,6 @@ fun ChatScreen(
                             viewModel.setSelectedChat(null)
                             nestedNavHostController.popBackStack()
                         },
-                        // in a palette the icon leads to the member list, in a DM straight to the profile
                         onUserIconClick = { userId ->
                             if (route.groupId != null) {
                                 nestedNavHostController.navigate(Palette(groupId = route.groupId))
@@ -107,6 +106,8 @@ fun ChatScreen(
                         callState = isInCall,
                         messageData = state.chatHistory,
                         selfSteamId = state.selfSteamId,
+                        onCopyMessageData = { viewModel.copyMessageChord(it) },
+                        onDeleteMessages = { viewModel.deleteMessages(it) }
                     )
                 }
                 composable<UserProfile> { backStackEntry ->
@@ -193,6 +194,8 @@ fun ChatScreen(
                         callState = isInCall,
                         messageData = state.chatHistory,
                         selfSteamId = state.selfSteamId,
+                        onCopyMessageData = { viewModel.copyMessageChord(it) },
+                        onDeleteMessages = { viewModel.deleteMessages(it) }
                     )
                 }
                 if (showThirdColumn) {

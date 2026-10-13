@@ -21,6 +21,7 @@ import com.raaveinm.picasso.data.repository.ProfilesRepository
 import com.raaveinm.picasso.data.repository.SocialEvent
 import com.raaveinm.picasso.data.repository.SocialResult
 import com.raaveinm.picasso.data.sync.SyncCoordinator
+import com.raaveinm.picasso.ui.actions.ClipboardHelper
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -403,6 +404,24 @@ class ChatViewModel(
                 warn(WarnLevel.WARN, "Couldn't delete the message right now (chat_e102)")
             }
         }
+    }
+
+    /** [deleteMessage] for a whole selection: every row is attempted, and a failure raises one banner, not one per row. */
+    fun deleteMessages(localMessageIds: List<Long>) {
+        viewModelScope.launch {
+            var anyFailed: Boolean = false
+            localMessageIds.forEach { localMessageId: Long ->
+                if (!chatRepository.deleteMessage(localMessageId)) anyFailed = true
+            }
+            if (anyFailed) warn(WarnLevel.WARN, "Couldn't delete some of the messages right now (chat_e102)")
+        }
+    }
+
+    fun copyMessageChord(messages: List<MessageData>) {
+        val text: String = messages.reversed().joinToString(separator = "\n\n") { message: MessageData ->
+            "[${message.user.personaName} : ${message.timestamp}]\n[${message.textMessage}]"
+        }
+        ClipboardHelper.setText(text)
     }
 
     ///////////////////////////////////////////////

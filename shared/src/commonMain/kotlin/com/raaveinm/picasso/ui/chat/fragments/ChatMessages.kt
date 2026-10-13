@@ -46,10 +46,10 @@ fun ChatMessages(
     onLoadMore: () -> Unit = {},
     contentPadding: PaddingValues = PaddingValues(vertical = Dimensions.medium),
     isEditorMode: Boolean = false,
-    onEditorModeToggle: () -> Unit = {}
+    onEditorModeToggle: () -> Unit = {},
+    selectedMessages: MutableList<MessageData>
 ) {
     val listState = rememberLazyListState()
-    val selectedMessages: MutableList<MessageData> = remember { mutableStateListOf() }
 
     LazyColumn(
         modifier,
@@ -105,11 +105,8 @@ fun ChatMessages(
                     },
                     onSideAction = {
                         onEditorModeToggle()
-                        if (!isEditorMode) {
-                            selectedMessages.add(message)
-                        } else {
-                            selectedMessages.clear()
-                        }
+                        if (!isEditorMode) { selectedMessages.add(message) }
+                        else { selectedMessages.clear() }
                     }
                 )
 
@@ -142,6 +139,7 @@ fun ChatMessagesPreview() {
             MessageData(user = Mock.user_1, textMessage = "<3", timestamp = "11:09"),
             MessageData(user = Mock.user_1, textMessage = "<3", timestamp = "11:09"),
             MessageData(user = Mock.user_2, textMessage = "Mornin' <3", timestamp = "11:10"),
-        )
+        ),
+        selectedMessages = remember { mutableStateListOf() }
     )
 }
