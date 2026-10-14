@@ -6,8 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 
 class MainActivity : ComponentActivity() {
     private val requestRecordAudioPermission =
@@ -22,14 +20,6 @@ class MainActivity : ComponentActivity() {
         // Eager request so mic capture works once a call is started - see features:impl-webrtc.
         requestRecordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
 
-        setContent {
-            App()
-        }
+        setContent { App() }
     }
-}
-
-@Preview
-@Composable
-fun AppAndroidPreview() {
-    App()
 }

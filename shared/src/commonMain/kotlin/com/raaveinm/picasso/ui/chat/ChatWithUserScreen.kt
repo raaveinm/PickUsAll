@@ -203,7 +203,7 @@ fun ChatWithUserScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .zIndex(1f)
-                .padding(bottom = Dimensions.paddingAverage)
+                .padding(bottom = Dimensions.small)
                 .sizeIn(maxWidth = 512.dp, maxHeight = 128.dp)
                 .fillMaxWidth()
                 .padding(Dimensions.small),

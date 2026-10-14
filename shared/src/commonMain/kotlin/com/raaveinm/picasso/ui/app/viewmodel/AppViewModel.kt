@@ -36,6 +36,7 @@ data class AppMessage(
 data class AppUiState(
     val selectedTab: Int = 0,
     val isSideBarExpanded: Boolean = false,
+    val isBottomBarHidden: Boolean = false,
     val message: AppMessage? = null,
     val dismissTimer: Boolean = false,
     val user: User? = null,
@@ -162,6 +163,10 @@ class AppViewModel(
     fun toggleSideBar() {
         _uiState.update { it.copy(isSideBarExpanded = !it.isSideBarExpanded) }
     }
+
+    fun hideBottomBar() = _uiState.update { it.copy(isBottomBarHidden = true) }
+
+    fun showBottomBar() = _uiState.update { it.copy(isBottomBarHidden = false) }
 
     ///////////////////////////////////////////////
     // Logging

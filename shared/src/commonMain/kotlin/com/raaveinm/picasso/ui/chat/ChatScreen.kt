@@ -57,6 +57,10 @@ fun ChatScreen(
         viewModel.consumeWarning()
     }
 
+    LaunchedEffect(state.selectedChat) {
+        if (state.selectedChat == null) appViewModel.showBottomBar() else appViewModel.hideBottomBar()
+    }
+
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val isCompact = maxWidth < CompactWidthBreakpoint
         val showThirdColumn = maxWidth >= ThirdColumnBreakpoint
@@ -181,7 +185,6 @@ fun ChatScreen(
                         modifier = Modifier.fillMaxSize().padding(horizontal = Dimensions.large),
                         conversation = state.conversations.find { it.id == state.selectedChat },
                         onBack = { viewModel.setSelectedChat(null) },
-
                         onUserIconClick = { userId ->
                             viewModel.setSelectedUser(if (selectedPalette != null) null else userId)
                         },
