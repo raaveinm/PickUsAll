@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Pets
@@ -22,9 +23,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
-import org.jetbrains.compose.resources.vectorResource
-import pickusall.core.designsystem.generated.resources.Res
-import pickusall.core.designsystem.generated.resources.ic_sticker
 
 @Composable
 fun NavBar(
@@ -38,7 +36,7 @@ fun NavBar(
         {
             Icon(
                 modifier = Modifier.size(24.dp),
-                imageVector = vectorResource(Res.drawable.ic_sticker),
+                imageVector = Icons.Default.Apps,
                 contentDescription = "menu_item_home",
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )

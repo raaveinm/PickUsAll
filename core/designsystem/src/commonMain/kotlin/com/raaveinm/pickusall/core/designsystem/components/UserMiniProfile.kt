@@ -42,6 +42,7 @@ fun UserMiniProfile(
     status: String,
     onMessageClick: () -> Unit = {},
     onSteamProfileRedirectClick: () -> Unit = {},
+    hidePFP: Boolean = false,
     hideActionButtons: Boolean = false,
     leadingActions: (@Composable () -> Unit)? = null,   // extra buttons placed before the default message / Steam ones
     actionButtons: (@Composable () -> Unit)? = null     // replaces the default buttons (and leadingActions) entirely
@@ -57,17 +58,19 @@ fun UserMiniProfile(
         // PFP
         ///////////////////////////////////////////////
 
-        AsyncImage(
-            model = iconLink,
-            contentDescription = "mini_profile/$username",
-            contentScale = ContentScale.Crop,
-            alignment = Alignment.Center,
-            modifier = Modifier
-                .padding(Dimensions.extraSmall)
-                .size(64.dp)
-                .clip(Shapes.circleShape),
-            error = painterResource(Res.drawable.ic_default_icon)
-        )
+        if (!hidePFP) {
+            AsyncImage(
+                model = iconLink,
+                contentDescription = "mini_profile/$username",
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.Center,
+                modifier = Modifier
+                    .padding(Dimensions.extraSmall)
+                    .size(64.dp)
+                    .clip(Shapes.circleShape),
+                error = painterResource(Res.drawable.ic_default_icon)
+            )
+        }
 
 
         ///////////////////////////////////////////////

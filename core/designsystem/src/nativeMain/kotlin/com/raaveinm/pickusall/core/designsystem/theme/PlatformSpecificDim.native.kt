@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.dp
 
 actual object PlatformSpecificDim {
     actual val systemBarsPadding: PaddingValues
-        get() = PaddingValues(top = 56.dp, bottom = 8.dp)
+        get() = PaddingValues(top = 64.dp, bottom = 8.dp)
     actual val contentPaddingMedium: Dp
         get() = 32.dp
     actual val contentPaddingLarge: Dp

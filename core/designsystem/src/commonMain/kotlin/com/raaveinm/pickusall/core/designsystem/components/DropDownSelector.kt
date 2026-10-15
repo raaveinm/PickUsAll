@@ -1,16 +1,16 @@
 package com.raaveinm.pickusall.core.designsystem.components
 
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -26,27 +26,39 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 
 @Composable
 fun DropDownSelector(
     modifier: Modifier = Modifier,
     optionsList: List<String>,
     selectedOption: String,
-    onOptionSelected: (String) -> Unit
+    onOptionSelected: (String) -> Unit,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
-    var isExpanded by remember { mutableStateOf(false) }
-    Column (modifier
-        .clip(RoundedCornerShape(36.dp))
-        .background(MaterialTheme.colorScheme.primaryContainer)
-        .animateContentSize()
-    ) {
+    var isExpanded: Boolean by remember { mutableStateOf(false) }
+    var headerSize: IntSize by remember { mutableStateOf(IntSize.Zero) }
+    val density: Density = LocalDensity.current
+    val gapPx: Int = with(density) { Dimensions.small.roundToPx() }
+
+    Column(modifier.background(Color.Transparent)) {
         Row(
             modifier = Modifier
+                .onSizeChanged { headerSize = it }
+                .clip(Shapes.roundedSmall)
+                .background(containerColor)
                 .clickable { isExpanded = !isExpanded }
-                .padding(top = if (isExpanded) Dimensions.medium else Dimensions.none) ,
+                .padding(Dimensions.correctionSpace),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
@@ -55,7 +67,7 @@ fun DropDownSelector(
                 modifier = Modifier
                     .weight(1f)
                     .padding(Dimensions.small),
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = contentColor,
                 softWrap = true,
                 maxLines = 1
             )
@@ -63,34 +75,52 @@ fun DropDownSelector(
             Icon(
                 imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                tint = contentColor,
                 modifier = Modifier.padding(Dimensions.small)
             )
         }
 
         if (isExpanded) {
-            optionsList.forEach { option ->
-                Box(
-                    Modifier
-                        .background(Color.Transparent)
-                        .clickable{
-                            onOptionSelected(option)
-                            isExpanded = false
+            Popup(
+                alignment = Alignment.TopStart,
+                offset = IntOffset(x = 0, y = headerSize.height + gapPx), // right under the header
+                onDismissRequest = { isExpanded = false },
+                properties = PopupProperties(focusable = true)
+            ) {
+                // enter animation only: the Popup leaves composition as soon as isExpanded is false
+                AnimatedVisibility(
+                    visibleState = remember { MutableTransitionState(false).apply { targetState = true } },
+                    modifier = Modifier
+                        .width(with(density) { headerSize.width.toDp() }) // same width as the header
+                        .clip(Shapes.roundedSmall)
+                        .background(containerColor)
+                        .padding(Dimensions.correctionSpace)
+                ) {
+                    Column {
+                        optionsList.forEach { option ->
+                            Box(
+                                Modifier
+                                    .background(Color.Transparent)
+                                    .clickable {
+                                        onOptionSelected(option)
+                                        isExpanded = false
+                                    }
+                            ) {
+                                Text(
+                                    text = option,
+                                    modifier = Modifier
+                                        .padding(Dimensions.small)
+                                        .background(Color.Transparent)
+                                        .fillMaxWidth(),
+                                    color = contentColor,
+                                    softWrap = true,
+                                    maxLines = 1
+                                )
+                            }
                         }
-                    ) {
-                    Text(
-                        text = option,
-                        modifier = Modifier
-                            .padding(Dimensions.small)
-                            .background(Color.Transparent)
-                            .fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        softWrap = true,
-                        maxLines = 1
-                    )
+                    }
                 }
             }
-            Spacer(Modifier.padding(Dimensions.medium))
         }
     }
 }

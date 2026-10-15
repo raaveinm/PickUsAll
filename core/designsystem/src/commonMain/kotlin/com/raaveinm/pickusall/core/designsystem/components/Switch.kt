@@ -15,7 +15,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +28,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun Switch(
@@ -39,14 +45,34 @@ fun Switch(
             .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
         val slotWidth = maxWidth / options.size
+        var animationFlag by remember { mutableStateOf(false) }
+        var previousSelected by remember { mutableStateOf(selected) }
+        var sizeMod by remember { mutableStateOf(1f) }
+        LaunchedEffect(selected) {
+            animationFlag = true
+            if (previousSelected > selected) {
+                sizeMod = 1.5f
+            } else if (previousSelected < selected) {
+                sizeMod = .75f
+            }
+            previousSelected = selected
+            delay(120.milliseconds)
+            animationFlag = false
+        }
         val offset by animateDpAsState(
             targetValue = selected * slotWidth,
-            animationSpec = tween(240)
+            animationSpec = tween(durationMillis = 240),
+            label = "switch_offset"
+        )
+        val size by animateDpAsState(
+            targetValue = if (animationFlag) (slotWidth.value * sizeMod).dp else slotWidth,
+            animationSpec = tween(durationMillis = 200),
+            label = "switch_toggler_size",
         )
 
         Box(
             Modifier
-                .width(slotWidth)
+                .width(size)
                 .defaultMinSize(minHeight = 36.dp + 2 * Dimensions.extraSmall)
                 .graphicsLayer { translationX = offset.toPx() }
                 .padding(Dimensions.extraSmall)
@@ -58,7 +84,8 @@ fun Switch(
                 val contentColor by animateColorAsState(
                     targetValue = if (index == selected) MaterialTheme.colorScheme.surface
                     else MaterialTheme.colorScheme.onSurface,
-                    animationSpec = tween(durationMillis = 250)
+                    animationSpec = tween(durationMillis = 250),
+                    label = "switch_content_color_$option"
                 )
                 Box(
                     modifier = Modifier
@@ -87,7 +114,7 @@ fun Switch(
 fun SwitchPreview() {
     Switch(
         modifier = Modifier,
-        selected = 0,
+        selected = 2,
         onSelected = {},
         options = listOf("aaa", "bbb","ccc")
     )

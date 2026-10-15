@@ -1,9 +1,6 @@
 package com.raaveinm.picasso.ui.canvas
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,17 +17,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.raaveinm.core.model.game.LibraryOrder
 import com.raaveinm.picasso.ui.canvas.fragments.CanvasLibrary
 import com.raaveinm.picasso.ui.canvas.fragments.ColourPicker
 import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
-import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
 import com.raaveinm.pickusall.core.designsystem.components.RefreshBox
 import com.raaveinm.pickusall.core.designsystem.components.Switch
-import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 import org.jetbrains.compose.resources.stringArrayResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -69,9 +63,22 @@ fun CanvasScreen(
 
                 }
                 Box(Modifier.fillMaxSize().zIndex(1f)) {
+                    val sortOptions = stringArrayResource(Res.array.sort_options)
+
                     CanvasLibrary(
                         modifier = Modifier.fillMaxSize(),
-                        libraryList = uiState.userLibrary
+                        libraryList = uiState.userLibrary,
+                        sortOptions = sortOptions,
+                        selectedOption = sortOptions[uiState.libraryOrder.ordinal],
+                        onOptionSelected = {
+                            val newOrder = when (sortOptions.indexOf(it)) {
+                                0 -> LibraryOrder.NAME
+                                1 -> LibraryOrder.PLAYTIME
+                                2 -> LibraryOrder.LAST_PLAYED
+                                else -> LibraryOrder.NAME
+                            }
+                            viewModel.onOrderChanged(newOrder)
+                        }
                     )
                 }
             } else {
@@ -79,7 +86,7 @@ fun CanvasScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .sizeIn(maxWidth = 1024.dp)
-                        .padding(PaddingValues(top = PlatformSpecificDim.contentPaddingMedium)),
+                        .padding(PaddingValues(vertical = PlatformSpecificDim.contentPaddingMedium)),
                     gameQueue = uiState.gameQueue,
                     onReorder = viewModel::reorderQueue,
                     onAddToQueue = viewModel::addToQueue
@@ -91,48 +98,16 @@ fun CanvasScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .zIndex(2f)
-                .padding(top = Dimensions.medium)
                 .sizeIn(maxWidth = 280.dp),
             shape = FloatingActionButtonDefaults.shape,
             color = Color.Transparent
         ) {
-            Column(
-                modifier = Modifier.padding(Dimensions.small),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(Dimensions.small)
-            ) {
-                Switch(
-                    modifier = topNavModifier.fillMaxWidth(),
-                    selected = selectedSwitch,
-                    onSelected = { selectedSwitch = it },
-                    options = options,
-                )
-
-                AnimatedVisibility (selectedSwitch == 0) {
-                    val sortOptions = stringArrayResource(Res.array.sort_options)
-
-                    DropDownSelector(
-                        modifier = Modifier.fillMaxWidth(),
-                        selectedOption = sortOptions[uiState.libraryOrder.ordinal],
-                        onOptionSelected = {
-                            val newOrder = when (sortOptions.indexOf(it)) {
-                                0 -> LibraryOrder.NAME
-                                1 -> LibraryOrder.PLAYTIME
-                                2 -> LibraryOrder.LAST_PLAYED
-                                else -> LibraryOrder.NAME
-                            }
-                            viewModel.onOrderChanged(newOrder)
-                        },
-                        optionsList = sortOptions
-                    )
-                }
-            }
+            Switch(
+                modifier = topNavModifier.fillMaxWidth(),
+                selected = selectedSwitch,
+                onSelected = { selectedSwitch = it },
+                options = options
+            )
         }
     }
-}
-
-@Preview
-@Composable
-fun CanvasScreenPreview() {
-    CanvasScreen()
 }

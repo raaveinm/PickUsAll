@@ -89,13 +89,27 @@ fun UserActions(
                 )
             }
             ///////////////////////////////////////////////
+            // Mini profile (online status)
+            ///////////////////////////////////////////////
+            item {
+                UserMiniProfile(
+                    modifier = Modifier.sizeIn(maxWidth = 512.dp).padding(horizontal = Dimensions.medium),
+                    iconLink = user.avatarFull,
+                    username = user.personaName,
+                    isOnline = user.personaState == 1 || user.personaState == 2,
+                    status = UserStatus.getOnlineStatus(user.personaState),
+                    hidePFP = true,
+                    hideActionButtons = true
+                )
+            }
+            ///////////////////////////////////////////////
             // username
             ///////////////////////////////////////////////
             item {
-                DecoratedText(
-                    text = user.personaName.uppercase(),
-                    typography = MaterialTheme.typography.titleLarge
-                )
+//                DecoratedText(
+//                    text = user.personaName.uppercase(),
+//                    typography = MaterialTheme.typography.titleLarge
+//                )
                 HorizontalDivider(Modifier.fillMaxWidth().padding(horizontal = Dimensions.large))
                 if (user.realName != null) {
                     DecoratedText(
@@ -103,20 +117,6 @@ fun UserActions(
                         typography = MaterialTheme.typography.labelSmall
                     )
                 }
-            }
-            ///////////////////////////////////////////////
-            // Mini profile (online status)
-            ///////////////////////////////////////////////
-            item {
-                UserMiniProfile(
-                    modifier = Modifier.sizeIn(maxWidth = 512.dp)
-                        .padding(horizontal = Dimensions.medium),
-                    iconLink = user.avatarFull,
-                    username = user.personaName,
-                    isOnline = user.personaState == 1 || user.personaState == 2,
-                    status = UserStatus.getOnlineStatus(user.personaState), // TODO(handle in game case by passing game name)
-                    hideActionButtons = true
-                )
             }
             ///////////////////////////////////////////////
             // Most Played

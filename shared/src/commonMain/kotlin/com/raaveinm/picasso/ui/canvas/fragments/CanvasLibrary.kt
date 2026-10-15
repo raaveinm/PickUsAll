@@ -3,18 +3,29 @@ package com.raaveinm.picasso.ui.canvas.fragments
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.picasso.ui.actions.libraryRedirect
+import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
+import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
+import org.jetbrains.compose.resources.stringArrayResource
+import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.sort_options
 
 //
 // Created by Kirill "Raaveinm" on 8/18/26.
@@ -25,15 +36,18 @@ import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 fun CanvasLibrary(
     modifier: Modifier = Modifier,
     libraryList: List<OwnedGame>,
+    sortOptions: List<String>,
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit
 ) {
-    BoxWithConstraints(modifier = modifier) {
+    BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.TopCenter) {
         val minCellSize = if (maxWidth < 700.dp) 110.dp else 220.dp
 
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minCellSize),
             contentPadding = PaddingValues(
-                top = PlatformSpecificDim.contentPaddingAdvanced,
-                bottom = PlatformSpecificDim.contentPaddingLarge
+                top = Dimensions.paddingAboveAverage + PlatformSpecificDim.systemBarsPadding.calculateTopPadding(),
+                bottom = Dimensions.paddingAboveAverage
             ),
             verticalArrangement = Arrangement.Center,
             horizontalArrangement = Arrangement.Center,
@@ -48,6 +62,24 @@ fun CanvasLibrary(
                 )
             }
         }
+
+        Row(
+            Modifier.padding(
+                top = Dimensions.extraLarge + PlatformSpecificDim.systemBarsPadding.calculateTopPadding()
+            ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            DropDownSelector(
+                modifier = Modifier
+                    .sizeIn(maxWidth = 232.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = Dimensions.medium),
+                selectedOption = selectedOption,
+                onOptionSelected = onOptionSelected,
+                optionsList = sortOptions
+            )
+            HorizontalDivider(Modifier.padding(horizontal = Dimensions.medium))
+        }
     }
 }
 
@@ -56,6 +88,9 @@ fun CanvasLibrary(
 fun CanvasLibraryPreview() {
     CanvasLibrary(
         modifier = Modifier,
+        sortOptions = stringArrayResource(Res.array.sort_options),
+        selectedOption = stringArrayResource(Res.array.sort_options)[0],
+        onOptionSelected = {},
         libraryList = listOf(
             OwnedGame(
                 appId = 1808500,
