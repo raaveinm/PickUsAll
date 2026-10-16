@@ -8,6 +8,8 @@ import io.ktor.client.request.header
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,6 +19,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+
+private const val PING_INTERVAL_MS: Long = 20_000L
 
 /*
  * One long-lived WS connection to PicassoBackend's /ws. It decodes the RTC signaling
@@ -32,8 +36,21 @@ class SignalingClient {
         ignoreUnknownKeys = true
         explicitNulls = false
     }
-    private val client = HttpClient(signalingHttpClientEngine()) { install(WebSockets) }
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val client = HttpClient(signalingHttpClientEngine()) {
+        install(WebSockets) {
+            pingIntervalMillis = PING_INTERVAL_MS // keeps an idle socket alive through NAT / Cloudflare idle timeouts
+        }
+    }
+
+    /*
+     * The handler is the last line of defence: on Kotlin/Native an uncaught exception in a
+     * launched coroutine aborts the whole process (SIGABRT), and a dropped socket is an
+     * everyday event, not a crash. The reader below also catches it explicitly.
+     */
+    private val scope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Default +
+            CoroutineExceptionHandler { _, e -> println("SignalingClient: unhandled error: $e") }
+    )
 
     private var session: DefaultClientWebSocketSession? = null
     private val _incoming = MutableSharedFlow<SignalingEnvelope>(extraBufferCapacity = 64)
@@ -84,6 +101,13 @@ class SignalingClient {
                             .onSuccess { _incoming.emit(it) }
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // The Darwin engine closes `incoming` with the transport error (e.g. POSIX 53,
+                // "Software caused connection abort") instead of a clean close; that just means
+                // the socket is gone. The finally below flips isConnected so the sync layer reconnects.
+                println("SignalingClient: socket read failed: $e")
             } finally {
                 // Only clear the state that is still ours: a close() followed by a quick
                 // reconnect must not have the old reader reset the new session's flag.

@@ -2,6 +2,8 @@ package com.raaveinm.pickusall.core.designsystem.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -50,6 +52,11 @@ fun DropDownSelector(
     var headerSize: IntSize by remember { mutableStateOf(IntSize.Zero) }
     val density: Density = LocalDensity.current
     val gapPx: Int = with(density) { Dimensions.small.roundToPx() }
+    val degrees by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        animationSpec = tween(durationMillis = 240),
+        label = "button_rotation"
+    )
 
     Column(modifier.background(Color.Transparent)) {
         Row(
@@ -73,10 +80,10 @@ fun DropDownSelector(
             )
 
             Icon(
-                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                imageVector = Icons.Default.KeyboardArrowDown,
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.padding(Dimensions.small)
+                modifier = Modifier.padding(Dimensions.small).rotate(degrees = degrees)
             )
         }
 

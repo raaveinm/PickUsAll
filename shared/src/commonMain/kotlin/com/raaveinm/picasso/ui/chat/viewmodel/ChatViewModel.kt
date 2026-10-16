@@ -409,7 +409,7 @@ class ChatViewModel(
     /** [deleteMessage] for a whole selection: every row is attempted, and a failure raises one banner, not one per row. */
     fun deleteMessages(localMessageIds: List<Long>) {
         viewModelScope.launch {
-            var anyFailed: Boolean = false
+            var anyFailed = false
             localMessageIds.forEach { localMessageId: Long ->
                 if (!chatRepository.deleteMessage(localMessageId)) anyFailed = true
             }
@@ -419,7 +419,10 @@ class ChatViewModel(
 
     fun copyMessageChord(messages: List<MessageData>) {
         val text: String = messages.reversed().joinToString(separator = "\n\n") { message: MessageData ->
-            "[${message.user.personaName} : ${message.timestamp}]\n[${message.textMessage}]"
+                    "<message>\n" +
+                    "  <author>${message.user.personaName} : ${message.timestamp}</author>\n" +
+                    "  <text>${message.textMessage}</text>\n" +
+                    "</message>"
         }
         ClipboardHelper.setText(text)
     }

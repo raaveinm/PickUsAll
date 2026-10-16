@@ -30,5 +30,16 @@
     <string-array name="phrases">
         <item>This feature wasn't stolen from Terraria</item>
         <item>Im not a teapot</item>
+        <item>Now in 1D</item>
+        <item>press alt-f4?</item>
+        <item>Touch grass</item>
+        <item>0 % sugar!</item>
+        <item>Powered by furry</item>
+        <item>Apes together strong.</item>
+        <item>Say Gex</item>
+        <item>snake_case</item>
+        <item>SCREAMING_SNAKE</item>
+        <item>nullpointer exception</item>
+        <item>Created in Android Studio</item>
     </string-array>
 </resources>

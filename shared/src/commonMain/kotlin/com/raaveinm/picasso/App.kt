@@ -131,9 +131,7 @@ private fun AppContent(
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val isChatDestination: Boolean = currentBackStackEntry?.destination?.hasRoute<ChatGraph>() == true
-    LaunchedEffect(isChatDestination) {
-        if (!isChatDestination) appViewModel.showBottomBar()
-    }
+    LaunchedEffect(isChatDestination) { if (!isChatDestination) appViewModel.showBottomBar() }
 
     var pendingSettings by remember { mutableStateOf<Any?>(null) }
 
@@ -271,6 +269,10 @@ private fun AppContent(
                 animationSpec = tween(240),
                 label = "bottom_nav_offset",
             )
+
+            ///////////////////////////////////////////////
+            // Bottom Nav Bar
+            ///////////////////////////////////////////////
 
             AnimatedVisibility(
                 visible = !appUiState.isBottomBarHidden,

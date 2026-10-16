@@ -1,5 +1,10 @@
 package com.raaveinm.picasso.ui.canvas.fragments
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,8 +15,15 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -21,6 +33,7 @@ import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.picasso.ui.actions.libraryRedirect
 import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
+import com.raaveinm.pickusall.core.designsystem.components.ScrollBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 import org.jetbrains.compose.resources.stringArrayResource
@@ -42,9 +55,26 @@ fun CanvasLibrary(
 ) {
     BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.TopCenter) {
         val minCellSize = if (maxWidth < 700.dp) 110.dp else 220.dp
+        val scrollState = rememberLazyGridState()
+        var isSortVisible by remember { mutableStateOf(true) }
+
+        val scrollingOffset: Int by remember {
+            var previousIndex = 64
+            derivedStateOf {
+                val currentFirstIndex: Int = scrollState.firstVisibleItemIndex
+                if (currentFirstIndex != previousIndex) {
+                    val delta: Int = currentFirstIndex - previousIndex
+                    previousIndex = currentFirstIndex
+                    delta
+                } else { 0 }
+            }
+        }
+
+        LaunchedEffect(scrollingOffset) { isSortVisible = scrollingOffset < 0 }
 
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minCellSize),
+            state = scrollState,
             contentPadding = PaddingValues(
                 top = Dimensions.paddingAboveAverage + PlatformSpecificDim.systemBarsPadding.calculateTopPadding(),
                 bottom = Dimensions.paddingAboveAverage
@@ -63,22 +93,35 @@ fun CanvasLibrary(
             }
         }
 
-        Row(
-            Modifier.padding(
+        ScrollBar(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(vertical = Dimensions.extraLarge)
+                .padding(end = Dimensions.small),
+            state = scrollState,
+            autoHide = true,
+        )
+
+        AnimatedVisibility(
+            visible = isSortVisible,
+            enter = expandVertically(clip = false) + fadeIn(),
+            exit = shrinkVertically(clip = false) + fadeOut(),
+            modifier = Modifier.padding(
                 top = Dimensions.extraLarge + PlatformSpecificDim.systemBarsPadding.calculateTopPadding()
-            ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            DropDownSelector(
-                modifier = Modifier
-                    .sizeIn(maxWidth = 232.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = Dimensions.medium),
-                selectedOption = selectedOption,
-                onOptionSelected = onOptionSelected,
-                optionsList = sortOptions
             )
-            HorizontalDivider(Modifier.padding(horizontal = Dimensions.medium))
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                DropDownSelector(
+                    modifier = Modifier
+                        .sizeIn(maxWidth = 232.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = Dimensions.medium),
+                    selectedOption = selectedOption,
+                    onOptionSelected = onOptionSelected,
+                    optionsList = sortOptions
+                )
+                HorizontalDivider(Modifier.padding(horizontal = Dimensions.medium))
+            }
         }
     }
 }

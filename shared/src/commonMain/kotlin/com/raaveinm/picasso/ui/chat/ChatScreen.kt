@@ -71,6 +71,8 @@ fun ChatScreen(
                 startDestination = if (selectedChatId != null) ChatWithUser(chatId = selectedChatId) else ChatList
             ) {
                 composable<ChatList> {
+                    val backStackEntry by nestedNavHostController.currentBackStackEntryFlow.collectAsState(initial = null)
+                    LaunchedEffect(backStackEntry == null) { viewModel.setSelectedChat(null) }
                     AllChats(
                         modifier = Modifier.fillMaxSize(),
                         conversations = state.conversations,
@@ -87,7 +89,7 @@ fun ChatScreen(
                 composable<ChatWithUser> { backStackEntry ->
                     val route = backStackEntry.toRoute<ChatWithUser>()
                     ChatWithUserScreen(
-                        modifier = Modifier.fillMaxSize().padding(Dimensions.medium),
+                        modifier = Modifier.fillMaxSize().padding(horizontal = Dimensions.medium),
                         conversation = state.conversations.find { it.id == route.chatId },
                         onBack = {
                             viewModel.setSelectedChat(null)
@@ -153,9 +155,6 @@ fun ChatScreen(
                 }
             }
 
-            // `startDestination` is only read when the graph is built, but this screen's back stack
-            // entry (and with it the nested controller) survives tab switches - so a chat id
-            // arriving later has to be applied by navigating.
             LaunchedEffect(selectedChatId) {
                 if (selectedChatId == null) return@LaunchedEffect
                 val current = nestedNavHostController.currentBackStackEntry
