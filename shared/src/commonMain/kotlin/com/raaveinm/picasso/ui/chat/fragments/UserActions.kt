@@ -37,6 +37,7 @@ import com.raaveinm.pickusall.core.designsystem.utils.ImageUtility
 @Composable
 fun UserActions(
     modifier: Modifier = Modifier,
+    systemBarModifier: Modifier = Modifier,
     user: User,
     mostPlayed: List<OwnedGame> = emptyList(),
     onBack: () -> Unit = {},
@@ -44,13 +45,10 @@ fun UserActions(
     onAddToGroupClick: () -> Unit = {},
     onMessageClick: () -> Unit = {}
 ) {
-    Box(
-        modifier,
-        contentAlignment = Alignment.TopCenter
-    ) {
+    Box(modifier, contentAlignment = Alignment.TopCenter) {
         if (showTopBar) {
             ChatTopBar(
-                modifier = Modifier.zIndex(1f),
+                modifier = systemBarModifier.zIndex(1f).padding(horizontal = Dimensions.medium),
                 chatName = user.personaName,
                 chatIcon = user.avatarMedium,
                 onGoBackAction = onBack,
@@ -58,10 +56,11 @@ fun UserActions(
             )
         }
         LazyColumn(
-            modifier = Modifier,
+            modifier = modifier,
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Dimensions.sMedium),
-            contentPadding = PaddingValues(vertical = Dimensions.extraLarge)
+            verticalArrangement = Arrangement.spacedBy(Dimensions.small),
+            contentPadding = PaddingValues(vertical = Dimensions.paddingAverage)
+//            contentPadding = PaddingValues(vertical = 256.dp)
         ) {
             ///////////////////////////////////////////////
             // PFP
@@ -69,7 +68,7 @@ fun UserActions(
             item {
                 ImageUtility(
                     imageUrl = user.avatarFull,
-                    modifier = Modifier.aspectRatio(1f),
+                    modifier = Modifier.aspectRatio(1f).padding(Dimensions.large),
                     contentDescription = "chat/${user.personaName}/actions",
                     contentScale = ContentScale.Crop,
                     enableGlowEffect = true,
@@ -82,7 +81,7 @@ fun UserActions(
             item {
                 val uriHandler = LocalUriHandler.current
                 UserQuickAction(
-                    modifier = Modifier,
+                    modifier = Modifier.padding(bottom = Dimensions.sMedium),
                     onMessageClick = onMessageClick,
                     onAddToGroupClick = onAddToGroupClick,
                     onSteamProfileRedirectClick = { uriHandler.openUri(user.profileUrl) },
@@ -135,7 +134,8 @@ fun UserActions(
                             GameCard(
                                 modifier = Modifier,
                                 gameId = game.appId,
-                                text = "${if (game.playtimeForever / 60 > 0) "${game.playtimeForever / 60}h " else ""}${game.playtimeForever % 60}m",
+                                text = "${if (game.playtimeForever / 60 > 0) "${game.playtimeForever / 60}h "
+                                else ""}${game.playtimeForever % 60}m",
                             )
                         }
                     }
@@ -165,5 +165,6 @@ private fun DecoratedText(typography: TextStyle, text: String) {
 @Composable
 fun UserActionsPreview() {
     UserActions(user = Mock.user_1,
-        mostPlayed = Mock.mostPlayedGames)
+        mostPlayed = Mock.mostPlayedGames,
+        showTopBar = true)
 }

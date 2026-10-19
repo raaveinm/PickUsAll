@@ -1,16 +1,14 @@
 package com.raaveinm.picasso.ui.friends
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -33,11 +31,8 @@ import com.raaveinm.picasso.ui.navigation.FriendContacts
 import com.raaveinm.picasso.ui.navigation.FriendList
 import com.raaveinm.picasso.ui.navigation.FriendPending
 import com.raaveinm.picasso.ui.navigation.FriendSearch
+import com.raaveinm.pickusall.core.designsystem.obj.ColourBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
-import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
-import org.jetbrains.compose.resources.stringResource
-import pickusall.shared.generated.resources.Res
-import pickusall.shared.generated.resources.friends_steam_private
 
 internal val ContentWidth = 512.dp
 
@@ -58,7 +53,6 @@ fun FriendScreen(
     val backStackEntry by nestedNavController.currentBackStackEntryAsState()
     val friendScreen = backStackEntry?.destination.toFriendsMenu()
 
-    val state by viewModel.friendsUiState.collectAsState()
     val chatState by viewModel.chatsUiState.collectAsState()
 
     // the social actions on these screens report back through ChatViewModel's warning
@@ -67,51 +61,36 @@ fun FriendScreen(
         appViewModel.postMessage(warning.first, warning.second)
         viewModel.consumeWarning()
     }
-    var dismissed by remember { mutableStateOf(false) }
 
-    val friends = remember(state.friends) { state.friends }
-
-    if (friends.isEmpty() && !dismissed) {
-        appViewModel.postMessage(WarnLevel.INFO, stringResource(Res.string.friends_steam_private))
-        dismissed = true
-    }
-
-    Box(
-        modifier = modifier.fillMaxSize().padding(horizontal = Dimensions.medium),
+    NavHost(
+        navController = nestedNavController,
+        startDestination = FriendList,
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.backgroundGradientBrush)
+            .padding(horizontal = Dimensions.medium),
         contentAlignment = Alignment.Center
     ) {
-        NavHost(
-            navController = nestedNavController,
-            startDestination = FriendList
-        ) {
-            composable<FriendList> { // Your friends
-                FriendListScreen(
-                    modifier = Modifier.sizeIn(maxWidth = ContentWidth).fillMaxSize(),
-                    viewModel = viewModel,
-                    onMessageClick = onMessageClick
-                )
-            }
-            composable<FriendSearch> { // steam search
-                FriendSearchScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    viewModel = viewModel,
-                    onMessageClick = onMessageClick
-                )
-            }
-            composable<FriendContacts> { // associated users (ally / same server strangers / blocked users / friends) and management
-                FriendContactList(
-                    modifier = Modifier.sizeIn(maxWidth = ContentWidth + Dimensions.extraLarge).fillMaxSize(),
-                    viewModel = viewModel
-                )
-            }
-            composable<FriendPending> { // incoming ally requests (outgoing ones are withdrawn from search)
-                FriendPendingScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    viewModel = viewModel
-                )
-            }
+        composable<FriendList> { // Your friends
+            FriendListScreen(
+                viewModel = viewModel,
+                onMessageClick = onMessageClick
+            )
         }
-
+        composable<FriendSearch> { // steam search
+            FriendSearchScreen(
+                viewModel = viewModel,
+                onMessageClick = onMessageClick
+            )
+        }
+        composable<FriendContacts> { // associated users (ally / same server strangers / blocked users / friends) and management
+            FriendContactList(viewModel = viewModel)
+        }
+        composable<FriendPending> { // incoming ally requests (outgoing ones are withdrawn from search)
+            FriendPendingScreen(viewModel = viewModel)
+        }
+    }
+    Box(Modifier.fillMaxSize()) {
         NestedFriendsMenu(
             modifier = Modifier
                 .padding(bottom = Dimensions.paddingAverage, end = Dimensions.small)
@@ -124,7 +103,6 @@ fun FriendScreen(
                     FriendsMenuDestinations.CONTACTS -> FriendContacts
                     FriendsMenuDestinations.PENDING -> FriendPending
                 }
-                // tabs, not a history: at most the list plus one other screen on the stack
                 nestedNavController.navigate(route) {
                     popUpTo(FriendList)
                     launchSingleTop = true

@@ -1,5 +1,6 @@
 package com.raaveinm.picasso
 
+import androidx.compose.ui.uikit.OnFocusBehavior
 import androidx.compose.ui.window.ComposeUIViewController
 import com.raaveinm.core.database.DatabaseFactory
 import com.raaveinm.core.database.databaseModule
@@ -14,5 +15,7 @@ fun MainViewController() = run {
             authDataStoreModule(AuthDataStoreFactory())
         )
     }
-    ComposeUIViewController { App() }
+    ComposeUIViewController(
+        configure = { onFocusBehavior = OnFocusBehavior.DoNothing }
+    ) { App() }
 }

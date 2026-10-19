@@ -19,9 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,7 +33,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalUriHandler
@@ -77,6 +74,7 @@ import com.raaveinm.pickusall.core.designsystem.keybinding.Commands
 import com.raaveinm.pickusall.core.designsystem.keybinding.KeyMap
 import com.raaveinm.pickusall.core.designsystem.keybinding.LocalKeyMap
 import com.raaveinm.pickusall.core.designsystem.keybinding.toChordOrNull
+import com.raaveinm.pickusall.core.designsystem.obj.ColourBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
@@ -175,21 +173,13 @@ private fun AppContent(
             appViewModel.selectTab(ChatTab)
         }
 
-        val gradientBrush = Brush.verticalGradient(
-            colors = listOf(
-                MaterialTheme.colorScheme.surface,
-                MaterialTheme.colorScheme.surface,
-                MaterialTheme.colorScheme.inverseOnSurface
-            )
-        )
-
         ///////////////////////////////////////////////
         // Main Navigation Screen
         ///////////////////////////////////////////////
 
         Box(
             Modifier
-                .background(gradientBrush)
+                .background(MaterialTheme.colorScheme.backgroundGradientBrush)
                 .focusRequester(focusRequester)
                 .onPreviewKeyEvent { event ->
                     val chord = event.toChordOrNull() ?: return@onPreviewKeyEvent false
@@ -362,17 +352,6 @@ private fun AppContent(
             ///////////////////////////////////////////////
             // Error Container
             ///////////////////////////////////////////////
-
-            Button( // debug
-                onClick = {
-                    appViewModel.postMessage(
-                        level = listOf(WarnLevel.WARN, WarnLevel.ERROR, WarnLevel.INFO).random(),
-                        text = "a long long long long trace message"
-                    )
-                },
-                modifier = Modifier.zIndex(2f).padding(top = 48.dp).size(24.dp).align(Alignment.TopEnd),
-                content = {Text("WL")}
-            )
 
             AnimatedVisibility(
                 visible = appUiState.message != null,

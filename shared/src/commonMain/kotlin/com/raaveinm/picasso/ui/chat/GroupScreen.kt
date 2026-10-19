@@ -17,7 +17,7 @@ import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 @Composable
 fun GroupScreen(
     modifier: Modifier = Modifier,
-    group: Palette?,
+    group: Palette? = null,
     onBack: () -> Unit = {},
     onMemberClick: (Long) -> Unit = {}
 ) {

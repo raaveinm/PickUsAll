@@ -1,6 +1,7 @@
 package com.raaveinm.picasso.ui.chat
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -28,8 +30,10 @@ import com.raaveinm.picasso.ui.navigation.ChatList
 import com.raaveinm.picasso.ui.navigation.ChatWithUser
 import com.raaveinm.picasso.ui.navigation.Palette
 import com.raaveinm.picasso.ui.navigation.UserProfile
+import com.raaveinm.pickusall.core.designsystem.obj.ColourBrushes.backgroundGradientBrush
 import org.koin.compose.viewmodel.koinViewModel
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 import com.raaveinm.core.model.chat.Palette as PaletteConversation
 
 private val CompactWidthBreakpoint = 700.dp
@@ -61,7 +65,7 @@ fun ChatScreen(
         if (state.selectedChat == null) appViewModel.showBottomBar() else appViewModel.hideBottomBar()
     }
 
-    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.backgroundGradientBrush)) {
         val isCompact = maxWidth < CompactWidthBreakpoint
         val showThirdColumn = maxWidth >= ThirdColumnBreakpoint
 
@@ -74,7 +78,7 @@ fun ChatScreen(
                     val backStackEntry by nestedNavHostController.currentBackStackEntryFlow.collectAsState(initial = null)
                     LaunchedEffect(backStackEntry == null) { viewModel.setSelectedChat(null) }
                     AllChats(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.backgroundGradientBrush),
                         conversations = state.conversations,
                         onChatClick = {
                             viewModel.setSelectedChat(it)
@@ -89,7 +93,11 @@ fun ChatScreen(
                 composable<ChatWithUser> { backStackEntry ->
                     val route = backStackEntry.toRoute<ChatWithUser>()
                     ChatWithUserScreen(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = Dimensions.medium),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.backgroundGradientBrush)
+                            .padding(horizontal = Dimensions.medium),
+                        systemBarModifier = modifier,
                         conversation = state.conversations.find { it.id == route.chatId },
                         onBack = {
                             viewModel.setSelectedChat(null)
@@ -120,7 +128,8 @@ fun ChatScreen(
                     val route = backStackEntry.toRoute<UserProfile>()
                     state.selectedUser?.let {
                         UserActions(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.backgroundGradientBrush),
+                            systemBarModifier = modifier,
                             user = it,
                             mostPlayed = listOf(),
                             onBack = { nestedNavHostController.popBackStack() },
@@ -144,7 +153,7 @@ fun ChatScreen(
                 composable<Palette> { backStackEntry ->
                     val route = backStackEntry.toRoute<Palette>()
                     GroupScreen(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.backgroundGradientBrush),
                         group = state.conversations.filterIsInstance<PaletteConversation>().find { it.id == route.groupId },
                         onBack = { nestedNavHostController.popBackStack() },
                         onMemberClick = { userId ->

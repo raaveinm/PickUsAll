@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -53,6 +54,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun ChatWithUserScreen(
     modifier: Modifier = Modifier,
+    systemBarModifier: Modifier = Modifier,
     conversation: Conversation?,
     onBack: () -> Unit = {},
     onUserIconClick: (Long) -> Unit = {},
@@ -95,7 +97,7 @@ fun ChatWithUserScreen(
         }
     }
 
-    Box(modifier.fillMaxSize()) {
+    Box(modifier.fillMaxSize().imePadding()) {
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -163,7 +165,7 @@ fun ChatWithUserScreen(
             }
 
             ChatTopBar(
-                modifier = Modifier.weight(1f),
+                modifier = systemBarModifier.weight(1f),
                 chatName = title,
                 chatIcon = icon,
                 onGoBackAction = onBack,

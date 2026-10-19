@@ -1,5 +1,6 @@
 package com.raaveinm.picasso.ui.friends.fragments
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.data.mock.Mock
 import com.raaveinm.pickusall.core.designsystem.components.UserMiniProfile
+import com.raaveinm.pickusall.core.designsystem.obj.ColourBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.obj.UserStatus
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 
@@ -31,8 +33,8 @@ fun FriendList(
     val uriHandler = LocalUriHandler.current
 
     LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(vertical = Dimensions.paddingLarge),
+        modifier = modifier.background(MaterialTheme.colorScheme.backgroundGradientBrush),
+        contentPadding = PaddingValues(bottom = Dimensions.paddingLarge),
         verticalArrangement = Arrangement.spacedBy(Dimensions.small)
     ) {
         if (friendList.isEmpty()) {

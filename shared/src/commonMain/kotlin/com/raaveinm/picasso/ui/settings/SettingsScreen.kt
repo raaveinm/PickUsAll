@@ -50,6 +50,7 @@ import com.raaveinm.picasso.ui.settings.fragments.SettingsCard
 import com.raaveinm.picasso.ui.settings.screens.BehaviourScreen
 import com.raaveinm.picasso.ui.settings.screens.ServerScreen
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
+import com.raaveinm.pickusall.core.designsystem.obj.ColourBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import kotlinx.coroutines.launch
@@ -81,7 +82,7 @@ fun SettingsScreen(
             },
             Triple(Icons.Default.Psychology, "Behaviour") { // Events handling
                 nestedNavController.navigate(Behaviour) // (how Picasso should react
-            },                                  // on outer events (like calls / system startup)
+            },                                  // on outer events (like calls / system startup / notification)
             Triple(Icons.AutoMirrored.Filled.Article, "Docs") { // External links on git / docs / troubleshooting
                 coroutineScope.launch {
                     val server = viewModel.getReachableServer()
@@ -100,14 +101,20 @@ fun SettingsScreen(
 
     BoxWithConstraints(modifier) {
         val isCompact = maxWidth < 700.dp
+        val nestedModifier = Modifier
+            .background(MaterialTheme.colorScheme.backgroundGradientBrush)
+            .padding(start = if (isCompact) 0.dp else 164.dp)
+            .fillMaxSize()
+
         NavHost(
             navController = nestedNavController,
             startDestination = OptionList
         ) {
-            val nestedModifier = Modifier.padding(start = if (isCompact) 0.dp else 164.dp).fillMaxSize()
             composable<OptionList> {
                 LazyVerticalGrid(
-                    modifier = modifier.fillMaxSize(),
+                    modifier = modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.backgroundGradientBrush),
                     columns = GridCells.FixedSize(216.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalArrangement = Arrangement.Center

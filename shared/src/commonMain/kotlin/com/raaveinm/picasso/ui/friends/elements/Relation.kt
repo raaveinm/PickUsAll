@@ -1,7 +1,7 @@
 package com.raaveinm.picasso.ui.friends.elements
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.PersonRemove
@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.raaveinm.core.model.social.ContactLevel
 import com.raaveinm.picasso.ui.chat.viewmodel.SocialUiState
+import com.raaveinm.picasso.ui.friends.ContentWidth
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 
 //
@@ -57,7 +58,7 @@ fun RelationAction(
 fun SectionHeader(modifier: Modifier = Modifier, text: String) {
     Text(
         text = text,
-        modifier = modifier.fillMaxWidth().padding(horizontal = Dimensions.small, vertical = Dimensions.extraSmall),
+        modifier = modifier.width(ContentWidth).padding(horizontal = Dimensions.small, vertical = Dimensions.extraSmall),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         style = MaterialTheme.typography.labelLarge
     )
