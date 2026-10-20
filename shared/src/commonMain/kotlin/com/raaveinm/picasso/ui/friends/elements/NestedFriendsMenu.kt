@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.WavingHand
+import androidx.compose.material.icons.outlined.Workspaces
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -60,6 +61,7 @@ fun NestedFriendsMenu(
                         FriendsMenuDestinations.FRIENDLIST -> Icons.Outlined.FavoriteBorder
                         FriendsMenuDestinations.SEARCH -> Icons.Filled.Search
                         FriendsMenuDestinations.CONTACTS -> Icons.Outlined.WavingHand
+                        FriendsMenuDestinations.GROUPS -> Icons.Outlined.Workspaces
                         FriendsMenuDestinations.PENDING -> Icons.Default.Schedule
                     },
                     contentDescription = null,

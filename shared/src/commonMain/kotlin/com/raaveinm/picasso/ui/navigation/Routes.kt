@@ -72,3 +72,6 @@ data object FriendContacts
 
 @Serializable
 data object FriendPending
+
+@Serializable
+data object GroupsFriends

@@ -5,5 +5,5 @@ package com.raaveinm.picasso.ui.friends.elements
 //
 
 enum class FriendsMenuDestinations {
-    FRIENDLIST, CONTACTS, SEARCH, PENDING
+    FRIENDLIST, CONTACTS, SEARCH, GROUPS, PENDING,
 }

@@ -58,7 +58,24 @@ fun ChatMessages(
         contentPadding = contentPadding
     ) {
         itemsIndexed(messages) { index, message ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.sideAction(
+                    onClick = {
+                        if (isEditorMode) {
+                            if (selectedMessages.contains(message)) {
+                                selectedMessages.remove(message)
+                            } else if (selectedMessages.size < MAX_SELECTED_MESSAGES) {
+                                selectedMessages.add(message)
+                            }
+                        }
+                    },
+                    onSideAction = {
+                        onEditorModeToggle()
+                        if (!isEditorMode) { selectedMessages.add(message) }
+                        else { selectedMessages.clear() }
+                    }
+                )) {
                 AnimatedVisibility (
                     visible = isEditorMode,
                     modifier = Modifier.align(Alignment.CenterVertically).clip(Shapes.circleShape),
@@ -93,24 +110,6 @@ fun ChatMessages(
                     }
                 }
 
-                Box(Modifier.sideAction(
-                    onClick = {
-                        if (isEditorMode) {
-                            if (selectedMessages.contains(message)) {
-                                selectedMessages.remove(message)
-                            } else if (selectedMessages.size < MAX_SELECTED_MESSAGES) {
-                                selectedMessages.add(message)
-                            }
-                        }
-                    },
-                    onSideAction = {
-                        onEditorModeToggle()
-                        if (!isEditorMode) { selectedMessages.add(message) }
-                        else { selectedMessages.clear() }
-                    }
-                )
-
-                ) {
                     Messages(
                         iconLink = message.user.avatarMedium,
                         username = message.user.personaName,
@@ -121,7 +120,7 @@ fun ChatMessages(
                         previousExisted = index < messages.lastIndex && messages[index + 1].user == message.user,
                         isLast = index == 0 || messages[index - 1].user != message.user
                     )
-                }
+
             }
             if (index == messages.lastIndex) { onLoadMore() }
         }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,15 +31,14 @@ import com.raaveinm.picasso.ui.navigation.ChatList
 import com.raaveinm.picasso.ui.navigation.ChatWithUser
 import com.raaveinm.picasso.ui.navigation.Palette
 import com.raaveinm.picasso.ui.navigation.UserProfile
-import com.raaveinm.pickusall.core.designsystem.obj.ColourBrushes.backgroundGradientBrush
-import org.koin.compose.viewmodel.koinViewModel
+import com.raaveinm.pickusall.core.designsystem.obj.ColorBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
-import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
+import org.koin.compose.viewmodel.koinViewModel
 import com.raaveinm.core.model.chat.Palette as PaletteConversation
 
 private val CompactWidthBreakpoint = 700.dp
-private val ThirdColumnBreakpoint = 1100.dp
-private val SidebarWidth = 320.dp
+private val ThirdColumnBreakpoint = 1600.dp
+private val SidebarWidth = 360.dp
 
 @Composable
 fun ChatScreen(
@@ -78,7 +78,10 @@ fun ChatScreen(
                     val backStackEntry by nestedNavHostController.currentBackStackEntryFlow.collectAsState(initial = null)
                     LaunchedEffect(backStackEntry == null) { viewModel.setSelectedChat(null) }
                     AllChats(
-                        modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.backgroundGradientBrush),
+                        modifier = modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.backgroundGradientBrush)
+                            .padding(horizontal = Dimensions.small),
                         conversations = state.conversations,
                         onChatClick = {
                             viewModel.setSelectedChat(it)
@@ -179,12 +182,14 @@ fun ChatScreen(
                 .firstOrNull { it.id == state.selectedChat }
 
             Row(modifier = Modifier.fillMaxSize()) {
-                AllChats(
-                    modifier = Modifier.fillMaxHeight().width(SidebarWidth),
-                    conversations = state.conversations,
-                    onChatClick = { viewModel.setSelectedChat(it) },
-                    onGroupClick = { viewModel.setSelectedChat(it) }
-                )
+                Card(Modifier.padding(Dimensions.medium)) {
+                    AllChats(
+                        modifier = Modifier.fillMaxHeight().width(SidebarWidth).padding(Dimensions.small),
+                        conversations = state.conversations,
+                        onChatClick = { viewModel.setSelectedChat(it) },
+                        onGroupClick = { viewModel.setSelectedChat(it) }
+                    )
+                }
                 AnimatedVisibility(
                     visible = state.selectedChat != null,
                     modifier = Modifier.fillMaxHeight().weight(1f)

@@ -46,16 +46,16 @@ fun FriendListScreen(
     }
 
     RefreshBox(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier
+            .sizeIn(maxWidth = ContentWidth + Dimensions.extraLarge)
+            .fillMaxSize(),
+//            .padding(horizontal = Dimensions.medium),
         onRefresh = { viewModel.refreshFriends() },
         isRefreshing = friendsState.isRefreshing
     ) {
-        Box(
-            modifier = modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(contentAlignment = Alignment.Center) {
             FriendList(
-                modifier = Modifier.sizeIn(maxWidth = ContentWidth + Dimensions.extraLarge).fillMaxSize(),
+                modifier = Modifier,
                 friendList = contacts,
                 emptyPlaceholder = stringResource(Res.string.no_artist_in_list),
                 onMessageClick = { friend -> viewModel.dmWith(friend.steamId, onMessageClick) }

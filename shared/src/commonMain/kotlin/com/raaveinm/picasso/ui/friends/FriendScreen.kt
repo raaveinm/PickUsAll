@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,7 +32,8 @@ import com.raaveinm.picasso.ui.navigation.FriendContacts
 import com.raaveinm.picasso.ui.navigation.FriendList
 import com.raaveinm.picasso.ui.navigation.FriendPending
 import com.raaveinm.picasso.ui.navigation.FriendSearch
-import com.raaveinm.pickusall.core.designsystem.obj.ColourBrushes.backgroundGradientBrush
+import com.raaveinm.picasso.ui.navigation.GroupsFriends
+import com.raaveinm.pickusall.core.designsystem.obj.ColorBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 
 internal val ContentWidth = 512.dp
@@ -89,6 +91,11 @@ fun FriendScreen(
         composable<FriendPending> { // incoming ally requests (outgoing ones are withdrawn from search)
             FriendPendingScreen(viewModel = viewModel)
         }
+        composable<GroupsFriends> {
+            Box(Modifier.fillMaxSize()) {
+                Text("Groups")
+            }
+        }
     }
     Box(Modifier.fillMaxSize()) {
         NestedFriendsMenu(
@@ -102,6 +109,7 @@ fun FriendScreen(
                     FriendsMenuDestinations.SEARCH -> FriendSearch
                     FriendsMenuDestinations.CONTACTS -> FriendContacts
                     FriendsMenuDestinations.PENDING -> FriendPending
+                    FriendsMenuDestinations.GROUPS -> GroupsFriends
                 }
                 nestedNavController.navigate(route) {
                     popUpTo(FriendList)
@@ -118,5 +126,6 @@ private fun NavDestination?.toFriendsMenu(): FriendsMenuDestinations = when {
     hasRoute<FriendSearch>() -> FriendsMenuDestinations.SEARCH
     hasRoute<FriendContacts>() -> FriendsMenuDestinations.CONTACTS
     hasRoute<FriendPending>() -> FriendsMenuDestinations.PENDING
+    hasRoute<GroupsFriends>() -> FriendsMenuDestinations.GROUPS
     else -> FriendsMenuDestinations.FRIENDLIST
 }

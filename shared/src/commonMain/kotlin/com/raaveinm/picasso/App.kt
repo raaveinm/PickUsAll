@@ -74,7 +74,7 @@ import com.raaveinm.pickusall.core.designsystem.keybinding.Commands
 import com.raaveinm.pickusall.core.designsystem.keybinding.KeyMap
 import com.raaveinm.pickusall.core.designsystem.keybinding.LocalKeyMap
 import com.raaveinm.pickusall.core.designsystem.keybinding.toChordOrNull
-import com.raaveinm.pickusall.core.designsystem.obj.ColourBrushes.backgroundGradientBrush
+import com.raaveinm.pickusall.core.designsystem.obj.ColorBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim

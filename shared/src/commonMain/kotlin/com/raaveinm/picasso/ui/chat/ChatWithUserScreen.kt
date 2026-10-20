@@ -1,7 +1,6 @@
 package com.raaveinm.picasso.ui.chat
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,6 +43,8 @@ import com.raaveinm.picasso.ui.chat.fragments.ChatMessages
 import com.raaveinm.pickusall.core.designsystem.components.AcceptChatRequest
 import com.raaveinm.pickusall.core.designsystem.components.ChatTextBar
 import com.raaveinm.pickusall.core.designsystem.components.ChatTopBar
+import com.raaveinm.pickusall.core.designsystem.obj.ColorBrushes.dissolveWithInverseOnSurface
+import com.raaveinm.pickusall.core.designsystem.obj.ColorBrushes.dissolveWithSurface
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import kotlinx.coroutines.delay
@@ -98,17 +100,21 @@ fun ChatWithUserScreen(
     }
 
     Box(modifier.fillMaxSize().imePadding()) {
+        Box(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).height(124.dp)
+            .zIndex(.8f).background(MaterialTheme.colorScheme.dissolveWithSurface))
+        Box(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).height(124.dp)
+            .zIndex(.8f).background(MaterialTheme.colorScheme.dissolveWithInverseOnSurface))
         Row(
-            modifier = Modifier
+            modifier = systemBarModifier
                 .align(Alignment.TopCenter)
                 .zIndex(1f)
-                .sizeIn(maxWidth = 512.dp)
                 .padding(horizontal = Dimensions.medium)
-                .animateContentSize(tween(200)),
+                .sizeIn(maxWidth = 512.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             AnimatedVisibility (
                 visible = isEditorMode,
-                modifier = Modifier.align(Alignment.CenterVertically).clip(Shapes.circleShape),
+                modifier = Modifier.clip(Shapes.circleShape),
                 enter = expandHorizontally(
                     animationSpec = tween(300),
                     expandFrom = Alignment.Start
@@ -121,7 +127,6 @@ fun ChatWithUserScreen(
                 Row {
                     Box(
                         modifier = Modifier
-                            .align(Alignment.CenterVertically)
                             .padding(horizontal = Dimensions.small)
                             .size(48.dp)
                             .clip(Shapes.circleShape)
@@ -140,7 +145,6 @@ fun ChatWithUserScreen(
                     }
                     Box(
                         modifier = Modifier
-                            .align(Alignment.CenterVertically)
                             .padding(horizontal = Dimensions.small)
                             .size(48.dp)
                             .clip(Shapes.circleShape)
@@ -165,7 +169,7 @@ fun ChatWithUserScreen(
             }
 
             ChatTopBar(
-                modifier = systemBarModifier.weight(1f),
+                modifier = Modifier.weight(1f),
                 chatName = title,
                 chatIcon = icon,
                 onGoBackAction = onBack,

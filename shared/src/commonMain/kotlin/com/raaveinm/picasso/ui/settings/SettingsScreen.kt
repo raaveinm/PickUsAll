@@ -50,7 +50,7 @@ import com.raaveinm.picasso.ui.settings.fragments.SettingsCard
 import com.raaveinm.picasso.ui.settings.screens.BehaviourScreen
 import com.raaveinm.picasso.ui.settings.screens.ServerScreen
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
-import com.raaveinm.pickusall.core.designsystem.obj.ColourBrushes.backgroundGradientBrush
+import com.raaveinm.pickusall.core.designsystem.obj.ColorBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import kotlinx.coroutines.launch

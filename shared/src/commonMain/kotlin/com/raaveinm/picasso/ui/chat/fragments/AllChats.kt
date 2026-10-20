@@ -1,6 +1,7 @@
 package com.raaveinm.picasso.ui.chat.fragments
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
@@ -14,6 +15,7 @@ import com.raaveinm.picasso.data.mock.Mock
 import com.raaveinm.pickusall.core.designsystem.components.ChatPreview
 import com.raaveinm.pickusall.core.designsystem.obj.NoPreviousMessages
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 
 @Composable
 fun AllChats(
@@ -24,7 +26,8 @@ fun AllChats(
 ) {
     LazyColumn(
         modifier = modifier.sizeIn(maxWidth = 512.dp),
-        verticalArrangement = Arrangement.spacedBy(Dimensions.small)
+        verticalArrangement = Arrangement.spacedBy(Dimensions.extraSmall),
+        contentPadding = PaddingValues(bottom = PlatformSpecificDim.contentPaddingAdvanced)
     ) {
         conversations.forEach { conversation ->
             item {
