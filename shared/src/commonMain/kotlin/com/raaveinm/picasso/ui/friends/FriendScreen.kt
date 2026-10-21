@@ -5,11 +5,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -20,11 +20,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.raaveinm.core.model.chat.Palette
+import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
 import com.raaveinm.picasso.ui.friends.elements.FriendsMenuDestinations
 import com.raaveinm.picasso.ui.friends.elements.NestedFriendsMenu
 import com.raaveinm.picasso.ui.friends.screens.FriendContactList
+import com.raaveinm.picasso.ui.friends.screens.FriendGroupsScreen
 import com.raaveinm.picasso.ui.friends.screens.FriendListScreen
 import com.raaveinm.picasso.ui.friends.screens.FriendPendingScreen
 import com.raaveinm.picasso.ui.friends.screens.FriendSearchScreen
@@ -92,9 +95,29 @@ fun FriendScreen(
             FriendPendingScreen(viewModel = viewModel)
         }
         composable<GroupsFriends> {
-            Box(Modifier.fillMaxSize()) {
-                Text("Groups")
+            val social by viewModel.socialUiState.collectAsState()
+            // the server only lets the caller invite allies and friends
+            val candidates: List<User> = remember(social.contacts) {
+                social.contacts
+                    .filter { it.level.allowsCommunication }
+                    .mapNotNull { it.user }
             }
+            val palettes: List<Palette> = remember(chatState.conversations) {
+                chatState.conversations.filterIsInstance<Palette>()
+            }
+            FriendGroupsScreen(
+                modifier = Modifier.fillMaxSize(),
+                groups = palettes,
+                candidates = candidates,
+                onMessageClick = onMessageClick,
+                onGroupCreate = { group, invitees ->
+                    viewModel.createPalette(
+                        name = group.name,
+                        inviteSteamIds = invitees.map { it.steamId },
+                        onResult = onMessageClick,
+                    )
+                }
+            )
         }
     }
     Box(Modifier.fillMaxSize()) {

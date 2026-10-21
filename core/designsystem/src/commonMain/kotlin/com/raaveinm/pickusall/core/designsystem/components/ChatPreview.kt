@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -21,7 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
@@ -36,13 +37,16 @@ fun ChatPreview(
     chatTitle: String,
     iconLink: String,
     lastMessage: String? = null,
+    surfaceColor: Color = MaterialTheme.colorScheme.inverseOnSurface,
+    headlineColor: Color = MaterialTheme.colorScheme.onSurface,
+    tintColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     onClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
             .sizeIn(minHeight = 80.dp)
             .clip(RoundedCornerShape(Shapes.smallShape))
-            .background(color = MaterialTheme.colorScheme.inverseOnSurface)
+            .background(color = surfaceColor)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -79,18 +83,16 @@ fun ChatPreview(
         ) {
             Text(
                 text = chatTitle,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = headlineColor,
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 softWrap = true
             )
 
-            Spacer(Modifier.weight(1f))
-
             if (lastMessage != null) {
                 Text(
                     text = lastMessage,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = tintColor,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 2,
                     softWrap = true
@@ -99,4 +101,16 @@ fun ChatPreview(
         }
         //endregion
     }
+}
+
+@Preview
+@Composable
+fun ChatPPreview() {
+    ChatPreview(
+        modifier = Modifier,
+        chatTitle = "Cool Name",
+        iconLink = "",
+        lastMessage = "hi",
+        onClick = {}
+    )
 }

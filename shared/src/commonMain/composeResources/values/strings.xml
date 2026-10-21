@@ -33,6 +33,7 @@
     <string name="no_artist_in_list">There are no known artist</string>
     <string name="no_incoming_requests">Nobody is knocking right now</string>
     <string name="incoming_requests_left">%1$d more waiting</string>
+    <string name="palette_invite_from">Invited by %1$s</string>
 
     <string name="contacts_friends">Friends</string>
     <string name="contacts_allies">Allies</string>
@@ -46,6 +47,10 @@
     <string name="search_not_found">Nobody on Steam goes by that</string>
     <string name="search_found_on_steam">Found on Steam</string>
     <string name="search_known_artists">Known artists</string>
+
+    <string name="group_name">Group Name</string>
+    <string name="add_user_to_group">find someone to add</string>
+    <string name="create_group">Create</string>
 
     <!--text field hints-->
     <string name="search_bar_hint">search</string>

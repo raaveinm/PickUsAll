@@ -10,16 +10,10 @@ import androidx.compose.ui.graphics.Color
 
 object ColorBrushes {
     val ColorScheme.backgroundGradientBrush: Brush
-        get() = Brush.verticalGradient(
-            colors = listOf(surface, surface, inverseOnSurface)
-        )
+        get() = Brush.verticalGradient(colors = listOf(surface, surface))
 
     val ColorScheme.dissolveWithSurface: Brush
-        get() = Brush.verticalGradient(
-            startY = 8f, colors = listOf(surface, Color.Transparent)
-    )
+        get() = Brush.verticalGradient(startY = 8f, colors = listOf(surface, Color.Transparent))
     val ColorScheme.dissolveWithInverseOnSurface: Brush
-        get() = Brush.verticalGradient(
-            startY = 8f, colors = listOf(Color.Transparent, inverseOnSurface)
-        )
+        get() = Brush.verticalGradient(startY = 8f, colors = listOf(Color.Transparent, surface))
 }

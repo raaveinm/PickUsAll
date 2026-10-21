@@ -48,7 +48,7 @@ fun UserActions(
     Box(modifier, contentAlignment = Alignment.TopCenter) {
         if (showTopBar) {
             ChatTopBar(
-                modifier = systemBarModifier.zIndex(1f).padding(horizontal = Dimensions.medium),
+                modifier = systemBarModifier.zIndex(1f).padding(horizontal = Dimensions.medium*2),
                 chatName = user.personaName,
                 chatIcon = user.avatarMedium,
                 onGoBackAction = onBack,

@@ -13,7 +13,6 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,26 +22,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PicassoSearchBar(
     modifier: Modifier = Modifier,
     textFieldState: TextFieldState,
     placeholder: String = "search",
+    backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    textColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
         modifier = modifier
-            .clip(Shapes.circleShape)
-            .background(color = MaterialTheme.colorScheme.secondaryContainer)
-            .shadow(12.dp, ambientColor = MaterialTheme.colorScheme.secondaryContainer),
+            .clip(Shapes.roundedAverage)
+            .background(color = backgroundColor),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -71,6 +68,18 @@ fun PicassoSearchBar(
             scrollState = rememberScrollState(),
             contentPadding = PaddingValues(Dimensions.small),
             colors = TextFieldDefaults.colors(
+                focusedPlaceholderColor = textColor,
+                unfocusedPlaceholderColor = textColor,
+                disabledPlaceholderColor = textColor,
+                errorPlaceholderColor = textColor,
+                focusedSupportingTextColor = Color.Transparent,
+                unfocusedSupportingTextColor = Color.Transparent,
+                disabledSupportingTextColor = Color.Transparent,
+                errorSupportingTextColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                errorContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
@@ -80,7 +89,6 @@ fun PicassoSearchBar(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun SearchBarPreview() {

@@ -57,6 +57,7 @@ fun ChatTopBar(
                 imageVector = Icons.Default.ChevronLeft,
                 tint = MaterialTheme.colorScheme.onSurface,
                 contentDescription = "chat_top_bar_pop_back",
+                modifier = Modifier.background(MaterialTheme.colorScheme.inverseOnSurface)
             )
         }
 

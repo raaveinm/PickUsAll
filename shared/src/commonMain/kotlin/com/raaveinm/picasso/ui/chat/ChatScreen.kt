@@ -187,7 +187,8 @@ fun ChatScreen(
                         modifier = Modifier.fillMaxHeight().width(SidebarWidth).padding(Dimensions.small),
                         conversations = state.conversations,
                         onChatClick = { viewModel.setSelectedChat(it) },
-                        onGroupClick = { viewModel.setSelectedChat(it) }
+                        onGroupClick = { viewModel.setSelectedChat(it) },
+                        selectedChatId = state.selectedChat
                     )
                 }
                 AnimatedVisibility(
