@@ -5,39 +5,54 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.picasso.ui.actions.libraryRedirect
+import com.raaveinm.picasso.ui.actions.sideAction
 import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
 import com.raaveinm.pickusall.core.designsystem.components.ScrollBar
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 import org.jetbrains.compose.resources.stringArrayResource
+import org.jetbrains.compose.resources.stringResource
 import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.game_more_actions_label
+import pickusall.shared.generated.resources.game_open_label
 import pickusall.shared.generated.resources.sort_options
 
 //
@@ -82,14 +97,31 @@ fun CanvasLibrary(
             verticalArrangement = Arrangement.Center,
             horizontalArrangement = Arrangement.Center,
         ) {
-            items(libraryList) { game ->
+            items(libraryList, key = { it.appId }) { game ->
+                var sideSwitch by remember { mutableIntStateOf(0) }
                 val uriHandler = LocalUriHandler.current
-                GameCard(
-                    modifier = Modifier,
-                    gameId = game.appId,
-                    text = game.name,
-                    onClick = { libraryRedirect(game.appId, uriHandler) }
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    AnimatedVisibility (visible = sideSwitch == 1 || sideSwitch == 2,
+                        modifier = Modifier
+                            .zIndex(3f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (sideSwitch == 1) MaterialTheme.colorScheme.surface else Color.Cyan)
+                            .border(color = MaterialTheme.colorScheme.surfaceVariant, width = 2.dp, shape = RoundedCornerShape(12.dp))
+                    ) {
+                        Box(Modifier.zIndex(2f).size(64.dp).clickable {sideSwitch = 0})
+                    }
+                    GameCard(
+                        modifier = Modifier.sideAction(
+                            onClickLabel = stringResource(Res.string.game_open_label, game.name),
+                            onSideActionLabel = stringResource(Res.string.game_more_actions_label, game.name),
+                            onSideAction = { sideSwitch = 1 },
+                            onDoubleClick = { libraryRedirect(game.appId, uriHandler) },
+                            onClick = { sideSwitch = 2 }
+                        ),
+                        gameId = game.appId,
+                        text = game.name
+                    )
+                }
             }
         }
 

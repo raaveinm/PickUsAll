@@ -24,6 +24,8 @@
     <string name="add_game_to_complete">Add Game</string>
     <string name="game_id_field">Steam Game Id</string>
     <string name="priority_field">Game Priority</string>
+    <string name="game_open_label">Open %1$s</string>
+    <string name="game_more_actions_label">More actions for %1$s</string>
 
     <!--Chat-->
     <string name="chat_message_hint">Message</string>

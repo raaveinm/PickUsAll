@@ -2,6 +2,7 @@ package com.raaveinm.pickusall.core.designsystem.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -41,11 +42,9 @@ fun GameCard(
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/$gameId/$sourceSize"
 
     Box(
-        modifier = modifier.aspectRatio(2f / 3f).clickable(onClick != null) {
-            if (onClick != null) {
-                onClick()
-            }
-        },
+        modifier = modifier
+            .aspectRatio(2f / 3f)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         contentAlignment = Alignment.BottomCenter
     ) {
 

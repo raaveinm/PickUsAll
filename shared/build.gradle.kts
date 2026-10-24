@@ -115,6 +115,7 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
         }
         jvmTest.dependencies {
+            implementation(compose.desktop.currentOs)
             implementation(libs.androidx.room3.runtime)
             implementation(libs.androidx.sqlite.bundled)
         }
