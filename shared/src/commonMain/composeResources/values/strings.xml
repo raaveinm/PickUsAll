@@ -7,6 +7,7 @@
 
     <!--Application-->
     <string name="unauthorized">Unauthorized</string>
+    <string name="dismiss">Dismiss</string>
 
     <!--Canvas-->
     <string-array name="switch_options">
@@ -20,8 +21,8 @@
         <item>last played</item>
     </string-array>
 
-
-    <string name="add_game_to_complete">Add Game</string>
+    <string name="open_in_store">Open store page</string>
+    <string name="add_game_to_complete">Add game for completion</string>
     <string name="game_id_field">Steam Game Id</string>
     <string name="priority_field">Game Priority</string>
     <string name="game_open_label">Open %1$s</string>

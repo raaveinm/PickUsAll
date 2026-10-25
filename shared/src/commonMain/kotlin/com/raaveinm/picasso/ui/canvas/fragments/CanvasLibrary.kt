@@ -5,17 +5,16 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,7 +22,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -35,14 +33,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.picasso.ui.actions.libraryRedirect
+import com.raaveinm.picasso.ui.actions.openStorePage
 import com.raaveinm.picasso.ui.actions.sideAction
+import com.raaveinm.pickusall.core.designsystem.components.DropDownMenu
 import com.raaveinm.pickusall.core.designsystem.components.DropDownSelector
 import com.raaveinm.pickusall.core.designsystem.components.GameCard
 import com.raaveinm.pickusall.core.designsystem.components.ScrollBar
@@ -51,8 +50,11 @@ import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.add_game_to_complete
+import pickusall.shared.generated.resources.dismiss
 import pickusall.shared.generated.resources.game_more_actions_label
 import pickusall.shared.generated.resources.game_open_label
+import pickusall.shared.generated.resources.open_in_store
 import pickusall.shared.generated.resources.sort_options
 
 //
@@ -66,7 +68,8 @@ fun CanvasLibrary(
     libraryList: List<OwnedGame>,
     sortOptions: List<String>,
     selectedOption: String,
-    onOptionSelected: (String) -> Unit
+    onOptionSelected: (String) -> Unit,
+    onAddToQueue: (gameId: Int) -> Unit = {}
 ) {
     BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.TopCenter) {
         val minCellSize = if (maxWidth < 700.dp) 110.dp else 220.dp
@@ -101,22 +104,37 @@ fun CanvasLibrary(
                 var sideSwitch by remember { mutableIntStateOf(0) }
                 val uriHandler = LocalUriHandler.current
                 Box(contentAlignment = Alignment.Center) {
-                    AnimatedVisibility (visible = sideSwitch == 1 || sideSwitch == 2,
+                    AnimatedVisibility (
+                        visible = sideSwitch != 0,
                         modifier = Modifier
                             .zIndex(3f)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (sideSwitch == 1) MaterialTheme.colorScheme.surface else Color.Cyan)
-                            .border(color = MaterialTheme.colorScheme.surfaceVariant, width = 2.dp, shape = RoundedCornerShape(12.dp))
+                            .clickable(interactionSource = MutableInteractionSource(), indication = null) {
+                                sideSwitch = 0
+                            },
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
                     ) {
-                        Box(Modifier.zIndex(2f).size(64.dp).clickable {sideSwitch = 0})
+                        val menuActions: List<Pair<String, () -> Unit>> = listOf(
+                            stringResource(Res.string.dismiss) to { },
+                            stringResource(Res.string.add_game_to_complete) to { onAddToQueue(game.appId) },
+                            stringResource(Res.string.open_in_store) to { openStorePage(game.appId, uriHandler) },
+                        )
+                        DropDownMenu(
+                            modifier = Modifier.zIndex(2f),
+                            onItemSelected = { index ->
+                                sideSwitch = 0
+                                menuActions[index].second()
+                            },
+                            items = menuActions.map { it.first }
+                        )
                     }
                     GameCard(
                         modifier = Modifier.sideAction(
                             onClickLabel = stringResource(Res.string.game_open_label, game.name),
                             onSideActionLabel = stringResource(Res.string.game_more_actions_label, game.name),
                             onSideAction = { sideSwitch = 1 },
-                            onDoubleClick = { libraryRedirect(game.appId, uriHandler) },
-                            onClick = { sideSwitch = 2 }
+                            onClick = { libraryRedirect(game.appId, uriHandler) }
                         ),
                         gameId = game.appId,
                         text = game.name

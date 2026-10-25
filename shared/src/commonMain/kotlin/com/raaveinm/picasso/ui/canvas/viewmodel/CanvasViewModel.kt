@@ -99,6 +99,13 @@ class CanvasViewModel(
         }
     }
 
+    /** Appends [gameId] to the end of the play-next queue; a game that is already queued keeps its place. */
+    fun enqueue(gameId: Int) {
+        val queue = _uiState.value.gameQueue
+        if (queue.any { it.gameId == gameId }) return
+        addToQueue(gameId, priority = (queue.maxOfOrNull { it.priority } ?: -1) + 1)
+    }
+
     fun addToQueue(gameId: Int, priority: Int) {
         val self = selfSteamId.value ?: return
         viewModelScope.launch {

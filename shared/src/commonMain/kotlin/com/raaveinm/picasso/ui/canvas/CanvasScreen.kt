@@ -70,6 +70,7 @@ fun CanvasScreen(
                         libraryList = uiState.userLibrary,
                         sortOptions = sortOptions,
                         selectedOption = sortOptions[uiState.libraryOrder.ordinal],
+                        onAddToQueue = viewModel::enqueue,
                         onOptionSelected = {
                             val newOrder = when (sortOptions.indexOf(it)) {
                                 0 -> LibraryOrder.NAME
