@@ -1,12 +1,17 @@
 package com.raaveinm.picasso.ui.chat
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
@@ -15,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -31,6 +37,7 @@ import com.raaveinm.picasso.ui.navigation.ChatList
 import com.raaveinm.picasso.ui.navigation.ChatWithUser
 import com.raaveinm.picasso.ui.navigation.Palette
 import com.raaveinm.picasso.ui.navigation.UserProfile
+import com.raaveinm.pickusall.core.designsystem.animated.AnimatedSeekingEye
 import com.raaveinm.pickusall.core.designsystem.obj.ColorBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import org.koin.compose.viewmodel.koinViewModel
@@ -77,21 +84,33 @@ fun ChatScreen(
                 composable<ChatList> {
                     val backStackEntry by nestedNavHostController.currentBackStackEntryFlow.collectAsState(initial = null)
                     LaunchedEffect(backStackEntry == null) { viewModel.setSelectedChat(null) }
-                    AllChats(
-                        modifier = modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.backgroundGradientBrush)
-                            .padding(horizontal = Dimensions.small),
-                        conversations = state.conversations,
-                        onChatClick = {
-                            viewModel.setSelectedChat(it)
-                            nestedNavHostController.navigate(ChatWithUser(chatId = it))
-                        },
-                        onGroupClick = {
-                            viewModel.setSelectedChat(it)
-                            nestedNavHostController.navigate(ChatWithUser(chatId = it, groupId = it))
+                    if (state.conversations.isNotEmpty()) {
+                        AllChats(
+                            modifier = modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.backgroundGradientBrush)
+                                .padding(horizontal = Dimensions.small),
+                            conversations = state.conversations,
+                            onChatClick = {
+                                viewModel.setSelectedChat(it)
+                                nestedNavHostController.navigate(ChatWithUser(chatId = it))
+                            },
+                            onGroupClick = {
+                                viewModel.setSelectedChat(it)
+                                nestedNavHostController.navigate(
+                                    route = ChatWithUser(chatId = it, groupId = it)
+                                )
+                            }
+                        )
+                    } else {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            AnimatedSeekingEye(
+                                Modifier.size(256.dp),
+                                eyeballColor = MaterialTheme.colorScheme.onSurface,
+                                eyeLidColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
-                    )
+                    }
                 }
                 composable<ChatWithUser> { backStackEntry ->
                     val route = backStackEntry.toRoute<ChatWithUser>()
@@ -190,6 +209,20 @@ fun ChatScreen(
                         onGroupClick = { viewModel.setSelectedChat(it) },
                         selectedChatId = state.selectedChat
                     )
+                }
+                AnimatedVisibility(
+                    visible = state.conversations.isEmpty() || state.selectedChat == null,
+                    modifier = Modifier.fillMaxSize(),
+                    enter = fadeIn(),
+                    exit = shrinkHorizontally(animationSpec = tween(durationMillis = 10))
+                ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        AnimatedSeekingEye(
+                            Modifier.size(256.dp),
+                            eyeballColor = MaterialTheme.colorScheme.onSurface,
+                            eyeLidColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 AnimatedVisibility(
                     visible = state.selectedChat != null,

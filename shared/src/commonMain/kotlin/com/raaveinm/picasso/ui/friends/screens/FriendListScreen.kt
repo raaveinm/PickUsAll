@@ -46,9 +46,7 @@ fun FriendListScreen(
     }
 
     RefreshBox(
-        modifier = modifier
-            .fillMaxSize(),
-//            .padding(horizontal = Dimensions.medium),
+        modifier = modifier.fillMaxSize(),
         onRefresh = { viewModel.refreshFriends() },
         isRefreshing = friendsState.isRefreshing
     ) {

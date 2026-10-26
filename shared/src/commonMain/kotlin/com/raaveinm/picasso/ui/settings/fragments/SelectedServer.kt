@@ -59,7 +59,9 @@ fun SelectedServer(
     selectedServer: ServerState = ServerState( // Default value for preview only
         url = "127.0.0.1",
         name = "sample",
-        addedAt = 83764598
+        addedAt = 83764598,
+        ping = 100,
+        reachable = null
     ),
     servers: List<ServerState> = listOf(selectedServer),
     onNetworkPing: () -> Unit = {},
@@ -175,7 +177,7 @@ fun SelectedServer(
                     ),
                     shape = Shapes.roundedExtraSmall
                 ) {
-                    Row(Modifier.padding(Dimensions.small)) {
+                    Row(Modifier.padding(Dimensions.small), verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = selectedServer.name?:selectedServer.url,
                             color = MaterialTheme.colorScheme.onSurface,
