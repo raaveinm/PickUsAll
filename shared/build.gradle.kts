@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinx.serialization)
-    id("com.codingfeline.buildkonfig") version "0.22.0"
+    id("com.codingfeline.buildkonfig") version "0.23.0"
 }
 
 val localProperties = Properties().apply {
@@ -118,6 +118,8 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.androidx.room3.runtime)
             implementation(libs.androidx.sqlite.bundled)
+            implementation(libs.androidx.datastore.core)
+            implementation(libs.androidx.datastore.preferences.core)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

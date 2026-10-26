@@ -19,10 +19,13 @@ import com.raaveinm.picasso.data.server.ApiResult
 import com.raaveinm.picasso.data.server.ChatSocket
 import com.raaveinm.picasso.data.server.ChatTransport
 import com.raaveinm.picasso.data.server.ServerContextSource
+import com.raaveinm.picasso.data.server.ServerSelection
+import com.raaveinm.picasso.data.sync.ServerCacheGuard
 import com.raaveinm.picasso.data.server.ContactsApi
 import com.raaveinm.picasso.data.server.ConversationsApi
 import com.raaveinm.picasso.data.sync.SignedOutCacheGuard
 import com.raaveinm.picasso.data.sync.SyncCoordinator
+import kotlinx.coroutines.flow.map
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
 import com.raaveinm.picasso.ui.chat.viewmodel.ChatViewModel
@@ -51,7 +54,16 @@ private val sharedModule = module {
     single { GameStoreRepository(get(), get()) }
     single { ConversationsApi(get()) }
     single { ContactsApi(get()) }
-    single { ActiveServer(get(), get()) }
+    single { ServerSelection(get(), get()) }
+    single {
+        ServerCacheGuard(
+            selectedServerId = get<ServerSelection>().server.map { server -> server?.id },
+            settings = get(),
+            accountDao = get(),
+            awaitIdle = { get<SyncCoordinator>().awaitIdle() }
+        )
+    }
+    single { ActiveServer(get(), get<ServerCacheGuard>().readyFor) }
     single<ServerContextSource> { get<ActiveServer>() }
     single { ChatSocket(get()) }
     single<ChatTransport> { get<ChatSocket>() }
@@ -71,7 +83,7 @@ private val sharedModule = module {
             isSessionRejected = { context ->
                 (get<ContactsApi>().contacts(context) as? ApiResult.Rejected)?.status == 401
             },
-            onSessionRejected = { context -> get<AuthRepository>().forgetRejectedSession(context.token) }
+            onSessionRejected = { context -> get<AuthRepository>().forgetRejectedSession(context.serverId, context.token) }
         )
     }
     single { SignedOutCacheGuard(get<AuthRepository>().session, get(), get()) }

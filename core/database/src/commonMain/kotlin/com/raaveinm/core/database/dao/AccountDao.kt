@@ -57,9 +57,18 @@ interface AccountDao {
     @Query("DELETE FROM Users")
     suspend fun clearUsers()
 
-    /* Children before parents, so no foreign key is relied on to cascade. */
+    /** Forgets how far any server was synced, so the next connection pulls everything again. */
+    @Query("UPDATE Servers SET deletedCursor = NULL")
+    suspend fun clearSyncCursors()
+
+    /**
+     * Only what is tied to *a server*: conversations, messages, palettes, contacts and the sync
+     * cursors. The Steam side (`Users`, friends, libraries, `GameQueue`) is kept, because it
+     * describes the Steam account and not the server it was chatted on. Unsent messages go too.
+     * Children before parents, so no foreign key is relied on to cascade.
+     */
     @Transaction
-    suspend fun wipeAccountData() {
+    suspend fun wipeServerData() {
         clearMessages()
         clearChats()
         clearPaletteMembers()
@@ -68,6 +77,12 @@ interface AccountDao {
         clearContacts()
         clearContactRequests()
         clearPaletteInvites()
+        clearSyncCursors()
+    }
+
+    @Transaction
+    suspend fun wipeAccountData() {
+        wipeServerData()
         clearGameQueue()
         clearSteamFriends()
         clearUserAchievements()

@@ -6,8 +6,10 @@ import com.raaveinm.core.database.dao.UserDao
 import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.data.repository.AuthRepository
+import com.raaveinm.picasso.data.repository.LoginAttempt
 import com.raaveinm.picasso.data.repository.LoginError
 import com.raaveinm.picasso.data.repository.LoginFailure
+import com.raaveinm.picasso.data.sync.ServerCacheGuard
 import com.raaveinm.picasso.data.sync.SignedOutCacheGuard
 import com.raaveinm.picasso.data.sync.SyncCoordinator
 import com.raaveinm.picasso.ui.actions.ClipboardHelper
@@ -61,7 +63,8 @@ class AppViewModel(
     private val authRepository: AuthRepository,
     private val userDao: UserDao,
     private val syncCoordinator: SyncCoordinator,
-    private val signedOutCacheGuard: SignedOutCacheGuard
+    private val signedOutCacheGuard: SignedOutCacheGuard,
+    private val serverCacheGuard: ServerCacheGuard
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState = _uiState.asStateFlow()
@@ -70,6 +73,7 @@ class AppViewModel(
 
     init {
         signedOutCacheGuard.start()
+        serverCacheGuard.start()
         syncCoordinator.start()
 
         syncCoordinator.sessionRejected
@@ -103,7 +107,7 @@ class AppViewModel(
             authRepository.startLogin()
                 .onSuccess { attempt ->
                     _uiState.update { it.copy(pendingLoginUrl = attempt.url) }
-                    awaitLogin(attempt.state)
+                    awaitLogin(attempt)
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(isLoggingIn = false) }
@@ -116,11 +120,11 @@ class AppViewModel(
         _uiState.update { it.copy(pendingLoginUrl = null) }
     }
 
-    private fun awaitLogin(state: String) {
+    private fun awaitLogin(attempt: LoginAttempt) {
         loginJob?.cancel()
         loginJob = viewModelScope.launch {
             try {
-                authRepository.awaitLogin(state)
+                authRepository.awaitLogin(attempt)
                     .onFailure { error -> postMessage(WarnLevel.WARN, error.describe()) }
             } finally {
                 _uiState.update { it.copy(isLoggingIn = false) }

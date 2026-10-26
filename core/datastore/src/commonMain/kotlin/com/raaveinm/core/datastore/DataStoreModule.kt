@@ -5,6 +5,7 @@ import com.raaveinm.core.datastore.auth.AuthTokenStore
 import com.raaveinm.core.datastore.auth.createAuthDataStore
 import com.raaveinm.core.datastore.auth.createSettingsDataStore
 import com.raaveinm.core.datastore.settings.BehaviourSettingsStore
+import com.raaveinm.core.datastore.settings.ServerSettingsStore
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -21,4 +22,5 @@ fun authDataStoreModule(factory: AuthDataStoreFactory) = module {
 
     single(SETTINGS_STORE) { createSettingsDataStore { factory.settingsDataStorePath() } }
     single { BehaviourSettingsStore(get(SETTINGS_STORE)) }
+    single { ServerSettingsStore(get(SETTINGS_STORE)) }
 }

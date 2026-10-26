@@ -33,14 +33,14 @@ class DataStoreModuleTest {
             val behaviour: BehaviourSettingsStore = koin.get()
 
             behaviour.saveKeyBinding("REFRESH", StoredChord(7L, isPrimary = true, isShift = false, isAlt = false, isControl = false))
-            auth.save(UserAuthToken(token = "t", userId = 1L, expiresAtEpochMs = 0L))
+            auth.save(serverId = 1L, session = UserAuthToken(token = "t", userId = 1L, expiresAtEpochMs = 0L))
 
             val dir = File(fakeHome, ".pickusall")
             assertTrue(File(dir, "settings.preferences_pb").exists(), "settings file")
             assertTrue(File(dir, "auth.preferences_pb").exists(), "auth file")
 
-            auth.clear()
-            assertNull(auth.current())
+            auth.clear(serverId = 1L)
+            assertNull(auth.current(serverId = 1L))
             assertNotNull(behaviour.settings.first().keyBindings["REFRESH"])
             assertEquals(1, behaviour.settings.first().keyBindings.size)
         } finally {

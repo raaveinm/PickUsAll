@@ -21,6 +21,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /*
@@ -93,5 +94,31 @@ class AccountDaoTest {
         db.getAccountDao().wipeAccountData()
 
         assertEquals(1, db.getServerDao().getAllServers().first().size)
+    }
+
+    @Test
+    fun `wiping server data drops the chat side and the sync cursor but keeps the Steam side`() = runBlocking {
+        val dm = chat.upsertServerConversation(
+            server,
+            ServerConversation(remoteId = 10, isDm = true, name = null, members = listOf(self, friend), writable = true),
+            self
+        )
+        chat.applyServerMessages(dm, listOf(ServerMessage(1, friend, "c1", "hello", 1000)))
+        contacts.replaceAll(
+            serverId = server,
+            contacts = listOf(Contacts(server, friend, "ally", 1)),
+            requests = emptyList(),
+            invites = emptyList()
+        )
+        db.getServerDao().updateDeletedCursor(server, 42L)
+
+        db.getAccountDao().wipeServerData()
+
+        assertTrue(chat.observeChats().first().isEmpty())
+        assertTrue(chat.getChatHistory(dm, 0, 100).isEmpty())
+        assertTrue(contacts.observeContacts(server).first().isEmpty())
+        assertNull(db.getServerDao().getDeletedCursor(server))
+        assertEquals(listOf(server), db.getServerDao().getAllServers().first().map { it.id })
+        assertEquals(setOf(self, friend), chat.getStubSteamIds().toSet())      // placeholder user rows are Steam side: not touched
     }
 }

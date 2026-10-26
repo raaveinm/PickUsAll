@@ -8,18 +8,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,19 +22,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.raaveinm.core.model.ServerState
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
+import com.raaveinm.picasso.ui.settings.fragments.AddServerTile
 import com.raaveinm.picasso.ui.settings.fragments.DeleteServerCard
 import com.raaveinm.picasso.ui.settings.fragments.EditServerCard
 import com.raaveinm.picasso.ui.settings.fragments.NewServerCard
-import com.raaveinm.picasso.ui.settings.fragments.ServerInfo
+import com.raaveinm.picasso.ui.settings.fragments.SelectedServer
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
-import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 
 //
 // Created by Kirill "Raaveinm" on 9/12/26.
@@ -54,6 +45,7 @@ private sealed interface ServerDialog {
     data class Delete(val server: ServerState) : ServerDialog
 }
 
+
 @Composable
 fun ServerScreen(
     modifier: Modifier = Modifier,
@@ -61,6 +53,7 @@ fun ServerScreen(
     appViewModel: AppViewModel
 ) {
     val serverStates by viewModel.serverStates.collectAsState()
+    val selectedServer by viewModel.selectedServer.collectAsState()
     var dialog by remember { mutableStateOf<ServerDialog?>(null) }
 
     LaunchedEffect(serverStates.map { it.id }) {
@@ -74,7 +67,7 @@ fun ServerScreen(
         animationSpec = tween(300)
     )
 
-    Box(modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -84,21 +77,24 @@ fun ServerScreen(
             verticalArrangement = Arrangement.spacedBy(Dimensions.small),
             contentPadding = PaddingValues(vertical = Dimensions.extraLarge)
         ) {
-            items(serverStates, key = { it.id }) { serverState ->
-                ServerInfo(
-                    modifier = Modifier,
-                    serverState = serverState,
+            item {
+                val currentServer: ServerState = selectedServer ?: return@item
+
+                SelectedServer(
+                    modifier = Modifier.padding(bottom = Dimensions.small),
+                    selectedServer = currentServer,
+                    servers = serverStates,
                     onNetworkPing = { viewModel.pingServer(
-                        server = serverState,
+                        server = currentServer,
                         postMessage = { l, m -> appViewModel.postMessage(l, m) }
                     ) },
-                    onEditClick = { dialog = ServerDialog.Edit(serverState) },
-                    onDeleteClick = { dialog = ServerDialog.Delete(serverState) }
+                    onEditClick = { dialog = ServerDialog.Edit(currentServer) },
+                    onServerSelect = { server -> viewModel.selectServer(server) },
+                    onServerDelete = { server -> dialog = ServerDialog.Delete(server) }
                 )
             }
-            item {
-                AddServerTile(onClick = { dialog = ServerDialog.New })
-            }
+
+            item { AddServerTile(onClick = { dialog = ServerDialog.New }) }
         }
 
         val currentDialog = dialog
@@ -142,32 +138,5 @@ fun ServerScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun AddServerTile(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(Shapes.roundedAverage)
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-            .clickable(onClick = onClick)
-            .padding(Dimensions.medium),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Dimensions.small)
-    ) {
-        Icon(
-            imageVector = Icons.Default.Add,
-            contentDescription = "add_server",
-            tint = MaterialTheme.colorScheme.onSecondaryContainer
-        )
-        Text(
-            text = "Add server",
-            color = MaterialTheme.colorScheme.onSecondaryContainer
-        )
     }
 }

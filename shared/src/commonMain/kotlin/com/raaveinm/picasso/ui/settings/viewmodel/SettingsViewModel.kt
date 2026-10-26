@@ -6,9 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.raaveinm.core.database.dao.ServerDao
 import com.raaveinm.core.database.entities.server.Servers
 import com.raaveinm.core.database.entities.server.toModel
+import com.raaveinm.core.datastore.settings.ServerSettingsStore
 import com.raaveinm.core.model.ServerState
 import com.raaveinm.core.model.toHttpBaseUrl
+import com.raaveinm.picasso.data.repository.AuthRepository
 import com.raaveinm.picasso.data.repository.KeyBindingRepository
+import com.raaveinm.picasso.data.server.effectiveSelectedId
 import com.raaveinm.pickusall.core.designsystem.keybinding.Commands
 import com.raaveinm.pickusall.core.designsystem.keybinding.KeyChord
 import com.raaveinm.pickusall.core.designsystem.keybinding.KeyMap
@@ -35,7 +38,9 @@ import kotlin.time.ExperimentalTime
 class SettingsViewModel(
     private val serverDao: ServerDao,
     private val httpClient: HttpClient,
-    private val keyBindingRepository: KeyBindingRepository
+    private val keyBindingRepository: KeyBindingRepository,
+    private val serverSettingsStore: ServerSettingsStore,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     private val pingResults = MutableStateFlow<Map<Long, PingResult>>(emptyMap())
     private val recordingFor = MutableStateFlow<Commands?>(null)
@@ -76,6 +81,18 @@ class SettingsViewModel(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
+    )
+
+    val selectedServer: StateFlow<ServerState?> = combine(
+        serverStates,
+        serverSettingsStore.settings
+    ) { servers, settings ->
+        val selectedId: Long? = effectiveSelectedId(servers.map { it.id }, settings.selectedServerId)
+        servers.firstOrNull { it.id == selectedId }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
     )
 
     ///////////////////////////////////////////////
@@ -162,8 +179,18 @@ class SettingsViewModel(
         }
     }
 
+    fun selectServer(server: ServerState) {
+        viewModelScope.launch { serverSettingsStore.selectServer(server.id) }
+    }
+
     fun deleteServer(server: ServerState) {
         viewModelScope.launch {
+            val selectedId: Long? = effectiveSelectedId(
+                serverIds = serverDao.getAllServers().first().map { it.id },
+                storedId = serverSettingsStore.settings.first().selectedServerId
+            )
+            if (server.id == selectedId) return@launch
+
             serverDao.deleteServer(
                 Servers(
                     id = server.id,
@@ -172,6 +199,7 @@ class SettingsViewModel(
                     added = server.addedAt
                 )
             )
+            authRepository.forgetServer(server.id)
         }
     }
 

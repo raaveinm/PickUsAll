@@ -1,6 +1,5 @@
 package com.raaveinm.picasso.data.server
 
-import com.raaveinm.core.database.dao.ServerDao
 import com.raaveinm.core.model.toHttpBaseUrl
 import com.raaveinm.core.model.toWsUrl
 import com.raaveinm.picasso.data.repository.AuthRepository
@@ -8,7 +7,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 
 //
 // Created by Kirill "Raaveinm" on 10/9/26.
@@ -34,30 +32,31 @@ interface ServerContextSource {
 }
 
 /**
- * The active server joined with the login session. Null means "nothing to talk to":
- * no server configured, or signed out.
+ * The selected server ([ServerSelection]) joined with *its* login session. Null means
+ * "nothing to talk to": no server configured, signed out on the selected server, or the
+ * cache still holds another server's data.
  *
- * "Active" is still the first of the server list - `ORDER BY added DESC`, i.e. the
- * most recently added - exactly as `AuthRepository` picks it. The real, user-chosen
- * selection (with flush-then-switch) replaces this one function when it lands.
+ * The last condition is [cacheReadyFor]: after a switch the connection must not open
+ * before the previous server's data is gone, or the first sync would write into rows that
+ * are about to be wiped. `ServerCacheGuard` publishes the id once the cache is clean.
  */
 class ActiveServer(
-    serverDao: ServerDao,
-    authRepository: AuthRepository
+    authRepository: AuthRepository,
+    cacheReadyFor: Flow<Long?>
 ) : ServerContextSource {
     override val context: Flow<ServerContext?> = combine(
-        serverDao.getAllServers().map { servers -> servers.firstOrNull { it.url.isNotBlank() } },
-        authRepository.session
-    ) { server, session ->
-        if (server == null || session == null) {
+        authRepository.activeSession,
+        cacheReadyFor
+    ) { active, readyFor ->
+        if (active == null || readyFor != active.server.id) {
             null
         } else {
             ServerContext(
-                serverId = server.id,
-                baseUrl = server.url.toHttpBaseUrl(),
-                wsUrl = server.url.toWsUrl(),
-                token = session.token,
-                selfSteamId = session.userId
+                serverId = active.server.id,
+                baseUrl = active.server.url.toHttpBaseUrl(),
+                wsUrl = active.server.url.toWsUrl(),
+                token = active.token.token,
+                selfSteamId = active.token.userId
             )
         }
     }.distinctUntilChanged()

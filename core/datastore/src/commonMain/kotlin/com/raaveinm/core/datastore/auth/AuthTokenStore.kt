@@ -1,12 +1,17 @@
 package com.raaveinm.core.datastore.auth
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import com.raaveinm.core.datastore.AUTH_EXPIRES_AT
-import com.raaveinm.core.datastore.AUTH_TOKEN
-import com.raaveinm.core.datastore.AUTH_USER_ID
+import com.raaveinm.core.datastore.LEGACY_AUTH_EXPIRES_AT
+import com.raaveinm.core.datastore.LEGACY_AUTH_TOKEN
+import com.raaveinm.core.datastore.LEGACY_AUTH_USER_ID
+import com.raaveinm.core.datastore.authExpiresAtKey
+import com.raaveinm.core.datastore.authTokenKey
+import com.raaveinm.core.datastore.authUserIdKey
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
@@ -15,56 +20,67 @@ import kotlinx.coroutines.flow.map
 //
 
 /**
- * The persisted session. [session] is the single source of truth for "who is
- * logged in" across the whole app - viewmodels observe it rather than reading a
- * build-time constant, so a login or logout propagates everywhere on its own.
+ * The persisted sessions, one per server (`Servers.id`): a token is only ever valid on the
+ * server that issued it, so it is stored - and looked up - together with that server.
+ * [sessionFor] is the single source of truth for "who is logged in *there*"; callers pick the
+ * server (see `AuthRepository.session` for the selected one) and observe it, so a login or
+ * logout propagates on its own.
  *
- * A null emission means logged out. That is the only logged-out signal; there is
- * no separate boolean to keep in sync with it.
+ * A null emission means logged out on that server. That is the only logged-out signal; there
+ * is no separate boolean to keep in sync with it.
  */
 class AuthTokenStore(private val dataStore: DataStore<Preferences>) {
 
-    val session: Flow<UserAuthToken?> = dataStore.data.map { it.toSession() }
+    fun sessionFor(serverId: Long): Flow<UserAuthToken?> =
+        dataStore.data.map { it.toSession(serverId) }.distinctUntilChanged()
 
-    suspend fun save(session: UserAuthToken) {
+    suspend fun save(serverId: Long, session: UserAuthToken) {
         dataStore.edit { prefs ->
-            prefs[AUTH_TOKEN] = session.token
-            prefs[AUTH_USER_ID] = session.userId
-            prefs[AUTH_EXPIRES_AT] = session.expiresAtEpochMs
+            prefs.removeLegacySession()
+            prefs[authTokenKey(serverId)] = session.token
+            prefs[authUserIdKey(serverId)] = session.userId
+            prefs[authExpiresAtKey(serverId)] = session.expiresAtEpochMs
         }
     }
 
-    suspend fun clear() {
+    suspend fun clear(serverId: Long) {
         dataStore.edit { prefs ->
-            prefs.remove(AUTH_TOKEN)
-            prefs.remove(AUTH_USER_ID)
-            prefs.remove(AUTH_EXPIRES_AT)
+            prefs.removeLegacySession()
+            prefs.removeSession(serverId)
         }
     }
 
     /** Clears the session only while it still holds [token] - one edit, so a login in between survives. */
-    suspend fun clearIfToken(token: String) {
+    suspend fun clearIfToken(serverId: Long, token: String) {
         dataStore.edit { prefs ->
-            if (prefs[AUTH_TOKEN] == token) {
-                prefs.remove(AUTH_TOKEN)
-                prefs.remove(AUTH_USER_ID)
-                prefs.remove(AUTH_EXPIRES_AT)
-            }
+            if (prefs[authTokenKey(serverId)] == token) prefs.removeSession(serverId)
         }
     }
 
     /** One-shot read for callers that can't observe (e.g. building a request header). */
-    suspend fun current(): UserAuthToken? = session.first()
+    suspend fun current(serverId: Long): UserAuthToken? = sessionFor(serverId).first()
 
-    private fun Preferences.toSession(): UserAuthToken? {
-        val token = this[AUTH_TOKEN] ?: return null
-        val userId = this[AUTH_USER_ID] ?: return null
+    private fun MutablePreferences.removeSession(serverId: Long) {
+        remove(authTokenKey(serverId))
+        remove(authUserIdKey(serverId))
+        remove(authExpiresAtKey(serverId))
+    }
+
+    private fun MutablePreferences.removeLegacySession() {
+        remove(LEGACY_AUTH_TOKEN)
+        remove(LEGACY_AUTH_USER_ID)
+        remove(LEGACY_AUTH_EXPIRES_AT)
+    }
+
+    private fun Preferences.toSession(serverId: Long): UserAuthToken? {
+        val token = this[authTokenKey(serverId)] ?: return null
+        val userId = this[authUserIdKey(serverId)] ?: return null
         // A half-written session is treated as no session rather than as a broken one.
         if (token.isBlank() || userId == 0L) return null
         return UserAuthToken(
             token = token,
             userId = userId,
-            expiresAtEpochMs = this[AUTH_EXPIRES_AT] ?: 0L
+            expiresAtEpochMs = this[authExpiresAtKey(serverId)] ?: 0L
         )
     }
 }
