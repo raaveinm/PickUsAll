@@ -173,7 +173,7 @@ fun SelectedServer(
                     modifier = Modifier,
                     onClick = { isDropdownExpanded = true },
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                     ),
                     shape = Shapes.roundedExtraSmall
                 ) {

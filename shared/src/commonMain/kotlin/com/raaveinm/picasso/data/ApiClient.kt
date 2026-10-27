@@ -5,6 +5,8 @@ import com.raaveinm.core.model.responses.GetFriendListResponse
 import com.raaveinm.core.model.responses.GetGameStoreInfoResponse
 import com.raaveinm.core.model.responses.GetOwnedGamesResponse
 import com.raaveinm.core.model.responses.GetPlayerSummariesResponse
+import com.raaveinm.core.model.responses.GetProfileItemsEquippedResponse
+import com.raaveinm.core.model.responses.ProfileItem
 import com.raaveinm.core.model.responses.ResolveVanityUrlResponse
 import com.raaveinm.core.model.user.Friend
 import com.raaveinm.core.model.user.OwnedGame
@@ -59,6 +61,14 @@ class ApiClient(private val httpClient: HttpClient) {
         }.body<ResolveVanityUrlResponse>().response
             .takeIf { it.success == 1 }
             ?.steamId?.toLongOrNull()
+
+    /** The background the user has equipped on their Steam profile, or null when none is. */
+    suspend fun getProfileBackground(steamId: Long): ProfileItem? =
+        httpClient.get("https://api.steampowered.com/IPlayerService/GetProfileItemsEquipped/v1/") {
+            parameter("key", steamApi)
+            parameter("steamid", steamId)
+            parameter("format", "json")
+        }.body<GetProfileItemsEquippedResponse>().response.profileBackground
 
     ///////////////////////////////////////////////
     // User's friend list fetch

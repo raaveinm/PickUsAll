@@ -45,8 +45,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.raaveinm.picasso.data.ApiClient
 import com.raaveinm.picasso.ui.app.ProvideKeyMap
 import com.raaveinm.picasso.ui.app.QuickDestination
+import com.raaveinm.picasso.ui.app.SteamPFB
 import com.raaveinm.picasso.ui.app.WindowActions
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.canvas.CanvasScreen
@@ -84,6 +86,7 @@ import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import pickusall.shared.generated.resources.Res
 import pickusall.shared.generated.resources.unauthorized
@@ -200,6 +203,8 @@ private fun AppContent(
                 targetValue = if (!appUiState.isSideBarExpanded) 0f else 64f,
                 animationSpec = tween(400)
             )
+            val apiClient: ApiClient = koinInject()
+            val backgroundOwner = appUiState.user?.steamId
 
             NavHost(
                 navController = navController,
@@ -210,6 +215,7 @@ private fun AppContent(
                 startDestination = Canvas
             ) {
                 composable<Canvas> {
+                    SteamPFB(backgroundOwner, apiClient)
                     CanvasScreen(
                         modifier = Modifier,
                         topNavModifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
@@ -218,8 +224,11 @@ private fun AppContent(
                 }
                 composable<ChatGraph> { backStackEntry ->
                     val route = backStackEntry.toRoute<ChatGraph>()
+                    SteamPFB(backgroundOwner, apiClient)
+
                     ChatScreen(
-                        modifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
+                        modifier = Modifier.fillMaxSize(),
+                        systemBarsModifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
                         viewModel = chatViewModel,
                         appViewModel = appViewModel,
                         selectedChatId = route.selectedChatId,
@@ -227,8 +236,13 @@ private fun AppContent(
                     )
                 }
                 composable<Friends> {
+                    SteamPFB(backgroundOwner, apiClient)
+
                     FriendScreen(
-                        modifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
+                        modifier = Modifier
+                            .fillMaxSize()
+//                            .background(MaterialTheme.colorScheme.backgroundGradientBrush) // TODO
+                            .padding(PlatformSpecificDim.systemBarsPadding),
                         viewModel = chatViewModel,
                         appViewModel = appViewModel,
                         onMessageClick = ::openChat
@@ -385,3 +399,4 @@ private fun AppContent(
         }
     }
 }
+

@@ -99,7 +99,7 @@ fun ChatWithUserScreen(
         }
     }
 
-    Box(modifier.fillMaxSize().imePadding()) {
+    Box(modifier.imePadding()) {
         Box(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).height(124.dp)
             .zIndex(.8f).background(MaterialTheme.colorScheme.dissolveWithSurface))
         Box(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).height(124.dp)

@@ -5,8 +5,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -19,23 +17,19 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.raaveinm.core.model.user.OwnedGame
 import com.raaveinm.picasso.ui.actions.libraryRedirect
 import com.raaveinm.picasso.ui.actions.openStorePage
@@ -50,7 +44,6 @@ import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 import pickusall.shared.generated.resources.Res
 import pickusall.shared.generated.resources.add_game_to_complete
-import pickusall.shared.generated.resources.dismiss
 import pickusall.shared.generated.resources.game_more_actions_label
 import pickusall.shared.generated.resources.game_open_label
 import pickusall.shared.generated.resources.open_in_store
@@ -74,6 +67,10 @@ fun CanvasLibrary(
         val minCellSize = if (maxWidth < 700.dp) 110.dp else 220.dp
         val scrollState = rememberLazyGridState()
         var isSortVisible by remember { mutableStateOf(true) }
+        val menuLabels: List<String> = listOf(
+            stringResource(Res.string.add_game_to_complete),
+            stringResource(Res.string.open_in_store),
+        )
 
         val scrollingOffset: Int by remember {
             var previousIndex = 64
@@ -100,43 +97,30 @@ fun CanvasLibrary(
             horizontalArrangement = Arrangement.Center,
         ) {
             items(libraryList, key = { it.appId }) { game ->
-                var sideSwitch by remember { mutableIntStateOf(0) }
+                var isMenuExpanded: Boolean by remember { mutableStateOf(false) }
                 val uriHandler = LocalUriHandler.current
                 Box(contentAlignment = Alignment.Center) {
-                    AnimatedVisibility (
-                        visible = sideSwitch != 0,
-                        modifier = Modifier
-                            .zIndex(3f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable(interactionSource = MutableInteractionSource(), indication = null) {
-                                sideSwitch = 0
-                            },
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut()
-                    ) {
-                        val menuActions: List<Pair<String, () -> Unit>> = listOf(
-                            stringResource(Res.string.dismiss) to { },
-                            stringResource(Res.string.add_game_to_complete) to { onAddToQueue(game.appId) },
-                            stringResource(Res.string.open_in_store) to { openStorePage(game.appId, uriHandler) },
-                        )
-                        DropDownMenu(
-                            modifier = Modifier.zIndex(2f),
-                            onItemSelected = { index ->
-                                sideSwitch = 0
-                                menuActions[index].second()
-                            },
-                            items = menuActions.map { it.first }
-                        )
-                    }
                     GameCard(
                         modifier = Modifier.sideAction(
                             onClickLabel = stringResource(Res.string.game_open_label, game.name),
                             onSideActionLabel = stringResource(Res.string.game_more_actions_label, game.name),
-                            onSideAction = { sideSwitch = 1 },
+                            onSideAction = { isMenuExpanded = true },
                             onClick = { libraryRedirect(game.appId, uriHandler) }
                         ),
                         gameId = game.appId,
                         text = game.name
+                    )
+                    DropDownMenu(
+                        expanded = isMenuExpanded,
+                        onDismissRequest = { isMenuExpanded = false },
+                        onItemSelected = { index ->
+                            isMenuExpanded = false
+                            when (index) {
+                                0 -> onAddToQueue(game.appId)
+                                else -> openStorePage(game.appId, uriHandler)
+                            }
+                        },
+                        items = menuLabels
                     )
                 }
             }

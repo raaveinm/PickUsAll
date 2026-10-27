@@ -32,11 +32,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 
@@ -45,59 +53,102 @@ import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 //
 
 private const val HOVER_FADE_MS: Int = 120
-private const val HOVER_ALPHA: Float = .12f
 
 @Composable
 fun DropDownMenu(
     modifier: Modifier = Modifier,
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
     items: List<String>,
     onItemSelected: (Int) -> Unit,
     scrollbarLane: Dp = Dimensions.medium,
     itemHeight: Dp = 40.dp,
     maxVisibleItems: Int = 4
 ) {
+    if (!expanded) return
+
     val scrollState = rememberScrollState()
     val isScrollable: Boolean = items.size > maxVisibleItems
     val spacing: Dp = Dimensions.extraSmall
     val maxListHeight: Dp = itemHeight * maxVisibleItems + spacing * (maxVisibleItems - 1)
+    val gapPx: Int = with(LocalDensity.current) { Dimensions.extraSmall.roundToPx() }
 
-    Box(
-        modifier = modifier
-            .clip(Shapes.roundedAverage)
-            .background(color = MaterialTheme.colorScheme.surface)
-            .border(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                width = 1.dp,
-                shape = Shapes.roundedAverage,
-            )
-            .padding(Dimensions.extraSmall)
+    Popup(
+        popupPositionProvider = remember(gapPx) { DropDownMenuPositionProvider(gapPx = gapPx) },
+        onDismissRequest = onDismissRequest,
+        properties = PopupProperties(focusable = true)
     ) {
-        Column(
-            modifier = Modifier
-                .widthIn(min = 128.dp)
-                .width(IntrinsicSize.Max)
-                .heightIn(max = maxListHeight)
-                .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(spacing)
+        Box(
+            modifier = modifier
+                .clip(Shapes.roundedAverage)
+                .background(color = MaterialTheme.colorScheme.surface)
+                .border(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    width = 1.dp,
+                    shape = Shapes.roundedAverage,
+                )
+                .padding(Dimensions.extraSmall)
         ) {
-            items.forEachIndexed { index, label ->
-                DropDownMenuItem(
-                    label = label,
-                    endPadding = if (isScrollable) scrollbarLane else Dimensions.none,
-                    onClick = { onItemSelected(index) },
-                    itemHeight = itemHeight
+            Column(
+                modifier = Modifier
+                    .widthIn(min = 128.dp)
+                    .width(IntrinsicSize.Max)
+                    .heightIn(max = maxListHeight)
+                    .verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(spacing)
+            ) {
+                items.forEachIndexed { index, label ->
+                    DropDownMenuItem(
+                        label = label,
+                        endPadding = if (isScrollable) scrollbarLane else Dimensions.none,
+                        onClick = { onItemSelected(index) },
+                        itemHeight = itemHeight
+                    )
+                }
+            }
+
+            if (isScrollable) {
+                ScrollBar(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .height(maxListHeight),
+                    state = scrollState,
                 )
             }
         }
+    }
+}
 
-        if (isScrollable) {
-            ScrollBar(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .height(maxListHeight),
-                state = scrollState,
-            )
+///////////////////////////////////////////////
+/// Positioning
+///////////////////////////////////////////////
+
+/**
+ * Under the anchor, start edges aligned (end edges in RTL); above it when the menu would run off
+ * the bottom of the window and there is room above; always clamped inside the window horizontally.
+ */
+private class DropDownMenuPositionProvider(private val gapPx: Int) : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize
+    ): IntOffset {
+        val preferredX: Int = if (layoutDirection == LayoutDirection.Ltr) {
+            anchorBounds.left
+        } else {
+            anchorBounds.right - popupContentSize.width
         }
+        val x: Int = preferredX.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
+
+        val below: Int = anchorBounds.bottom + gapPx
+        val above: Int = anchorBounds.top - gapPx - popupContentSize.height
+        val y: Int = when {
+            below + popupContentSize.height <= windowSize.height -> below
+            above >= 0 -> above
+            else -> (windowSize.height - popupContentSize.height).coerceAtLeast(0)
+        }
+        return IntOffset(x = x, y = y)
     }
 }
 
@@ -115,7 +166,7 @@ private fun DropDownMenuItem(
     val isHovered: Boolean by interactionSource.collectIsHoveredAsState()
     val contentColor: Color = MaterialTheme.colorScheme.onSurface
     val background: Color by animateColorAsState(
-        targetValue = if (isHovered) contentColor.copy(alpha = HOVER_ALPHA) else Color.Transparent,
+        targetValue = if (isHovered) contentColor.copy(alpha = .12f) else Color.Transparent,
         animationSpec = tween(durationMillis = HOVER_FADE_MS),
         label = "drop_down_item_hover"
     )
@@ -150,6 +201,8 @@ private fun DropDownMenuItem(
 @Composable
 private fun DropDownMenuScrollPreview() {
     DropDownMenu(
+        expanded = true,
+        onDismissRequest = {},
         items = List(9) { "option ${it + 1}" },
         onItemSelected = {}
     )

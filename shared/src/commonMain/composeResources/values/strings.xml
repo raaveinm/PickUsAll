@@ -30,6 +30,13 @@
 
     <!--Chat-->
     <string name="chat_message_hint">Message</string>
+    <string name="chat_open_label">Open chat with %1$s</string>
+    <string name="chat_more_actions_label">More actions for %1$s</string>
+    <string name="chat_menu_invite_to_group">Invite to group</string>
+    <string name="chat_menu_steam_profile">Look Steam profile</string>
+    <string name="chat_menu_text_user">Text user</string>
+    <string name="chat_menu_delete_chat">Delete chat</string>
+    <string name="chat_menu_no_groups">No groups to invite to</string>
 
     <!--Friends-->
     <string name="friends_steam_private">FRIEND LIST UPDATE ERR: flu_400</string>

@@ -70,10 +70,7 @@ fun FriendScreen(
     NavHost(
         navController = nestedNavController,
         startDestination = FriendList,
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.backgroundGradientBrush)
-            .padding(horizontal = Dimensions.medium),
+        modifier = modifier.padding(horizontal = Dimensions.medium),
         contentAlignment = Alignment.Center
     ) {
         composable<FriendList> { // Your friends

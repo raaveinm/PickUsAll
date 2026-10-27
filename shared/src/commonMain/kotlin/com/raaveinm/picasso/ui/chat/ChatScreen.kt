@@ -1,5 +1,6 @@
 package com.raaveinm.picasso.ui.chat
 
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -23,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -38,7 +40,6 @@ import com.raaveinm.picasso.ui.navigation.ChatWithUser
 import com.raaveinm.picasso.ui.navigation.Palette
 import com.raaveinm.picasso.ui.navigation.UserProfile
 import com.raaveinm.pickusall.core.designsystem.animated.AnimatedSeekingEye
-import com.raaveinm.pickusall.core.designsystem.obj.ColorBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import org.koin.compose.viewmodel.koinViewModel
 import com.raaveinm.core.model.chat.Palette as PaletteConversation
@@ -50,6 +51,7 @@ private val SidebarWidth = 360.dp
 @Composable
 fun ChatScreen(
     modifier: Modifier = Modifier,
+    @Suppress("ModifierParameter") systemBarsModifier: Modifier = Modifier,
     viewModel: ChatViewModel = koinViewModel(),
     appViewModel: AppViewModel,
     selectedChatId: Long? = null,
@@ -72,7 +74,7 @@ fun ChatScreen(
         if (state.selectedChat == null) appViewModel.showBottomBar() else appViewModel.hideBottomBar()
     }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.backgroundGradientBrush)) {
+    BoxWithConstraints(modifier) {
         val isCompact = maxWidth < CompactWidthBreakpoint
         val showThirdColumn = maxWidth >= ThirdColumnBreakpoint
 
@@ -86,9 +88,8 @@ fun ChatScreen(
                     LaunchedEffect(backStackEntry == null) { viewModel.setSelectedChat(null) }
                     if (state.conversations.isNotEmpty()) {
                         AllChats(
-                            modifier = modifier
+                            modifier = systemBarsModifier
                                 .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.backgroundGradientBrush)
                                 .padding(horizontal = Dimensions.small),
                             conversations = state.conversations,
                             onChatClick = {
@@ -100,7 +101,8 @@ fun ChatScreen(
                                 nestedNavHostController.navigate(
                                     route = ChatWithUser(chatId = it, groupId = it)
                                 )
-                            }
+                            },
+                            onInviteToGroup = viewModel::invite
                         )
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -114,12 +116,14 @@ fun ChatScreen(
                 }
                 composable<ChatWithUser> { backStackEntry ->
                     val route = backStackEntry.toRoute<ChatWithUser>()
+                    Box(modifier = Modifier.fillMaxSize()
+                        .zIndex(-1f).background(MaterialTheme.colorScheme.surface.copy(alpha = .72f)))
+
                     ChatWithUserScreen(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.backgroundGradientBrush)
                             .padding(horizontal = Dimensions.medium),
-                        systemBarModifier = modifier,
+                        systemBarModifier = systemBarsModifier,
                         conversation = state.conversations.find { it.id == route.chatId },
                         onBack = {
                             viewModel.setSelectedChat(null)
@@ -150,8 +154,8 @@ fun ChatScreen(
                     val route = backStackEntry.toRoute<UserProfile>()
                     state.selectedUser?.let {
                         UserActions(
-                            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.backgroundGradientBrush),
-                            systemBarModifier = modifier,
+                            modifier = Modifier.fillMaxSize(),
+                            systemBarModifier = systemBarsModifier,
                             user = it,
                             mostPlayed = listOf(),
                             onBack = { nestedNavHostController.popBackStack() },
@@ -175,7 +179,7 @@ fun ChatScreen(
                 composable<Palette> { backStackEntry ->
                     val route = backStackEntry.toRoute<Palette>()
                     GroupScreen(
-                        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.backgroundGradientBrush),
+                        modifier = Modifier.fillMaxSize(),
                         group = state.conversations.filterIsInstance<PaletteConversation>().find { it.id == route.groupId },
                         onBack = { nestedNavHostController.popBackStack() },
                         onMemberClick = { userId ->
@@ -199,7 +203,8 @@ fun ChatScreen(
             val selectedPalette = state.conversations
                 .filterIsInstance<PaletteConversation>()
                 .firstOrNull { it.id == state.selectedChat }
-
+            Box(modifier = Modifier.fillMaxSize()
+                .zIndex(-1f).background(MaterialTheme.colorScheme.surface.copy(alpha = .72f)))
             Row(modifier = Modifier.fillMaxSize()) {
                 Card(Modifier.padding(Dimensions.medium)) {
                     AllChats(
@@ -207,6 +212,7 @@ fun ChatScreen(
                         conversations = state.conversations,
                         onChatClick = { viewModel.setSelectedChat(it) },
                         onGroupClick = { viewModel.setSelectedChat(it) },
+                        onInviteToGroup = viewModel::invite,
                         selectedChatId = state.selectedChat
                     )
                 }
@@ -253,25 +259,31 @@ fun ChatScreen(
                         visible = state.selectedUser != null || selectedPalette != null,
                         modifier = Modifier.fillMaxHeight().sizeIn(minWidth = 128.dp, maxWidth = SidebarWidth)
                     ) {
-                        val selectedUser = state.selectedUser
-                        when {
-                            selectedUser != null -> UserActions(
-                                modifier = Modifier.fillMaxSize(),
-                                user = selectedUser,
-                                mostPlayed = listOf(),
-                                onBack = { viewModel.setSelectedUser(null) },
-                                onAddToGroupClick = {}, // TODO(same)
-                                // opening the DM in the middle column also loads its history
-                                onMessageClick = {
-                                    viewModel.dmWith(selectedUser.steamId, viewModel::setSelectedChat)
-                                }
-                            )
-                            selectedPalette != null -> GroupScreen(
-                                modifier = Modifier.fillMaxSize(),
-                                group = selectedPalette,
-                                onBack = { viewModel.setSelectedChat(null) },
-                                onMemberClick = { viewModel.setSelectedUser(it) }
-                            )
+                        Card(Modifier.padding(Dimensions.medium)) {
+                            val selectedUser = state.selectedUser
+                            when {
+                                selectedUser != null -> UserActions(
+                                    modifier = Modifier.fillMaxSize(),
+                                    user = selectedUser,
+                                    mostPlayed = listOf(),
+                                    onBack = { viewModel.setSelectedUser(null) },
+                                    onAddToGroupClick = {}, // TODO(same)
+                                    // opening the DM in the middle column also loads its history
+                                    onMessageClick = {
+                                        viewModel.dmWith(
+                                            selectedUser.steamId,
+                                            viewModel::setSelectedChat
+                                        )
+                                    }
+                                )
+
+                                selectedPalette != null -> GroupScreen(
+                                    modifier = Modifier.fillMaxSize(),
+                                    group = selectedPalette,
+                                    onBack = { viewModel.setSelectedChat(null) },
+                                    onMemberClick = { viewModel.setSelectedUser(it) }
+                                )
+                            }
                         }
                     }
                 }

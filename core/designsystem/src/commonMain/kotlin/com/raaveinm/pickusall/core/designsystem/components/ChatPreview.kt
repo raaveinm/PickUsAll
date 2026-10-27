@@ -40,14 +40,14 @@ fun ChatPreview(
     surfaceColor: Color = MaterialTheme.colorScheme.inverseOnSurface,
     headlineColor: Color = MaterialTheme.colorScheme.onSurface,
     tintColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    onClick: () -> Unit = {}
+    onClick: (() -> Unit)? = null // null = the caller makes the row interactive through [modifier] (e.g. a side action)
 ) {
     Row(
         modifier = modifier
             .sizeIn(minHeight = 80.dp)
             .clip(RoundedCornerShape(Shapes.smallShape))
             .background(color = surfaceColor)
-            .clickable { onClick() },
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

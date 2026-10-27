@@ -54,7 +54,7 @@ fun AnimatedSeekingEye(
         while (true) {
             blinkUpper = if (blinkUpper == 0f) 1f else 0f
             blinkLower = if (blinkLower == 2f) 1f else 2f
-            val delayTime = if (blinkUpper == 0f) 5_000.milliseconds else 200.milliseconds
+            val delayTime = if (blinkUpper == 0f) 7_000.milliseconds else 200.milliseconds
             delay(duration = delayTime)
         }
     }
@@ -67,19 +67,8 @@ fun AnimatedSeekingEye(
         val y = size.height
         val eyeCurve = Path().apply {
             moveTo(0f,y/2)
-            quadraticTo(
-                x1 = x/2,
-                y1 = y/2*animatedBlinkUp,
-                x2 = x,
-                y2 = y/2
-            )
-            moveTo(x, y/2)
-            quadraticTo(
-                x1 = x/2,
-                y1 = y/animatedBlinkLow,
-                x2 = 0f,
-                y2 = y/2
-            )
+            quadraticTo(x1 = x/2, y1 = y/2*animatedBlinkUp, x2 = x, y2 = y/2)
+            quadraticTo(x1 = x/2, y1 = y/animatedBlinkLow, x2 = 0f, y2 = y/2)
         }
 
         clipPath(path = eyeCurve) {
