@@ -73,6 +73,9 @@
 
     <!--Settings screen-->
 
+    <!--default values-->
+    <string name="toggle_setting">Toggle setting</string>
+
     <!--Server settings-->
     <string name="no_reachable_servers">No reachable servers found. Check out servers.</string>
 

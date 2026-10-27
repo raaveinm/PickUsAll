@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.raaveinm.pickusall.core.designsystem.animated.UnspecifiedProgressIndicator
 
 //
 // Created by Kirill "Raaveinm" on 8/4/26.
@@ -128,7 +128,7 @@ fun ImageUtility(
                 onError = { isLoading = false },
                 error = ColorPainter(errorColor)
             )
-            if (isLoading) CircularProgressIndicator()
+            if (isLoading) UnspecifiedProgressIndicator(selfSize = 24.dp)
         }
     }
 }
