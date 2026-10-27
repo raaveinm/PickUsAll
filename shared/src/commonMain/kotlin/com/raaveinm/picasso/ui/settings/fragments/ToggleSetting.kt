@@ -2,6 +2,7 @@ package com.raaveinm.picasso.ui.settings.fragments
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -30,6 +31,7 @@ fun ToggleSetting(
     modifier: Modifier = Modifier,
     onToggle: () -> Unit = {},
     isChecked: Boolean = false,
+    isInProgress: Boolean = false,
     settingNameRes: StringResource = Res.string.toggle_setting,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     foregroundColor: Color = MaterialTheme.colorScheme.onSurface,
@@ -41,7 +43,7 @@ fun ToggleSetting(
         colors = CardDefaults.cardColors(contentColor = backgroundColor)
     ) {
         Row(
-            modifier = Modifier.padding(Dimensions.small),
+            modifier = Modifier.fillMaxWidth().padding(Dimensions.small),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -52,9 +54,8 @@ fun ToggleSetting(
             )
             ToggleSwitch(
                 isChecked = isChecked,
-                onToggle = onToggle,
-                foregroundColor = backgroundColor,
-                backgroundColor = foregroundColor
+                isInProgression = isInProgress,
+                onToggle = onToggle
             )
         }
     }

@@ -1,7 +1,10 @@
 package com.raaveinm.pickusall.core.designsystem.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -17,12 +20,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
+import com.raaveinm.pickusall.core.designsystem.animated.UnspecifiedProgressIndicator
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 
 //
@@ -35,11 +43,22 @@ fun ToggleSwitch(
     isChecked: Boolean = false,
     isInProgression: Boolean = false,
     onToggle: () -> Unit = {},
-    backgroundColor: Color = MaterialTheme.colorScheme.onSurface,
-    foregroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    disabledBackgroundColor: Color = MaterialTheme.colorScheme.onSurface,
+    enabledBackgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    disabledForegroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    enabledForegroundColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
     tintColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     size: Size = Size(width = 60f, height = 32f)
 ) {
+    val progress: Float by animateFloatAsState(
+        targetValue = if (isChecked) 1f else 0f,
+        animationSpec = tween(durationMillis = 420),
+        label = "toggle_progress"
+    )
+
+    val backgroundColor: Color = lerp(enabledBackgroundColor, disabledBackgroundColor, progress)
+    val foregroundColor: Color = lerp(enabledForegroundColor, disabledForegroundColor, progress)
+
     BoxWithConstraints(
         modifier = Modifier
             .size(width = size.width.dp, height = size.height.dp)
@@ -55,18 +74,17 @@ fun ToggleSwitch(
         val y = maxHeight
         val x = maxWidth
         val padding = 4.dp
-        val size = maxHeight - (padding * 2)
+        val thumb = maxHeight - (padding * 2)
 
-        val position by animateDpAsState(
-            targetValue = if (isChecked) x - size - padding else padding,
-            label = "position_animation"
-        )
+        val leftEdge: Dp = lerp(padding, x - padding - thumb, EaseIn.transform(progress))
+        val rightEdge: Dp = lerp(padding + thumb, x - padding, EaseOut.transform(progress))
 
         Box(Modifier
-            .offset(x = position, y = y - size - padding)
-            .size(size)
+            .offset(x = leftEdge, y = padding)
+            .size(width = rightEdge - leftEdge, height = thumb)
             .clip(Shapes.circleShape)
-            .background(color = foregroundColor)
+            .background(color = foregroundColor),
+            contentAlignment = Alignment.Center
         ) {
             AnimatedVisibility(
                 visible = isInProgression,
@@ -75,7 +93,10 @@ fun ToggleSwitch(
                 exit = fadeOut(),
                 label = "fade_animation",
                 content = {
-
+                    UnspecifiedProgressIndicator(
+                        selfSize = y/2,
+                        color = backgroundColor
+                    )
                 }
             )
         }

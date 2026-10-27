@@ -49,6 +49,7 @@ import com.raaveinm.picasso.ui.navigation.Visual
 import com.raaveinm.picasso.ui.settings.fragments.SettingsCard
 import com.raaveinm.picasso.ui.settings.screens.BehaviourScreen
 import com.raaveinm.picasso.ui.settings.screens.ServerScreen
+import com.raaveinm.picasso.ui.settings.screens.VisualScreen
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
 import com.raaveinm.pickusall.core.designsystem.obj.ColorBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
@@ -140,6 +141,11 @@ fun SettingsScreen(
             composable<Application> {
             }
             composable<Visual> {
+                VisualScreen(
+                    viewModel = viewModel,
+                    appViewModel = appViewModel,
+                    modifier = nestedModifier
+                )
             }
             composable<Behaviour> {
                 BehaviourScreen(
