@@ -43,7 +43,7 @@ fun ToggleSetting(
         colors = CardDefaults.cardColors(contentColor = backgroundColor)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(Dimensions.small),
+            modifier = Modifier.fillMaxWidth().padding(Dimensions.medium),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

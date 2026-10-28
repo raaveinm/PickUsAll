@@ -2,6 +2,7 @@ package com.raaveinm.picasso.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -9,12 +10,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.filled.Lan
@@ -25,9 +28,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -51,13 +57,16 @@ import com.raaveinm.picasso.ui.settings.screens.BehaviourScreen
 import com.raaveinm.picasso.ui.settings.screens.ServerScreen
 import com.raaveinm.picasso.ui.settings.screens.VisualScreen
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
+import com.raaveinm.pickusall.core.designsystem.components.ScrollBar
 import com.raaveinm.pickusall.core.designsystem.obj.ColorBrushes.backgroundGradientBrush
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import pickusall.shared.generated.resources.Res
 import pickusall.shared.generated.resources.no_reachable_servers
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SettingsScreen(
@@ -112,20 +121,64 @@ fun SettingsScreen(
             startDestination = OptionList
         ) {
             composable<OptionList> {
-                LazyVerticalGrid(
-                    modifier = modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.backgroundGradientBrush),
-                    columns = GridCells.FixedSize(216.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    items(items) { item ->
-                        SettingsCard(
-                            modifier = Modifier.size(width = 200.dp, height = 100.dp).padding(8.dp),
-                            icon = item.first,
-                            name = item.second,
-                            onClick = item.third
+                if (isCompact) {
+                    LazyColumn(
+                        modifier = modifier
+                            .padding(bottom = Dimensions.paddingLarge)
+                            .fillMaxSize()
+                            .background(color = MaterialTheme.colorScheme.surface),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        items(items) { item ->
+                            SettingsCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = Dimensions.medium)
+                                    .height(96.dp)
+                                    .padding(bottom = Dimensions.small),
+                                icon = item.first,
+                                name = item.second,
+                                onClick = item.third
+                            )
+                        }
+                    }
+                } else {
+                    val state = rememberLazyListState()
+                    LazyRow(
+                        modifier = modifier
+                            .fillMaxSize()
+                            .background(color = MaterialTheme.colorScheme.surface),
+                        state = state,
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        items(items) { item ->
+                            SettingsCard(
+                                modifier = Modifier.size(width = 200.dp, height = 100.dp).padding(8.dp),
+                                icon = item.first,
+                                name = item.second,
+                                onClick = item.third
+                            )
+                        }
+                    }
+                    if (maxWidth < 1000.dp) {
+                        var autoHide by remember { mutableStateOf(false) }
+                        LaunchedEffect(maxWidth) {
+                            delay(3000.milliseconds)
+                            autoHide = true
+                        }
+                        ScrollBar(
+                            modifier = Modifier
+                                .padding(
+                                    top = maxHeight / 2,
+                                    start = Dimensions.medium,
+                                    end = Dimensions.medium
+                                )
+                                .height(120.dp),
+                            state = state,
+                            orientation = Orientation.Horizontal,
+                            autoHide = autoHide
                         )
                     }
                 }

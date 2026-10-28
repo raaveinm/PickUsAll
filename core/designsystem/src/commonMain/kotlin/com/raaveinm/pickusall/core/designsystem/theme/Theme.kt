@@ -1,6 +1,7 @@
 package com.raaveinm.pickusall.core.designsystem.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -97,12 +98,22 @@ val unspecified_scheme = ColorFamily(
     Color.Unspecified, Color.Unspecified, Color.Unspecified, Color.Unspecified
 )
 
+/**
+ * Two independent choices: light/dark and where the palette comes from.
+ *
+ * @param darkTheme light or dark; defaults to the device's setting, the caller passes a value to force one.
+ * @param dynamicColor on: the device's own palette (Android 12+); where the platform has none
+ * (Desktop, iOS, older Android) it falls back to the application's palette. Off: always the application's palette.
+ */
 @Composable
 fun PicassoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) darkScheme else lightScheme
+    val colorScheme: ColorScheme =
+        (if (dynamicColor) dynamicColorSchemeOrNull(darkTheme) else null)
+            ?: if (darkTheme) darkScheme else lightScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

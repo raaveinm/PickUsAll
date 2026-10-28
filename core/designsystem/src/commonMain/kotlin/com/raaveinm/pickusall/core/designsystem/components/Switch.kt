@@ -36,13 +36,15 @@ fun Switch(
     modifier: Modifier,
     selected: Int,
     onSelected: (Int) -> Unit,
-    options: List<String>
+    options: List<String>,
+    backgroundColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primaryContainer,
+    foregroundColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onPrimaryContainer
 ) {
     val cornerRadius = 36.dp
     BoxWithConstraints(
         modifier
             .clip(RoundedCornerShape(cornerRadius))
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .background(backgroundColor)
     ) {
         val slotWidth = maxWidth / options.size
         var animationFlag by remember { mutableStateOf(false) }
@@ -77,7 +79,7 @@ fun Switch(
                 .graphicsLayer { translationX = offset.toPx() }
                 .padding(Dimensions.extraSmall)
                 .clip(RoundedCornerShape(cornerRadius))
-                .background(MaterialTheme.colorScheme.onPrimaryContainer)
+                .background(foregroundColor)
         )
         Row {
             options.forEachIndexed { index, option ->

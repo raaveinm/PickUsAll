@@ -7,6 +7,9 @@ import com.raaveinm.core.database.dao.ServerDao
 import com.raaveinm.core.database.entities.server.Servers
 import com.raaveinm.core.database.entities.server.toModel
 import com.raaveinm.core.datastore.settings.ServerSettingsStore
+import com.raaveinm.core.datastore.settings.ThemeMode
+import com.raaveinm.core.datastore.settings.VisualSettingsList
+import com.raaveinm.core.datastore.settings.VisualSettingsStore
 import com.raaveinm.core.model.ServerState
 import com.raaveinm.core.model.toHttpBaseUrl
 import com.raaveinm.picasso.data.repository.AuthRepository
@@ -40,6 +43,7 @@ class SettingsViewModel(
     private val httpClient: HttpClient,
     private val keyBindingRepository: KeyBindingRepository,
     private val serverSettingsStore: ServerSettingsStore,
+    private val visualSettingsStore: VisualSettingsStore,
     private val authRepository: AuthRepository
 ) : ViewModel() {
     private val pingResults = MutableStateFlow<Map<Long, PingResult>>(emptyMap())
@@ -67,6 +71,12 @@ class SettingsViewModel(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = BehaviourState()
+    )
+
+    val visualSettings: StateFlow<VisualSettingsList> = visualSettingsStore.settings.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = VisualSettingsList()
     )
 
     val serverStates: StateFlow<List<ServerState>> = combine(
@@ -146,6 +156,22 @@ class SettingsViewModel(
     fun clearKeyBindingFeedback() {
         recordingFor.value = null
         notice.value = null
+    }
+
+    ///////////////////////////////////////////////
+    // Visual
+    ///////////////////////////////////////////////
+
+    fun setThemeMode(themeMode: ThemeMode) {
+        viewModelScope.launch { visualSettingsStore.setThemeMode(themeMode) }
+    }
+
+    fun setDynamicColor(isDynamicColor: Boolean) {
+        viewModelScope.launch { visualSettingsStore.setDynamicColor(isDynamicColor) }
+    }
+
+    fun setPFPBackground(pfpBackground: Boolean) {
+        viewModelScope.launch { visualSettingsStore.setSteamPFProfileBackgroundMode(pfpBackground) }
     }
 
     ///////////////////////////////////////////////

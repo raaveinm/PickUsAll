@@ -79,6 +79,14 @@
     <!--Server settings-->
     <string name="no_reachable_servers">No reachable servers found. Check out servers.</string>
 
+    <!--Visual Settings-->
+    <string name="theme_mode">Theme</string>
+    <string name="theme_mode_auto">Auto</string>
+    <string name="theme_mode_light">Light</string>
+    <string name="theme_mode_dark">Dark</string>
+    <string name="toggle_dynamic_color">Dynamic colors</string>
+    <string name="toggle_pfp_background">Steam profile as background</string>
+
     <!--Behavior settings-->
     <string name="key_binding">Key binding</string>
     <string name="rebind">Rebind</string>

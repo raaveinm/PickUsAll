@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -33,6 +34,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalUriHandler
@@ -45,6 +47,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.raaveinm.core.datastore.settings.ThemeMode
+import com.raaveinm.core.datastore.settings.VisualSettingsList
+import com.raaveinm.core.datastore.settings.VisualSettingsStore
 import com.raaveinm.picasso.data.ApiClient
 import com.raaveinm.picasso.ui.app.ProvideKeyMap
 import com.raaveinm.picasso.ui.app.QuickDestination
@@ -136,7 +141,19 @@ private fun AppContent(
 
     var pendingSettings by remember { mutableStateOf<Any?>(null) }
 
-    PicassoTheme {
+    val visualSettings: VisualSettingsList by koinInject<VisualSettingsStore>().settings
+        .collectAsState(initial = VisualSettingsList())
+
+    val isDarkTheme: Boolean = when (visualSettings.themeMode) {
+        ThemeMode.AUTO -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
+
+    PicassoTheme(
+        darkTheme = isDarkTheme,
+        dynamicColor = visualSettings.isDynamicColor,
+    ) {
         CoilInitializer()
 
         fun openTab(route: Any, tab: Int) {
@@ -215,7 +232,7 @@ private fun AppContent(
                 startDestination = Canvas
             ) {
                 composable<Canvas> {
-                    SteamPFB(backgroundOwner, apiClient)
+                    if (visualSettings.isSteamPFProfileBackground) { SteamPFB(backgroundOwner, apiClient) }
                     CanvasScreen(
                         modifier = Modifier,
                         topNavModifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
@@ -224,11 +241,14 @@ private fun AppContent(
                 }
                 composable<ChatGraph> { backStackEntry ->
                     val route = backStackEntry.toRoute<ChatGraph>()
-                    SteamPFB(backgroundOwner, apiClient)
+                    if (visualSettings.isSteamPFProfileBackground) { SteamPFB(backgroundOwner, apiClient) }
 
                     ChatScreen(
                         modifier = Modifier.fillMaxSize(),
-                        systemBarsModifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
+                        systemBarsModifier = Modifier
+                            .background(color = if (visualSettings.isSteamPFProfileBackground)
+                                Color.Transparent else MaterialTheme.colorScheme.surface)
+                            .padding(PlatformSpecificDim.systemBarsPadding),
                         viewModel = chatViewModel,
                         appViewModel = appViewModel,
                         selectedChatId = route.selectedChatId,
@@ -236,12 +256,13 @@ private fun AppContent(
                     )
                 }
                 composable<Friends> {
-                    SteamPFB(backgroundOwner, apiClient)
+                    if (visualSettings.isSteamPFProfileBackground) { SteamPFB(backgroundOwner, apiClient) }
 
                     FriendScreen(
                         modifier = Modifier
                             .fillMaxSize()
-//                            .background(MaterialTheme.colorScheme.backgroundGradientBrush) // TODO
+                            .background(color = if (visualSettings.isSteamPFProfileBackground)
+                                Color.Transparent else MaterialTheme.colorScheme.surface)
                             .padding(PlatformSpecificDim.systemBarsPadding),
                         viewModel = chatViewModel,
                         appViewModel = appViewModel,
@@ -258,7 +279,10 @@ private fun AppContent(
                     }
                     SettingsScreen(
                         nestedNavController = settingsNavController,
-                        modifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(PlatformSpecificDim.systemBarsPadding),
                         viewModel = settingsViewModel,
                         appViewModel = appViewModel
                     )
