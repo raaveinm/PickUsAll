@@ -1,4 +1,4 @@
-package com.raaveinm.core.datastore.settings
+package com.raaveinm.core.model.preferences
 
 //
 // Created by Kirill "Raaveinm" on 10/28/2026.

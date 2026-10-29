@@ -107,4 +107,12 @@
     <string name="status_rejected_reserved">%1$s is reserved for system shortcuts, pick another one</string>
     <string name="status_rejected_needs_modifier">%1$s would trigger while typing, hold Ctrl, Alt or Shift (or use a function key)</string>
     <string name="status_rejected_taken">%1$s is already used by “%2$s”</string>
+
+    <string name="on_close_request">On application close</string>
+    <string-array name="on_close_options">
+        <item>to tray</item>
+        <item>minimize</item>
+        <item>quit</item>
+    </string-array>
+
 </resources>

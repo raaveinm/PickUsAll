@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.map
 class KeyBindingRepository(private val store: BehaviourSettingsStore) {
 
     /** Factory defaults with the user's saved chords on top; invalid saved chords fall back to default. */
-    val keyMap: Flow<KeyMap> = store.settings.map { settings ->
+    val keyMap: Flow<KeyMap> = store.chordSettings.map { settings ->
         val overrides: Map<Commands, KeyChord> = settings.keyBindings.mapNotNull { (id: String, stored: StoredChord) ->
             // an id with no matching command is a leftover of a removed command - ignore it
             val command: Commands = Commands.entries.firstOrNull { it.name == id } ?: return@mapNotNull null

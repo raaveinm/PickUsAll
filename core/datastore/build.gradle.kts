@@ -47,6 +47,7 @@ kotlin {
                 implementation(libs.androidx.datastore.preferences.core)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.koin.core)
+                implementation(project(":core:model"))
             }
         }
 

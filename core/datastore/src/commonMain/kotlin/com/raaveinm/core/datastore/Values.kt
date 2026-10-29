@@ -1,6 +1,7 @@
 package com.raaveinm.core.datastore
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 
@@ -33,6 +34,7 @@ internal val STEAM_PROFILE_BACKGROUND = booleanPreferencesKey("steam_profile_bac
 ///////////////////////////////////////////////
 
 internal const val KEY_BINDING_PREFIX: String = "key_binding_"
+internal val ON_CLOSE_REQUEST = intPreferencesKey("on_close_request")
 
 ///////////////////////////////////////////////
 /// Server

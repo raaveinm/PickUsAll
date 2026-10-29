@@ -5,6 +5,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.raaveinm.core.datastore.KEY_BINDING_PREFIX
+import com.raaveinm.core.datastore.ON_CLOSE_REQUEST
+import com.raaveinm.core.model.preferences.OnCloseAction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -18,7 +20,20 @@ import kotlinx.coroutines.flow.map
  */
 class BehaviourSettingsStore(private val dataStore: DataStore<Preferences>) {
 
-    val settings: Flow<BehaviourSettings> = dataStore.data.map { it.toSettings() }
+    val chordSettings: Flow<BehaviourSettings> = dataStore.data.map { it.toSettings() }
+    val settings: Flow<BehaviourSettingsList> = dataStore.data.map { prefs ->
+        BehaviourSettingsList(
+            onCloseRequest = OnCloseAction.entries[prefs[ON_CLOSE_REQUEST]?:0]
+        )
+    }
+
+    suspend fun setOnCloseRequestAction(request: OnCloseAction) {
+        dataStore.edit { prefs -> prefs[ON_CLOSE_REQUEST] = request.ordinal }
+    }
+
+    ///////////////////////////////////////////////
+    // Key Bindings
+    ///////////////////////////////////////////////
 
     suspend fun saveKeyBinding(commandId: String, chord: StoredChord) {
         dataStore.edit { prefs -> prefs[keyBindingKey(commandId)] = chord.encode() }

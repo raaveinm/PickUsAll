@@ -1,4 +1,4 @@
-package com.raaveinm.picasso.ui.settings.fragments
+package com.raaveinm.picasso.ui.settings.fragments.behaviour
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -26,6 +26,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.raaveinm.picasso.ui.settings.fragments.ChordBadge
+import com.raaveinm.picasso.ui.settings.fragments.descriptionText
+import com.raaveinm.picasso.ui.settings.fragments.titleText
 import com.raaveinm.picasso.ui.settings.viewmodel.ChordBindings
 import com.raaveinm.pickusall.core.designsystem.keybinding.Commands
 import com.raaveinm.pickusall.core.designsystem.keybinding.KeyChord

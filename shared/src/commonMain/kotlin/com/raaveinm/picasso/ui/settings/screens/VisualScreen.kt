@@ -12,7 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.raaveinm.core.datastore.settings.ThemeMode
+import com.raaveinm.core.model.preferences.ThemeMode
 import com.raaveinm.core.datastore.settings.VisualSettingsList
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.settings.fragments.SwitchSetting

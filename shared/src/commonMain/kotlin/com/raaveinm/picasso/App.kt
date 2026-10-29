@@ -47,7 +47,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.raaveinm.core.datastore.settings.ThemeMode
+import com.raaveinm.core.model.preferences.ThemeMode
 import com.raaveinm.core.datastore.settings.VisualSettingsList
 import com.raaveinm.core.datastore.settings.VisualSettingsStore
 import com.raaveinm.picasso.data.ApiClient

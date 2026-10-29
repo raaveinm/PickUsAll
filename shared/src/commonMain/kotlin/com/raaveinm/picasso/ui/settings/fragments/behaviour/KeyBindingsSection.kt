@@ -1,4 +1,4 @@
-package com.raaveinm.picasso.ui.settings.fragments
+package com.raaveinm.picasso.ui.settings.fragments.behaviour
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement

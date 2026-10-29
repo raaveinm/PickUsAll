@@ -1,5 +1,7 @@
 package com.raaveinm.core.datastore.settings
 
+import com.raaveinm.core.model.preferences.ThemeMode
+
 //
 // Created by Kirill "Raaveinm" on 10/28/2026.
 //

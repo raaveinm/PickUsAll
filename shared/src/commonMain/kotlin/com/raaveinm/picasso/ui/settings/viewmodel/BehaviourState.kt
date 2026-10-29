@@ -1,5 +1,6 @@
 package com.raaveinm.picasso.ui.settings.viewmodel
 
+import com.raaveinm.core.model.preferences.OnCloseAction
 import com.raaveinm.pickusall.core.designsystem.keybinding.Commands
 import com.raaveinm.pickusall.core.designsystem.keybinding.KeyChord
 import com.raaveinm.pickusall.core.designsystem.keybinding.RebindProblem
@@ -26,5 +27,6 @@ sealed interface Notice {
 data class BehaviourState(
     val bindings: List<ChordBindings> = emptyList(), // list of hotkeys actions
     val recordingFor: Commands? = null,              // non-null while waiting for the user to press the new chord
-    val notice: Notice? = null
+    val notice: Notice? = null,
+    val onCloseSelectedAction: OnCloseAction = OnCloseAction.TO_TRAY
 )

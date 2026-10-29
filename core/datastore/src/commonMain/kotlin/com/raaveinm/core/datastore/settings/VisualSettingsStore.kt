@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import com.raaveinm.core.datastore.DYNAMIC_COLOR
 import com.raaveinm.core.datastore.STEAM_PROFILE_BACKGROUND
 import com.raaveinm.core.datastore.THEME_MODE
+import com.raaveinm.core.model.preferences.ThemeMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.map
 class VisualSettingsStore(private val dataStore: DataStore<Preferences>) {
     val settings: Flow<VisualSettingsList> = dataStore.data.map { prefs ->
         VisualSettingsList(
-            // a missing or unknown value (e.g. a removed constant) falls back to following the device
             themeMode = ThemeMode.entries.firstOrNull { it.name == prefs[THEME_MODE] } ?: ThemeMode.AUTO,
             isDynamicColor = prefs[DYNAMIC_COLOR] ?: true,
             isSteamPFProfileBackground = prefs[STEAM_PROFILE_BACKGROUND] ?: false

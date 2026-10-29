@@ -6,11 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.raaveinm.core.database.dao.ServerDao
 import com.raaveinm.core.database.entities.server.Servers
 import com.raaveinm.core.database.entities.server.toModel
+import com.raaveinm.core.datastore.settings.BehaviourSettingsStore
 import com.raaveinm.core.datastore.settings.ServerSettingsStore
-import com.raaveinm.core.datastore.settings.ThemeMode
+import com.raaveinm.core.model.preferences.ThemeMode
 import com.raaveinm.core.datastore.settings.VisualSettingsList
 import com.raaveinm.core.datastore.settings.VisualSettingsStore
 import com.raaveinm.core.model.ServerState
+import com.raaveinm.core.model.preferences.OnCloseAction
 import com.raaveinm.core.model.toHttpBaseUrl
 import com.raaveinm.picasso.data.repository.AuthRepository
 import com.raaveinm.picasso.data.repository.KeyBindingRepository
@@ -42,6 +44,7 @@ class SettingsViewModel(
     private val serverDao: ServerDao,
     private val httpClient: HttpClient,
     private val keyBindingRepository: KeyBindingRepository,
+    private val behaviourSettingsStore: BehaviourSettingsStore,
     private val serverSettingsStore: ServerSettingsStore,
     private val visualSettingsStore: VisualSettingsStore,
     private val authRepository: AuthRepository
@@ -53,8 +56,9 @@ class SettingsViewModel(
     val behaviourState: StateFlow<BehaviourState> = combine(
         keyBindingRepository.keyMap,
         recordingFor,
-        notice
-    ) { keyMap, recording, lastNotice ->
+        notice,
+        behaviourSettingsStore.settings
+    ) { keyMap, recording, lastNotice, settings ->
         BehaviourState(
             bindings = Commands.entries.mapNotNull { command ->
                 val chord: KeyChord = keyMap.chordFor(command) ?: return@mapNotNull null
@@ -65,7 +69,8 @@ class SettingsViewModel(
                 )
             },
             recordingFor = recording,
-            notice = lastNotice
+            notice = lastNotice,
+            onCloseSelectedAction = settings.onCloseRequest
         )
     }.stateIn(
         scope = viewModelScope,
@@ -104,6 +109,13 @@ class SettingsViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
     )
+    ///////////////////////////////////////////////
+    // Behaviour
+    ///////////////////////////////////////////////
+
+    fun setOnCloseRequestAction(action: OnCloseAction) {
+        viewModelScope.launch { behaviourSettingsStore.setOnCloseRequestAction(action) }
+    }
 
     ///////////////////////////////////////////////
     // Key Bindings
