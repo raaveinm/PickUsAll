@@ -8,11 +8,11 @@ import com.raaveinm.core.database.entities.server.Servers
 import com.raaveinm.core.database.entities.server.toModel
 import com.raaveinm.core.datastore.settings.BehaviourSettingsStore
 import com.raaveinm.core.datastore.settings.ServerSettingsStore
-import com.raaveinm.core.model.preferences.ThemeMode
 import com.raaveinm.core.datastore.settings.VisualSettingsList
 import com.raaveinm.core.datastore.settings.VisualSettingsStore
 import com.raaveinm.core.model.ServerState
 import com.raaveinm.core.model.preferences.OnCloseAction
+import com.raaveinm.core.model.preferences.ThemeMode
 import com.raaveinm.core.model.toHttpBaseUrl
 import com.raaveinm.picasso.data.repository.AuthRepository
 import com.raaveinm.picasso.data.repository.KeyBindingRepository
@@ -38,7 +38,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Clock.System
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.ExperimentalTime
 
 class SettingsViewModel(
     private val serverDao: ServerDao,
@@ -190,7 +189,6 @@ class SettingsViewModel(
     // Server Manipulation
     ///////////////////////////////////////////////
 
-    @OptIn(ExperimentalTime::class)
     fun addServer(url: String, name: String) {
         viewModelScope.launch {
             serverDao.addServer(
@@ -251,7 +249,6 @@ class SettingsViewModel(
      * mutating [server]'s own `var`s wouldn't do anything, since it's a plain data class
      * snapshot handed to Compose, not observed state.
      */
-    @OptIn(ExperimentalTime::class)
     fun pingServer(server: ServerState, postMessage: (WarnLevel, String) -> Unit = { _,_-> }) {
         pingResults.update { it + (server.id to PingResult(reachable = null, ping = null)) }
         viewModelScope.launch {

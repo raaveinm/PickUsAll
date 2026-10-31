@@ -115,4 +115,11 @@
         <item>quit</item>
     </string-array>
 
+    <!--Embedded browser-->
+    <string name="webview_back">Back</string>
+    <string name="webview_forward">Forward</string>
+    <string name="webview_reload">Reload</string>
+    <string name="webview_stop">Stop</string>
+    <string name="webview_retry">Try again</string>
+    <string name="webview_error">Unable to load the page: %1$s</string>
 </resources>

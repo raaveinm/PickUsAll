@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -36,6 +39,9 @@ import com.raaveinm.core.database.DatabaseFactory
 import com.raaveinm.core.database.databaseModule
 import com.raaveinm.core.datastore.auth.AuthDataStoreFactory
 import com.raaveinm.core.datastore.authDataStoreModule
+import com.raaveinm.core.datastore.settings.BehaviourSettingsList
+import com.raaveinm.core.datastore.settings.BehaviourSettingsStore
+import com.raaveinm.core.model.preferences.OnCloseAction
 import com.raaveinm.picasso.di.initKoin
 import com.raaveinm.picasso.fragments.AppMenuBar
 import com.raaveinm.picasso.ui.app.QuickDestination
@@ -45,8 +51,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.core.context.GlobalContext
 import pickusall.desktopapp.generated.resources.Res
 import pickusall.desktopapp.generated.resources.app_name
+import pickusall.desktopapp.generated.resources.open_webview
 import pickusall.desktopapp.generated.resources.minimize_application
 import pickusall.desktopapp.generated.resources.minimize_to_tray
 import pickusall.desktopapp.generated.resources.phrases
@@ -62,7 +70,12 @@ fun main() {
         )
     }
 
+    val behaviourSettingsStore: BehaviourSettingsStore = GlobalContext.get().get()
+
     application {
+        val behaviourSettings: BehaviourSettingsList by behaviourSettingsStore.settings.collectAsState(
+            initial = BehaviourSettingsList(),
+        )
         val windowState = rememberWindowState(
             initialBoundsProvider = WindowBoundsProvider(
                 positionProvider = WindowPositionProvider.Default,
@@ -73,6 +86,13 @@ fun main() {
         val onToggleVisibility: () -> Unit = { isVisible = !isVisible }
         val onQuit: () -> Unit = ::exitApplication
         val onMinimize: () -> Unit = { windowState.requestMinimized(true) }
+        val onCloseRequest: () -> Unit = {
+            when (behaviourSettings.onCloseRequest) {
+                OnCloseAction.TO_TRAY -> isVisible = false
+                OnCloseAction.MINIMIZE -> onMinimize()
+                OnCloseAction.QUIT -> onQuit()
+            }
+        }
 
         var isSecondWindow by remember { mutableStateOf(false) }
 
@@ -112,7 +132,7 @@ fun main() {
         }
 
         Window(
-            onCloseRequest = onToggleVisibility,
+            onCloseRequest = onCloseRequest,
             title = "${stringResource(Res.string.app_name)} :: ${stringArrayResource(Res.array.phrases).random()}",
             state = windowState,
             visible = isVisible,
@@ -173,6 +193,26 @@ object TrayIcon : Painter() {
     override val intrinsicSize = Size(256f, 256f)
 
     override fun DrawScope.onDraw() {
-        drawOval(Color(0xFF0088FF))
+        val path = Path().apply {
+            moveTo(size.width/2 - size.width/8, size.height/6)
+            lineTo(size.width/2 - size.width/8, size.height/2)
+
+            moveTo(size.width/2 + size.width/8, size.height/6)
+            lineTo(size.width/2 + size.width/8, size.height/2)
+
+            moveTo(size.width/2 - size.width/3, size.height/2)
+            cubicTo(
+                x1 = size.width/2 - size.width/4, y1 = size.height,
+                x2 = size.width/2 + size.width/4, y2 = size.height,
+                x3 = size.width/2 + size.width/3, y3 = size.width/2
+            )
+        }
+        drawOval(Color(0xDEFFFFFF))
+        drawPath(
+            path = path,
+            color = Color.Black,
+            alpha = 1f,
+            style = Stroke(16f)
+        )
     }
 }

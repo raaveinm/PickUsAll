@@ -41,5 +41,7 @@
         <item>SCREAMING_SNAKE</item>
         <item>nullpointer exception</item>
         <item>Created in Android Studio</item>
+        <item>BLYAAA - ©Not So Hero</item>
     </string-array>
+    <string name="open_webview">Pick Us All website</string>
 </resources>

@@ -71,10 +71,6 @@ kotlin {
                 implementation(libs.coil.network.ktor)
                 implementation(libs.compose.media.player)
                 implementation(libs.androidx.material.icons.extended)
-                implementation(libs.navigation.compose)
-                implementation(libs.kotlinx.serialization.json)
-                implementation(libs.androidx.lifecycle.viewmodelCompose)
-                implementation(libs.androidx.lifecycle.runtimeCompose)
             }
         }
 

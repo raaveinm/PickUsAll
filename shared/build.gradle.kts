@@ -106,6 +106,8 @@ kotlin {
             implementation(project(":core:database"))
             implementation(project(":core:datastore"))
             implementation(project(":features:impl-webrtc"))
+            implementation(project(":features:webview"))
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

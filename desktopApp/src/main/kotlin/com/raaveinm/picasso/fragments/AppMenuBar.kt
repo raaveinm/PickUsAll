@@ -8,7 +8,7 @@ import org.jetbrains.compose.resources.stringResource
 import pickusall.desktopapp.generated.resources.Res
 import pickusall.desktopapp.generated.resources.application_settings
 import pickusall.desktopapp.generated.resources.behavior_settings
-import pickusall.desktopapp.generated.resources.friend_window_search
+import pickusall.desktopapp.generated.resources.open_webview
 import pickusall.desktopapp.generated.resources.go_to_chat
 import pickusall.desktopapp.generated.resources.go_to_friends
 import pickusall.desktopapp.generated.resources.go_to_library
@@ -37,7 +37,7 @@ fun FrameWindowScope.AppMenuBar(
             }
         }
         Menu(stringResource(Res.string.steam_features)) {
-            Item(stringResource(Res.string.friend_window_search), onClick = onOpenSteamWindow)
+            Item(stringResource(Res.string.open_webview), onClick = onOpenSteamWindow)
         }
     }
 }
