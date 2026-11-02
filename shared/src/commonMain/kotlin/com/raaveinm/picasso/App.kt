@@ -106,14 +106,16 @@ private const val ProfileTab = 4
 fun App(
     navController: NavHostController = rememberNavController(),
     windowActions: WindowActions = WindowActions.Unsupported,
-    quickNavRequests: Flow<QuickDestination> = emptyFlow()
-) { ProvideKeyMap { AppContent(navController, windowActions, quickNavRequests) } }
+    quickNavRequests: Flow<QuickDestination> = emptyFlow(),
+    onSideWindowRequest: () -> Unit = {}
+) { ProvideKeyMap { AppContent(navController, windowActions, quickNavRequests, onSideWindowRequest) } }
 
 @Composable
 private fun AppContent(
     navController: NavHostController,
     windowActions: WindowActions,
-    quickNavRequests: Flow<QuickDestination>
+    quickNavRequests: Flow<QuickDestination>,
+    onSideWindowRequest: () -> Unit = {}
 ) {
     val canvasViewModel = koinViewModel<CanvasViewModel>()
     val chatViewModel = koinViewModel<ChatViewModel>()

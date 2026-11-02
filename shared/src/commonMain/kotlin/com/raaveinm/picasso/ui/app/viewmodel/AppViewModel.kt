@@ -14,6 +14,7 @@ import com.raaveinm.picasso.data.sync.SignedOutCacheGuard
 import com.raaveinm.picasso.data.sync.SyncCoordinator
 import com.raaveinm.picasso.ui.actions.ClipboardHelper
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
+import io.ktor.http.cio.Request
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -43,7 +44,8 @@ data class AppUiState(
     val dismissTimer: Boolean = false,
     val user: User? = null,
     val isLoggingIn: Boolean = false,
-    val pendingLoginUrl: String? = null
+    val pendingLoginUrl: String? = null,
+    var sideWindowRequest: Int? = null
 ) {
     val isLoggedIn: Boolean get() = user != null
 }
@@ -156,17 +158,11 @@ class AppViewModel(
     // Navigation
     ///////////////////////////////////////////////
 
-    fun selectTab(tab: Int) {
-        _uiState.update { it.copy(selectedTab = tab) }
-    }
+    fun selectTab(tab: Int) = _uiState.update { it.copy(selectedTab = tab) }
 
-    fun setSideBarExpanded(expanded: Boolean) {
-        _uiState.update { it.copy(isSideBarExpanded = expanded) }
-    }
+    fun setSideBarExpanded(expanded: Boolean) = _uiState.update { it.copy(isSideBarExpanded = expanded) }
 
-    fun toggleSideBar() {
-        _uiState.update { it.copy(isSideBarExpanded = !it.isSideBarExpanded) }
-    }
+    fun toggleSideBar() = _uiState.update { it.copy(isSideBarExpanded = !it.isSideBarExpanded) }
 
     fun hideBottomBar() = _uiState.update { it.copy(isBottomBarHidden = true) }
 
@@ -196,4 +192,11 @@ class AppViewModel(
     fun copyMessage() {
         ClipboardHelper.setText(uiState.value.message?.text ?: "no_err")
     }
+
+    ///////////////////////////////////////////////
+    // Side Window req
+    ///////////////////////////////////////////////
+
+    fun setWindowRequest(screen: Int) { _uiState.update { it.copy(sideWindowRequest = screen) } }
+    fun resetSideWindowRequest() { _uiState.update { it.copy(sideWindowRequest = null) } }
 }

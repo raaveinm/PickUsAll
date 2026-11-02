@@ -3,6 +3,7 @@ package com.raaveinm.picasso
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,19 +48,23 @@ import com.raaveinm.picasso.fragments.AppMenuBar
 import com.raaveinm.picasso.ui.app.QuickDestination
 import com.raaveinm.picasso.ui.app.WindowActions
 import dev.nucleusframework.composenativetray.tray.api.Tray
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.core.context.GlobalContext
 import pickusall.desktopapp.generated.resources.Res
 import pickusall.desktopapp.generated.resources.app_name
-import pickusall.desktopapp.generated.resources.open_webview
 import pickusall.desktopapp.generated.resources.minimize_application
 import pickusall.desktopapp.generated.resources.minimize_to_tray
 import pickusall.desktopapp.generated.resources.phrases
 import pickusall.desktopapp.generated.resources.quit_application
 import pickusall.desktopapp.generated.resources.restore_application
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -83,7 +88,18 @@ fun main() {
             )
         )
         var isVisible by remember { mutableStateOf(true) }
-        val onToggleVisibility: () -> Unit = { isVisible = !isVisible }
+        var isOnTop by remember { mutableStateOf(false) }
+        val onToggleVisibility: () -> Unit = {
+            isVisible = !isVisible
+
+            CoroutineScope(Dispatchers.Default).launch {
+                if (isVisible) {
+                    isOnTop = true
+                    delay(50.milliseconds)
+                    isOnTop = false
+                }
+            }
+        }
         val onQuit: () -> Unit = ::exitApplication
         val onMinimize: () -> Unit = { windowState.requestMinimized(true) }
         val onCloseRequest: () -> Unit = {
@@ -136,6 +152,7 @@ fun main() {
             title = "${stringResource(Res.string.app_name)} :: ${stringArrayResource(Res.array.phrases).random()}",
             state = windowState,
             visible = isVisible,
+            alwaysOnTop = isOnTop,
             minSize = DpSize(800.dp, 600.dp)
         ) {
             if (System.getProperty("os.name").lowercase().contains("mac"))
@@ -143,7 +160,11 @@ fun main() {
                 AppMenuBar(onNavigate = navigate, onOpenSteamWindow = { isSecondWindow = !isSecondWindow })
             }
 
-            App(windowActions = windowActions, quickNavRequests = quickNavFlow)
+            App(
+                windowActions = windowActions,
+                quickNavRequests = quickNavFlow,
+                onSideWindowRequest = { isSecondWindow = !isSecondWindow }
+            )
         }
 
         if (isSecondWindow) {
@@ -160,15 +181,17 @@ fun main() {
                 title = stringResource(Res.string.app_name),
                 decoration = WindowDecoration.Undecorated(),
                 transparent = true,
-                resizable = false,
-                alwaysOnTop = true
+                resizable = true,
+                alwaysOnTop = true,
+                minSize = DpSize(800.dp, 600.dp)
             ) {
                 if (System.getProperty("os.name").lowercase().contains("mac"))
                 {
                     AppMenuBar(onNavigate = navigate, onOpenSteamWindow = { isSecondWindow = !isSecondWindow })
                 }
                 WindowDraggableArea {
-                    Box(Modifier.fillMaxWidth()) {
+                    Box(Modifier.clip(RoundedCornerShape(8.dp)).fillMaxWidth().background(
+                        MaterialTheme.colors.primary.copy(alpha = .72f))) {
                         Box(
                             modifier = Modifier
                                 .padding(8.dp)
