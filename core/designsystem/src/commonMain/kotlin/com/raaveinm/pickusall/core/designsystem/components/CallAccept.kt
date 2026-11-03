@@ -22,14 +22,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import pickusall.core.designsystem.generated.resources.Res
 import pickusall.core.designsystem.generated.resources.ic_default_icon
+import pickusall.core.designsystem.generated.resources.call_accept
+import pickusall.core.designsystem.generated.resources.call_decline
+import pickusall.core.designsystem.generated.resources.call_caller_avatar
 
 //
 // Created by Kirill "Raaveinm" on 10/10/2026.
@@ -53,7 +58,7 @@ fun CallAccept(
             val textStyle = MaterialTheme.typography.headlineMedium
             AsyncImage(
                 model = callerIcon,
-                contentDescription = "caller_icon/$callerName",
+                contentDescription = stringResource(Res.string.call_caller_avatar, callerName),
                 contentScale = ContentScale.Crop,
                 alignment = Alignment.Center,
                 modifier = Modifier
@@ -79,12 +84,12 @@ fun CallAccept(
                         .size(80.dp)
                         .clip(Shapes.circleShape)
                         .background(MaterialTheme.colorScheme.surface)
-                        .clickable { onAccept() },
+                        .clickable(role = Role.Button, onClick = onAccept),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Call,
-                        contentDescription = null,
+                        contentDescription = stringResource(Res.string.call_accept),
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(40.dp)
                     )
@@ -95,12 +100,12 @@ fun CallAccept(
                         .size(80.dp)
                         .clip(Shapes.circleShape)
                         .background(MaterialTheme.colorScheme.error)
-                        .clickable { onDismiss() },
+                        .clickable(role = Role.Button, onClick = onDismiss),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Filled.CallEnd,
-                        null,
+                        contentDescription = stringResource(Res.string.call_decline),
                         tint = MaterialTheme.colorScheme.onError,
                         modifier = Modifier.size(40.dp)
                     )

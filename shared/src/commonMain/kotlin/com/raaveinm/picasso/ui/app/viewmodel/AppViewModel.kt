@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.raaveinm.core.database.dao.UserDao
 import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.model.user.User
+import com.raaveinm.features.impl_webrtc.CallManager
+import com.raaveinm.features.impl_webrtc.IncomingCall
 import com.raaveinm.picasso.data.repository.AuthRepository
 import com.raaveinm.picasso.data.auth.secureNonce
 import com.raaveinm.picasso.data.repository.LoginError
@@ -46,6 +48,7 @@ data class AppUiState(
     val user: User? = null,
     val isLoggingIn: Boolean = false,
     val sideWindowRequest: SideWindowRequest? = null,
+    val incomingCaller: User? = null,
 ) {
     val isLoggedIn: Boolean get() = user != null
 }
@@ -66,18 +69,29 @@ class AppViewModel(
     private val userDao: UserDao,
     private val syncCoordinator: SyncCoordinator,
     private val signedOutCacheGuard: SignedOutCacheGuard,
-    private val serverCacheGuard: ServerCacheGuard
+    private val serverCacheGuard: ServerCacheGuard,
+    private val callManager: CallManager,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState = _uiState.asStateFlow()
     private var dismissJob: Job? = null
     private var loginJob: Job? = null
     private var activeLoginId: String? = null
+    private var incomingCallRequestId: String? = null
 
     init {
         signedOutCacheGuard.start()
         serverCacheGuard.start()
         syncCoordinator.start()
+
+        callManager.incomingCall
+            .onEach(::onIncomingCallChanged)
+            .flatMapLatest { call ->
+                if (call == null) flowOf(null)
+                else userDao.observeUser(call.peerSteamId).map { it?.toDto() }
+            }
+            .onEach { caller -> _uiState.update { it.copy(incomingCaller = caller) } }
+            .launchIn(viewModelScope)
 
         syncCoordinator.sessionRejected
             .onEach {
@@ -110,7 +124,7 @@ class AppViewModel(
             try {
                 authRepository.startLogin()
                     .onSuccess { attempt ->
-                        val request: SideWindowRequest = SideWindowRequest(
+                        val request = SideWindowRequest(
                             destination = SideWindow.WebAuth(
                                 url = attempt.url,
                                 loginAttemptId = attempt.state,
@@ -199,17 +213,42 @@ class AppViewModel(
     ///////////////////////////////////////////////
 
     fun setWindowRequest(screen: SideWindow): SideWindowRequest {
-        val request: SideWindowRequest = SideWindowRequest(destination = screen)
+        val request = SideWindowRequest(destination = screen)
         _uiState.update { it.copy(sideWindowRequest = request) }
         return request
     }
 
     /** Ignores dismissals from a screen that has already been replaced. */
     fun resetSideWindowRequest(requestId: String) {
-        if (_uiState.value.sideWindowRequest?.id != requestId) return
+        val request: SideWindowRequest = _uiState.value.sideWindowRequest?.takeIf { it.id == requestId } ?: return
+        val call: SideWindow.IncomingCall? = request.destination as? SideWindow.IncomingCall
+        if (call != null) callManager.declineIncomingCall(call.callId)
         if (activeLoginId == requestId) cancelLogin()
+        clearSideWindowRequest(requestId)
+    }
+
+    fun acceptIncomingCall(requestId: String) {
+        val request: SideWindowRequest = _uiState.value.sideWindowRequest?.takeIf { it.id == requestId } ?: return
+        val call: SideWindow.IncomingCall = request.destination as? SideWindow.IncomingCall ?: return
+        callManager.acceptIncomingCall(call.callId)
+        clearSideWindowRequest(requestId)
+    }
+
+    private fun clearSideWindowRequest(requestId: String) {
         _uiState.update { state ->
             state.copy(sideWindowRequest = state.sideWindowRequest?.takeUnless { it.id == requestId })
+        }
+    }
+
+    private fun onIncomingCallChanged(call: IncomingCall?) {
+        if (call == null) {
+            incomingCallRequestId?.let(::clearSideWindowRequest)
+            incomingCallRequestId = null
+        } else {
+            val request: SideWindowRequest = setWindowRequest(
+                SideWindow.IncomingCall(callId = call.id, peerSteamId = call.peerSteamId),
+            )
+            incomingCallRequestId = request.id
         }
     }
 

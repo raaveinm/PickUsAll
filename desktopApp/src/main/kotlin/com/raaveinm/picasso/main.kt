@@ -44,6 +44,7 @@ import com.raaveinm.picasso.fragments.AppMenuBar
 import com.raaveinm.picasso.ui.app.QuickDestination
 import com.raaveinm.picasso.ui.app.WindowActions
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
+import com.raaveinm.picasso.ui.navigation.SideWindow
 import com.raaveinm.picasso.ui.navigation.SideWindowRequest
 import dev.nucleusframework.composenativetray.tray.api.Tray
 import kotlinx.coroutines.CoroutineScope
@@ -77,6 +78,9 @@ fun main() {
     val behaviourSettingsStore: BehaviourSettingsStore = GlobalContext.get().get()
 
     application {
+        val windowName = "${stringResource(Res.string.app_name)} " +
+                ":: ${stringArrayResource(Res.array.phrases).random()}"
+
         val appViewModelOwner: ViewModelStoreOwner = remember {
             object : ViewModelStoreOwner {
                 override val viewModelStore: ViewModelStore = ViewModelStore()
@@ -85,9 +89,7 @@ fun main() {
         DisposableEffect(appViewModelOwner) {
             onDispose { appViewModelOwner.viewModelStore.clear() }
         }
-        val appViewModel: AppViewModel = koinViewModel(
-            viewModelStoreOwner = appViewModelOwner,
-        )
+        val appViewModel: AppViewModel = koinViewModel(viewModelStoreOwner = appViewModelOwner)
         val appUiState by appViewModel.uiState.collectAsState()
         val sideWindowRequest: SideWindowRequest? = appUiState.sideWindowRequest
         val behaviourSettings: BehaviourSettingsList by behaviourSettingsStore.settings.collectAsState(
@@ -159,7 +161,7 @@ fun main() {
 
         Window(
             onCloseRequest = onCloseRequest,
-            title = "${stringResource(Res.string.app_name)} :: ${stringArrayResource(Res.array.phrases).random()}",
+            title = windowName,
             state = windowState,
             visible = isVisible,
             alwaysOnTop = isOnTop,
@@ -167,7 +169,14 @@ fun main() {
         ) {
             if (System.getProperty("os.name").lowercase().contains("mac"))
             {
-                AppMenuBar(onNavigate = navigate, onOpenSteamWindow = appViewModel::login)
+                AppMenuBar(
+                    onNavigate = navigate,
+                    onOpenSteamWindow = {
+                        appViewModel.setWindowRequest(
+                            SideWindow.Browser(url = "https://google.com"),
+                        )
+                    },
+                )
             }
 
             App(
@@ -197,7 +206,14 @@ fun main() {
             ) {
                 if (System.getProperty("os.name").lowercase().contains("mac"))
                 {
-                    AppMenuBar(onNavigate = navigate, onOpenSteamWindow = appViewModel::login)
+                    AppMenuBar(
+                        onNavigate = navigate,
+                        onOpenSteamWindow = {
+                            appViewModel.setWindowRequest(
+                                SideWindow.Browser(url = "https://google.com"),
+                            )
+                        },
+                    )
                 }
                 WindowDraggableArea {
                     Box(Modifier.clip(RoundedCornerShape(8.dp)).fillMaxWidth().background(

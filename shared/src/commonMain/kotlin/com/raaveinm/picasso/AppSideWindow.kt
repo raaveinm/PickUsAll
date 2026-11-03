@@ -19,7 +19,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,13 +30,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.raaveinm.core.datastore.settings.VisualSettingsList
 import com.raaveinm.core.datastore.settings.VisualSettingsStore
 import com.raaveinm.core.model.preferences.ThemeMode
+import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.navigation.SideWindow
 import com.raaveinm.picasso.ui.navigation.SideWindowRequest
+import com.raaveinm.pickusall.core.designsystem.components.CallAccept
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 import com.raaveinm.webview.AppWebView
 import com.raaveinm.webview.wv.AppWebViewState
@@ -93,6 +95,13 @@ fun AppSideWindow(
                         )
                         is SideWindow.IncomingCall -> IncomingCallScreen(
                             request = destination,
+                            caller = appUiState.incomingCaller?.takeIf { it.steamId == destination.peerSteamId },
+                            onDismiss = onDismiss,
+                            onAccept = { appViewModel.acceptIncomingCall(request.id) },
+                        )
+
+                        is SideWindow.Browser -> WebScreen(
+                            url = destination.url,
                             onDismiss = onDismiss,
                         )
                     }
@@ -103,7 +112,7 @@ fun AppSideWindow(
 }
 
 ///////////////////////////////////////////////
-// Web authentication
+// Web pages and authentication
 ///////////////////////////////////////////////
 
 @Composable
@@ -191,23 +200,26 @@ private fun WebScreen(
 // Incoming calls
 ///////////////////////////////////////////////
 
+@Preview
 @Composable
 private fun IncomingCallScreen(
-    request: SideWindow.IncomingCall,
-    onDismiss: () -> Unit,
+    request: SideWindow.IncomingCall = SideWindow.IncomingCall(
+        callId = "s",
+        peerSteamId = 76561198966516520
+    ),
+    caller: User? = null,
+    onDismiss: () -> Unit = {},
+    onAccept: () -> Unit = {},
 ) {
-    //TODO(Connect call consent actions once CallManager exposes pending incoming calls)
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = stringResource(Res.string.side_window_incoming_call, request.peerSteamId.toString()),
-            style = MaterialTheme.typography.titleLarge,
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CallAccept(
+            callerName = caller?.personaName ?: stringResource(
+                Res.string.side_window_incoming_call,
+                request.peerSteamId.toString(),
+            ),
+            callerIcon = caller?.avatarFull,
+            onAccept = onAccept,
+            onDismiss = onDismiss,
         )
-        Button(onClick = onDismiss) {
-            Text(stringResource(Res.string.dismiss))
-        }
     }
 }

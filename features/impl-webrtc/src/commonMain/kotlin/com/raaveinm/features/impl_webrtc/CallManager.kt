@@ -1,204 +1,350 @@
 package com.raaveinm.features.impl_webrtc
 
-import com.raaveinm.features.impl_webrtc.rtc.LocalIceCandidateData
-import com.raaveinm.features.impl_webrtc.rtc.WebRtcCallClient
+import com.raaveinm.features.impl_webrtc.rtc.CallConnectionState
+import com.raaveinm.features.impl_webrtc.rtc.CallPeer
+import com.raaveinm.features.impl_webrtc.rtc.WebRtcCallPeer
+import com.raaveinm.features.impl_webrtc.signaling.CallSignaling
 import com.raaveinm.features.impl_webrtc.signaling.HangupPayload
 import com.raaveinm.features.impl_webrtc.signaling.IceCandidatePayload
 import com.raaveinm.features.impl_webrtc.signaling.IceCandidateWireData
 import com.raaveinm.features.impl_webrtc.signaling.SdpPayload
-import com.raaveinm.features.impl_webrtc.signaling.SignalingClient
 import com.raaveinm.features.impl_webrtc.signaling.SignalingEnvelope
 import com.raaveinm.features.impl_webrtc.signaling.SignalingMessageType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
-/*
- * Orchestrates the pipeline: both clients connect over the same signaling
- * WebSocket, an offer/answer exchange happens by steamId, ICE candidates
- * trickle both ways, and the resulting PeerConnection is the P2P audio call -
- * the server never sees anything past this class. Holds at most one active
- * call at a time (mesh-not-SFU design, 1:1 DM calling only - see brainstorm/decisions.md).
- */
+private const val MAX_BUFFERED_ICE_CANDIDATES: Int = 256
+private val INCOMING_CALL_TIMEOUT: Duration = 45.seconds
+
+/** Owns one pending or active DM call. Incoming offers require consent before acquiring media. */
 class CallManager(
-    private val signalingClient: SignalingClient,
-    private val webRtcClientFactory: () -> WebRtcCallClient = { WebRtcCallClient() }
-) {
-    /*
-     * The handler is a blanket safety net, not just for connectSignaling: a dead
-     * signaling socket mid-call, a denied mic permission, etc. must degrade calling
-     * only - not take the whole app down with an uncaught coroutine exception.
-     */
-    private val scope = CoroutineScope(
+    private val signalingClient: CallSignaling,
+    private val webRtcClientFactory: () -> CallPeer = { WebRtcCallPeer() },
+    private val scope: CoroutineScope = CoroutineScope(
         SupervisorJob() + Dispatchers.Default +
-            CoroutineExceptionHandler { _, e -> println("CallManager: unhandled error: $e") }
-    )
-    private val json = Json { ignoreUnknownKeys = true }
+            CoroutineExceptionHandler { _, error -> println("CallManager: unhandled error: $error") },
+    ),
+) {
+    private val json: Json = Json { ignoreUnknownKeys = true }
+    private val mutex: Mutex = Mutex()
+    private var nextCallId: Long = 0L
+    private var session: CallSession? = null
 
-    private var activeCall: WebRtcCallClient? = null
-    private var activeConversationId: Long? = null
-    private var activePeerSteamId: Long? = null
+    private val _incomingCall: MutableStateFlow<IncomingCall?> = MutableStateFlow(null)
+    val incomingCall: StateFlow<IncomingCall?> = _incomingCall.asStateFlow()
+    private val _isInCall: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isInCall: StateFlow<Boolean> = _isInCall.asStateFlow()
 
-    private val _isInCall = MutableStateFlow(false)
-    val isInCall: StateFlow<Boolean> = _isInCall
+    // All session mutations use mutex. Media setup runs outside it so hangup can cancel setup.
+    private class CallSession(
+        val identity: IncomingCall,
+        val offerSdp: String?,
+        val scope: CoroutineScope,
+    ) {
+        var peer: CallPeer? = null
+        var remoteDescriptionReady: Boolean = false
+        var answerReceived: Boolean = false
+        val candidates: ArrayDeque<IceCandidateWireData> = ArrayDeque()
+    }
 
     init {
         signalingClient.incoming
-            .onEach(::handleIncoming)
+            .onEach { envelope -> mutex.withLock { handleIncoming(envelope) } }
             .launchIn(scope)
-
         signalingClient.isConnected
-            .onEach { connected -> if (!connected && activeCall != null) teardown() }
+            .onEach { connected ->
+                if (!connected) mutex.withLock {
+                    if (!signalingClient.isConnected.value) teardown()
+                }
+            }
             .launchIn(scope)
     }
 
-    /**
-     * Drops the signaling socket and any live call. Required on logout: the socket
-     * is authenticated as a specific session, so leaving it open would keep the
-     * server talking to a user who signed out.
-     */
+    ///////////////////////////////////////////////
+    // User actions
+    ///////////////////////////////////////////////
+
+    /** Drops pending consent and any live media when the account or server disconnects. */
     fun disconnectSignaling() {
-        if (activeCall != null) endCall()
         signalingClient.close()
+        scope.launch { mutex.withLock { teardown() } }
     }
 
-    /* Caller/offer path. */
     fun startCall(conversationId: Long, peerSteamId: Long) {
-        if (activeCall != null) return
-
-        activeConversationId = conversationId
-        activePeerSteamId = peerSteamId
-        val call = webRtcClientFactory()
-        activeCall = call
-        _isInCall.value = true
-        forwardLocalIceCandidates(call)
-        logConnectionState(call)
-
         scope.launch {
-            val offerSdp = call.createOffer()
-            println("CallManager: sending sdp_offer to $peerSteamId")
-            signalingClient.send(
-                SignalingEnvelope(
-                    type = SignalingMessageType.SDP_OFFER,
-                    sdp = SdpPayload(conversationId.toString(), peerSteamId.toString(), sdp = offerSdp)
-                )
-            )
-        }
-    }
-
-    /* Local toggle-off: notifies the peer immediately, then tears down locally. */
-    fun endCall() {
-        val conversationId = activeConversationId
-        val peer = activePeerSteamId
-        if (conversationId != null && peer != null) {
-            scope.launch {
-                signalingClient.send(
-                    SignalingEnvelope(
-                        type = SignalingMessageType.CALL_HANGUP,
-                        callHangup = HangupPayload(conversationId.toString(), peer.toString())
-                    )
-                )
+            mutex.withLock {
+                if (session != null || !signalingClient.isConnected.value) return@withLock
+                val current: CallSession = newSession(conversationId, peerSteamId, offerSdp = null)
+                session = current
+                _isInCall.value = true
+                startMedia(current)
             }
         }
-        teardown()
+    }
+
+    /** Only the still-pending offer with this local ID may acquire the microphone. */
+    fun acceptIncomingCall(callId: String) {
+        scope.launch {
+            mutex.withLock {
+                val current: CallSession = session ?: return@withLock
+                if (_incomingCall.value?.id != callId) return@withLock
+                _incomingCall.value = null
+                _isInCall.value = true
+                startMedia(current)
+            }
+        }
+    }
+
+    fun declineIncomingCall(callId: String) {
+        scope.launch {
+            mutex.withLock {
+                val current: CallSession = session ?: return@withLock
+                if (_incomingCall.value?.id != callId) return@withLock
+                sendHangup(current.identity)
+                teardown()
+            }
+        }
+    }
+
+    fun endCall() {
+        scope.launch {
+            mutex.withLock {
+                session?.let { sendHangup(it.identity) }
+                teardown()
+            }
+        }
+    }
+
+    ///////////////////////////////////////////////
+    // Session and media lifetime
+    ///////////////////////////////////////////////
+
+    private fun newSession(conversationId: Long, peerSteamId: Long, offerSdp: String?): CallSession {
+        nextCallId += 1L
+        return CallSession(
+            identity = IncomingCall(nextCallId.toString(), conversationId, peerSteamId),
+            offerSdp = offerSdp,
+            scope = CoroutineScope(scope.coroutineContext + SupervisorJob(scope.coroutineContext[Job])),
+        )
+    }
+
+    private fun startMedia(current: CallSession) {
+        current.scope.launch {
+            try {
+                val peer: CallPeer = mutex.withLock {
+                    if (session !== current) return@launch
+                    webRtcClientFactory().also {
+                        current.peer = it
+                        observeMedia(current, it)
+                    }
+                }
+                val offerSdp: String? = current.offerSdp
+                val localSdp: String = if (offerSdp == null) peer.createOffer() else peer.createAnswer(offerSdp)
+                mutex.withLock {
+                    if (session !== current) return@launch
+                    if (offerSdp != null) remoteDescriptionReady(current)
+                }
+                signalingClient.send(
+                    SignalingEnvelope(
+                        type = if (offerSdp == null) SignalingMessageType.SDP_OFFER else SignalingMessageType.SDP_ANSWER,
+                        sdp = SdpPayload(
+                            conversationId = current.identity.conversationId.toString(),
+                            toSteamId = current.identity.peerSteamId.toString(),
+                            sdp = localSdp,
+                        ),
+                    ),
+                )
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                mutex.withLock { failSession(current, error) }
+            }
+        }
+    }
+
+    private fun observeMedia(current: CallSession, peer: CallPeer) {
+        // Subscribe before creating the SDP: native clients can emit ICE during that operation.
+        current.scope.launch(start = CoroutineStart.UNDISPATCHED) {
+            peer.localIceCandidates.collect { candidate ->
+                try {
+                    val isCurrent: Boolean = mutex.withLock { session === current }
+                    if (!isCurrent) return@collect
+                    signalingClient.send(
+                        SignalingEnvelope(
+                            type = SignalingMessageType.ICE_CANDIDATE,
+                            iceCandidate = IceCandidatePayload(
+                                conversationId = current.identity.conversationId.toString(),
+                                toSteamId = current.identity.peerSteamId.toString(),
+                                candidate = json.encodeToString(
+                                    IceCandidateWireData(candidate.sdpMid, candidate.sdpMLineIndex, candidate.candidate),
+                                ),
+                            ),
+                        ),
+                    )
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    mutex.withLock { failSession(current, error) }
+                }
+            }
+        }
+        current.scope.launch(start = CoroutineStart.UNDISPATCHED) {
+            peer.connectionState.collect { state ->
+                if (state == CallConnectionState.FAILED || state == CallConnectionState.CLOSED) {
+                    mutex.withLock {
+                        if (session === current) {
+                            sendHangup(current.identity)
+                            teardown()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun teardown() {
-        activeCall?.close()
-        activeCall = null
-        activeConversationId = null
-        activePeerSteamId = null
+        val previous: CallSession? = session
+        session = null
+        _incomingCall.value = null
         _isInCall.value = false
+        previous?.scope?.cancel()
+        runCatching { previous?.peer?.close() }
+            .onFailure { error -> println("CallManager: media close failed: $error") }
     }
 
-    private fun forwardLocalIceCandidates(call: WebRtcCallClient) {
-        call.localIceCandidates
-            .onEach { sendLocalCandidate(it) }
-            .launchIn(scope)
+    private fun failSession(current: CallSession, error: Exception) {
+        if (session !== current) return
+        println("CallManager: media setup failed: $error")
+        sendHangup(current.identity)
+        teardown()
     }
 
-    private fun logConnectionState(call: WebRtcCallClient) {
-        call.connectionState
-            .onEach { println("CallManager: connectionState = $it") }
-            .launchIn(scope)
-    }
-
-    private suspend fun sendLocalCandidate(candidate: LocalIceCandidateData) {
-        val conversationId = activeConversationId ?: return
-        val peer = activePeerSteamId ?: return
-        val wireData = json.encodeToString(
-            IceCandidateWireData(candidate.sdpMid, candidate.sdpMLineIndex, candidate.candidate)
-        )
-        signalingClient.send(
-            SignalingEnvelope(
-                type = SignalingMessageType.ICE_CANDIDATE,
-                iceCandidate = IceCandidatePayload(conversationId.toString(), peer.toString(), candidate = wireData)
-            )
-        )
-    }
-
-    private suspend fun handleIncoming(envelope: SignalingEnvelope) {
-        when (envelope.type) {
-            SignalingMessageType.SDP_OFFER -> handleRemoteOffer(envelope)
-            SignalingMessageType.SDP_ANSWER -> handleRemoteAnswer(envelope)
-            SignalingMessageType.ICE_CANDIDATE -> handleRemoteIceCandidate(envelope)
-            SignalingMessageType.CALL_HANGUP -> handleRemoteHangup(envelope)
+    private fun sendHangup(identity: IncomingCall) {
+        scope.launch {
+            try {
+                signalingClient.send(
+                    SignalingEnvelope(
+                        type = SignalingMessageType.CALL_HANGUP,
+                        callHangup = HangupPayload(
+                            conversationId = identity.conversationId.toString(),
+                            toSteamId = identity.peerSteamId.toString(),
+                        ),
+                    ),
+                )
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                println("CallManager: hangup could not be sent: $error")
+            }
         }
     }
 
-    /* Callee/answer path - no explicit accept step, the offer itself is the ring. */
-    private suspend fun handleRemoteOffer(envelope: SignalingEnvelope) {
-        val sdp = envelope.sdp ?: return
-        val fromSteamId = sdp.fromSteamId?.toLongOrNull() ?: return
-        val conversationId = sdp.conversationId.toLongOrNull() ?: return
+    ///////////////////////////////////////////////
+    // Remote signaling (called while holding mutex)
+    ///////////////////////////////////////////////
 
-        /* No call-waiting / switching in minimal core: busy just drops the offer. */
-        if (activeCall != null) return
-
-        println("CallManager: received sdp_offer from $fromSteamId")
-        activeConversationId = conversationId
-        activePeerSteamId = fromSteamId
-        val call = webRtcClientFactory()
-        activeCall = call
-        _isInCall.value = true
-        forwardLocalIceCandidates(call)
-        logConnectionState(call)
-
-        val answerSdp = call.createAnswer(sdp.sdp)
-        println("CallManager: sending sdp_answer to $fromSteamId")
-        signalingClient.send(
-            SignalingEnvelope(
-                type = SignalingMessageType.SDP_ANSWER,
-                sdp = SdpPayload(conversationId.toString(), fromSteamId.toString(), sdp = answerSdp)
-            )
-        )
+    private fun handleIncoming(envelope: SignalingEnvelope) {
+        if (!signalingClient.isConnected.value) return
+        when (envelope.type) {
+            SignalingMessageType.SDP_OFFER -> handleRemoteOffer(envelope.sdp ?: return)
+            SignalingMessageType.SDP_ANSWER -> handleRemoteAnswer(envelope.sdp ?: return)
+            SignalingMessageType.ICE_CANDIDATE -> handleRemoteIceCandidate(envelope.iceCandidate ?: return)
+            SignalingMessageType.CALL_HANGUP -> {
+                val hangup: HangupPayload = envelope.callHangup ?: return
+                if (matchesSession(hangup.conversationId, hangup.fromSteamId)) teardown()
+            }
+        }
     }
 
-    private suspend fun handleRemoteAnswer(envelope: SignalingEnvelope) {
-        val sdp = envelope.sdp ?: return
-        val call = activeCall ?: return
-        println("CallManager: received sdp_answer")
-        call.setRemoteAnswer(sdp.sdp)
+    private fun handleRemoteOffer(sdp: SdpPayload) {
+        val peerSteamId: Long = sdp.fromSteamId?.toLongOrNull() ?: return
+        val conversationId: Long = sdp.conversationId.toLongOrNull() ?: return
+        if (sdp.sdp.isBlank()) return
+        if (session != null) {
+            if (!matchesSession(sdp.conversationId, sdp.fromSteamId)) {
+                sendHangup(IncomingCall(id = "", conversationId = conversationId, peerSteamId = peerSteamId))
+            }
+            return
+        }
+        val current: CallSession = newSession(conversationId, peerSteamId, sdp.sdp)
+        session = current
+        _incomingCall.value = current.identity
+        current.scope.launch {
+            delay(INCOMING_CALL_TIMEOUT)
+            mutex.withLock {
+                if (session === current && _incomingCall.value?.id == current.identity.id) {
+                    sendHangup(current.identity)
+                    teardown()
+                }
+            }
+        }
     }
 
-    private fun handleRemoteIceCandidate(envelope: SignalingEnvelope) {
-        val payload = envelope.iceCandidate ?: return
-        val call = activeCall ?: return
-        val wire = runCatching { json.decodeFromString<IceCandidateWireData>(payload.candidate) }.getOrNull()
-            ?: return
-        call.addRemoteIceCandidate(wire.sdpMid, wire.sdpMLineIndex, wire.candidate)
+    private fun handleRemoteAnswer(sdp: SdpPayload) {
+        val current: CallSession = session ?: return
+        val peer: CallPeer = current.peer ?: return
+        if (current.offerSdp != null || current.answerReceived || !matchesSession(sdp.conversationId, sdp.fromSteamId)) return
+        current.answerReceived = true
+        current.scope.launch {
+            try {
+                peer.setRemoteAnswer(sdp.sdp)
+                mutex.withLock {
+                    if (session === current) remoteDescriptionReady(current)
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                mutex.withLock { failSession(current, error) }
+            }
+        }
     }
 
-    private fun handleRemoteHangup(envelope: SignalingEnvelope) {
-        val hangup = envelope.callHangup ?: return
-        if (hangup.conversationId.toLongOrNull() != activeConversationId) return
-        teardown()
+    private fun handleRemoteIceCandidate(payload: IceCandidatePayload) {
+        val current: CallSession = session ?: return
+        if (!matchesSession(payload.conversationId, payload.fromSteamId)) return
+        val wire: IceCandidateWireData = runCatching {
+            json.decodeFromString<IceCandidateWireData>(payload.candidate)
+        }.getOrNull() ?: return
+        if (!current.remoteDescriptionReady) {
+            if (current.candidates.size < MAX_BUFFERED_ICE_CANDIDATES) current.candidates.addLast(wire)
+        } else {
+            try {
+                current.peer?.addRemoteIceCandidate(wire.sdpMid, wire.sdpMLineIndex, wire.candidate)
+            } catch (error: Exception) {
+                failSession(current, error)
+            }
+        }
+    }
+
+    private fun remoteDescriptionReady(current: CallSession) {
+        current.remoteDescriptionReady = true
+        while (current.candidates.isNotEmpty()) {
+            val wire: IceCandidateWireData = current.candidates.removeFirst()
+            current.peer?.addRemoteIceCandidate(wire.sdpMid, wire.sdpMLineIndex, wire.candidate)
+        }
+    }
+
+    private fun matchesSession(conversationId: String, fromSteamId: String?): Boolean {
+        val current: IncomingCall = session?.identity ?: return false
+        return conversationId.toLongOrNull() == current.conversationId &&
+            fromSteamId?.toLongOrNull() == current.peerSteamId
     }
 }

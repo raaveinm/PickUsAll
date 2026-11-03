@@ -15,4 +15,8 @@ sealed interface SideWindow {
         val callId: String,
         val peerSteamId: Long,
     ) : SideWindow
+
+    data class Browser(
+        val url: String,
+    ) : SideWindow
 }

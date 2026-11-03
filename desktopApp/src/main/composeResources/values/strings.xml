@@ -11,6 +11,7 @@
     <!--Menu Items-->
     <string name="quick_nav_menu">Menu</string>
     <string name="steam_features">Steam</string>
+    <string name="web_features">Web</string>
 
     <!--Menu Navigation-->
     <string name="go_to_library">Library</string>
@@ -25,6 +26,9 @@
 
     <!--Menu Steam Features-->
     <string name="friend_window_search">Search by userID</string>
+
+    <!-- Menu Web Page -->
+    <string name="open_webview">search something</string>
 
     <!--Eggs-->
     <string-array name="phrases">
@@ -43,5 +47,4 @@
         <item>Created in Android Studio</item>
         <item>BLYAAA - ©Not So Hero</item>
     </string-array>
-    <string name="open_webview">Pick Us All website</string>
 </resources>

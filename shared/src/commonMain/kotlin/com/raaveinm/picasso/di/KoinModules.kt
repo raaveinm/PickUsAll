@@ -92,7 +92,7 @@ private val sharedModule = module {
     single { KeyBindingRepository(get()) }
     // one SignalingClient: calls and chat share the single WebSocket a client keeps per server
     single { SignalingClient() }
-    single { CallManager(get()) }
+    single { CallManager(get<SignalingClient>()) }
     viewModelOf(::AppViewModel)
     viewModelOf(::CanvasViewModel)
     viewModelOf(::ChatViewModel)

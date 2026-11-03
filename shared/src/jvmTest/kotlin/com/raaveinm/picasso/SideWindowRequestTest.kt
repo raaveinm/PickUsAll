@@ -10,12 +10,20 @@ import com.raaveinm.core.database.PicassoDatabase
 import com.raaveinm.core.database.entities.server.Servers
 import com.raaveinm.core.datastore.auth.AuthTokenStore
 import com.raaveinm.core.datastore.settings.ServerSettingsStore
+import com.raaveinm.features.impl_webrtc.CallManager
+import com.raaveinm.features.impl_webrtc.rtc.CallConnectionState
+import com.raaveinm.features.impl_webrtc.rtc.CallPeer
+import com.raaveinm.features.impl_webrtc.rtc.LocalIceCandidateData
+import com.raaveinm.features.impl_webrtc.signaling.CallSignaling
+import com.raaveinm.features.impl_webrtc.signaling.HangupPayload
+import com.raaveinm.features.impl_webrtc.signaling.SdpPayload
 import com.raaveinm.features.impl_webrtc.signaling.SignalingClient
+import com.raaveinm.features.impl_webrtc.signaling.SignalingEnvelope
+import com.raaveinm.features.impl_webrtc.signaling.SignalingMessageType
 import com.raaveinm.picasso.data.AuthApi
 import com.raaveinm.picasso.data.repository.AuthRepository
 import com.raaveinm.picasso.data.repository.ChatRepository
 import com.raaveinm.picasso.data.repository.ContactsRepository
-import com.raaveinm.picasso.data.repository.ProfileHydrator
 import com.raaveinm.picasso.data.server.ChatSocket
 import com.raaveinm.picasso.data.server.ContactsApi
 import com.raaveinm.picasso.data.server.ConversationsApi
@@ -39,7 +47,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -50,6 +61,8 @@ import okio.Path.Companion.toPath
 import java.io.File
 import java.net.InetSocketAddress
 import java.nio.file.Files
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -58,6 +71,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 
 //
 // Created by Kirill "Raaveinm" on 11/02/2026.
@@ -94,10 +108,28 @@ class SideWindowRequestTest {
         socket = socket,
         chatRepository = chat,
         contactsRepository = contacts,
-        profiles = ProfileHydrator { },
+        profiles = { },
         scope = scope,
     )
     private val auth: AuthRepository = AuthRepository(AuthApi(http), tokens, selection)
+    private val callSignaling: TestCallSignaling = TestCallSignaling()
+    private val mediaCreated: AtomicInteger = AtomicInteger(0)
+    private val callManager: CallManager = CallManager(
+        signalingClient = callSignaling,
+        webRtcClientFactory = {
+            mediaCreated.incrementAndGet()
+            object : CallPeer {
+                override val connectionState: MutableStateFlow<CallConnectionState> = MutableStateFlow(CallConnectionState.NEW)
+                override val localIceCandidates: Flow<LocalIceCandidateData> = flowOf()
+                override suspend fun createOffer(): String = "offer"
+                override suspend fun createAnswer(remoteOfferSdp: String): String = "answer"
+                override suspend fun setRemoteAnswer(sdp: String) = Unit
+                override fun addRemoteIceCandidate(sdpMid: String, sdpMLineIndex: Int, candidate: String) = Unit
+                override fun close() = Unit
+            }
+        },
+        scope = scope,
+    )
     private val model: AppViewModel = AppViewModel(
         authRepository = auth,
         userDao = database.getUserDao(),
@@ -110,6 +142,7 @@ class SideWindowRequestTest {
             awaitIdle = sync::awaitIdle,
             scope = scope,
         ),
+        callManager = callManager,
     )
     @Volatile
     private var loginResponse: String? = null
@@ -210,9 +243,100 @@ class SideWindowRequestTest {
     @Test
     fun `login without a configured server leaves no pending presentation`() = runBlocking {
         withContext(Dispatchers.Main) { model.login() }
-        withTimeout(5_000L) { model.uiState.first { !it.isLoggingIn } }
+        withTimeout(5_000L.milliseconds) { model.uiState.first { !it.isLoggingIn } }
         assertNull(model.uiState.value.sideWindowRequest)
         assertTrue(model.uiState.value.message != null)
+    }
+
+    @Test
+    fun `incoming offer opens the call screen and accepting answers it`() = runBlocking {
+        val request: SideWindowRequest = receiveCall()
+        assertEquals(42L, assertIs<SideWindow.IncomingCall>(request.destination).peerSteamId)
+        assertEquals(0, mediaCreated.get())
+
+        withContext(Dispatchers.Main) { model.acceptIncomingCall(request.id) }
+        awaitSignal(SignalingMessageType.SDP_ANSWER)
+
+        assertEquals(1, mediaCreated.get())
+        assertTrue(callManager.isInCall.value)
+        assertNull(model.uiState.value.sideWindowRequest)
+    }
+
+    @Test
+    fun `closing the call screen declines it without acquiring media`() = runBlocking {
+        val request: SideWindowRequest = receiveCall()
+        withContext(Dispatchers.Main) { model.resetSideWindowRequest(request.id) }
+        awaitSignal(SignalingMessageType.CALL_HANGUP)
+
+        assertEquals(0, mediaCreated.get())
+        assertNull(callManager.incomingCall.value)
+        assertNull(model.uiState.value.sideWindowRequest)
+    }
+
+    @Test
+    fun `remote hangup dismisses the incoming call screen`() = runBlocking {
+        receiveCall()
+        callSignaling.received.emit(
+            SignalingEnvelope(SignalingMessageType.CALL_HANGUP, callHangup = HangupPayload("7", "1", "42")),
+        )
+        withTimeout(5_000L.milliseconds) { model.uiState.first { it.sideWindowRequest == null } }
+        assertEquals(0, mediaCreated.get())
+        assertFalse(callManager.isInCall.value)
+    }
+
+    @Test
+    fun `remote cancellation closes only its own presentation`() = runBlocking {
+        receiveCall()
+        val replacement: SideWindowRequest = withContext(Dispatchers.Main) {
+            model.setWindowRequest(SideWindow.WebAuth("https://example.invalid", "other"))
+        }
+        callSignaling.received.emit(
+            SignalingEnvelope(SignalingMessageType.CALL_HANGUP, callHangup = HangupPayload("7", "1", "42")),
+        )
+        withTimeout(5_000L.milliseconds) { callManager.incomingCall.first { it == null } }
+        withContext(Dispatchers.Main) { assertEquals(replacement, model.uiState.value.sideWindowRequest) }
+    }
+
+    @Test
+    fun `stale accept and close actions cannot act on a newer incoming call`() = runBlocking {
+        val first: SideWindowRequest = receiveCall()
+        callSignaling.isConnected.value = false
+        withTimeout(5_000L.milliseconds) { model.uiState.first { it.sideWindowRequest == null } }
+        callSignaling.isConnected.value = true
+        val second: SideWindowRequest = receiveCall()
+        withContext(Dispatchers.Main) {
+            model.acceptIncomingCall(first.id)
+            model.resetSideWindowRequest(first.id)
+        }
+
+        assertEquals(second, model.uiState.value.sideWindowRequest)
+        assertEquals(0, mediaCreated.get())
+        assertTrue(callSignaling.sent.isEmpty())
+    }
+
+    private suspend fun receiveCall(): SideWindowRequest {
+        withTimeout(5_000L.milliseconds) { callSignaling.received.subscriptionCount.first { it > 0 } }
+        callSignaling.received.emit(
+            SignalingEnvelope(SignalingMessageType.SDP_OFFER, sdp = SdpPayload("7", "1", "42", "offer")),
+        )
+        return withTimeout(5_000L.milliseconds) {
+            requireNotNull(model.uiState.first { it.sideWindowRequest?.destination is SideWindow.IncomingCall }.sideWindowRequest)
+        }
+    }
+
+    private suspend fun awaitSignal(type: String) {
+        withTimeout(5_000L.milliseconds) {
+            while (callSignaling.sent.none { it.type == type }) delay(10L.milliseconds)
+        }
+    }
+
+    private class TestCallSignaling : CallSignaling {
+        val received: MutableSharedFlow<SignalingEnvelope> = MutableSharedFlow(extraBufferCapacity = 32)
+        override val incoming: Flow<SignalingEnvelope> = received
+        override val isConnected: MutableStateFlow<Boolean> = MutableStateFlow(true)
+        val sent: MutableList<SignalingEnvelope> = CopyOnWriteArrayList()
+        override suspend fun send(envelope: SignalingEnvelope) { sent.add(envelope) }
+        override fun close() { isConnected.value = false }
     }
 
     private suspend fun startLogin(): SideWindowRequest {
@@ -223,12 +347,12 @@ class SideWindowRequestTest {
         return awaitRequest()
     }
 
-    private suspend fun awaitRequest(): SideWindowRequest = withTimeout(5_000L) {
+    private suspend fun awaitRequest(): SideWindowRequest = withTimeout(5_000L.milliseconds) {
         requireNotNull(model.uiState.first { it.sideWindowRequest != null }.sideWindowRequest)
     }
 
     private suspend fun completeLogin() {
         loginResponse = """{"token":"test-token","steamId":"42","expiresAt":0}"""
-        withTimeout(5_000L) { model.uiState.first { !it.isLoggingIn } }
+        withTimeout(5_000L.milliseconds) { model.uiState.first { !it.isLoggingIn } }
     }
 }

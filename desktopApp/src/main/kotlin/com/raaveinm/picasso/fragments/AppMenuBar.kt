@@ -17,6 +17,7 @@ import pickusall.desktopapp.generated.resources.server_settings
 import pickusall.desktopapp.generated.resources.settings_selector
 import pickusall.desktopapp.generated.resources.steam_features
 import pickusall.desktopapp.generated.resources.visual_settings
+import pickusall.desktopapp.generated.resources.web_features
 
 @Composable
 fun FrameWindowScope.AppMenuBar(
@@ -37,6 +38,8 @@ fun FrameWindowScope.AppMenuBar(
             }
         }
         Menu(stringResource(Res.string.steam_features)) {
+        }
+        Menu(stringResource(Res.string.web_features)) {
             Item(stringResource(Res.string.open_webview), onClick = onOpenSteamWindow)
         }
     }

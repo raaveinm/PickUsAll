@@ -31,7 +31,7 @@ private const val PING_INTERVAL_MS: Long = 20_000L
  * CIO cannot do TLS at all on Kotlin/Native, so a hardcoded CIO client could
  * never open wss:// on iOS - see SignalingHttpEngine.kt.
  */
-class SignalingClient {
+class SignalingClient : CallSignaling {
     private val json = Json {
         ignoreUnknownKeys = true
         explicitNulls = false
@@ -43,7 +43,7 @@ class SignalingClient {
     }
 
     /*
-     * The handler is the last line of defence: on Kotlin/Native an uncaught exception in a
+     * The handler is the last line of defense: on Kotlin/Native an uncaught exception in a
      * launched coroutine aborts the whole process (SIGABRT), and a dropped socket is an
      * everyday event, not a crash. The reader below also catches it explicitly.
      */
@@ -54,7 +54,7 @@ class SignalingClient {
 
     private var session: DefaultClientWebSocketSession? = null
     private val _incoming = MutableSharedFlow<SignalingEnvelope>(extraBufferCapacity = 64)
-    val incoming: SharedFlow<SignalingEnvelope> = _incoming
+    override val incoming: SharedFlow<SignalingEnvelope> = _incoming
 
     /*
      * Every text frame as received. Buffered generously and SUSPENDING when full, so a
@@ -65,7 +65,7 @@ class SignalingClient {
     val rawFrames: SharedFlow<String> = _rawFrames
 
     private val _isConnected = MutableStateFlow(false)
-    val isConnected: StateFlow<Boolean> = _isConnected
+    override val isConnected: StateFlow<Boolean> = _isConnected
 
     /* Lets a consumer be subscribed to [rawFrames] BEFORE it connects, so no early frame is missed. */
     val rawSubscriberCount: StateFlow<Int> get() = _rawFrames.subscriptionCount
@@ -119,14 +119,14 @@ class SignalingClient {
         }
     }
 
-    suspend fun send(envelope: SignalingEnvelope) {
+    override suspend fun send(envelope: SignalingEnvelope) {
         val current = session ?: return
         current.send(Frame.Text(json.encodeToString(envelope)))
     }
 
     /**
      * Sends one already-encoded text frame. Returns false - without throwing - when
-     * there is no live socket or the send failed, so a caller that keeps its own outbox
+     * there is no live socket or send failed, so a caller that keeps its own outbox
      * (chat) can simply leave the message pending and try again after a reconnect.
      */
     suspend fun sendText(text: String): Boolean {
@@ -134,14 +134,11 @@ class SignalingClient {
         return try {
             current.send(Frame.Text(text))
             true
-        } catch (e: kotlinx.coroutines.CancellationException) {
-            throw e
-        } catch (_: Exception) {
-            false
-        }
+        } catch (e: CancellationException) { throw e
+        } catch (_: Exception) { false }
     }
 
-    fun close() {
+    override fun close() {
         val current = session
         session = null
         _isConnected.value = false
