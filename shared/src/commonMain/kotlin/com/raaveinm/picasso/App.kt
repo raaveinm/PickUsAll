@@ -37,7 +37,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -107,35 +106,24 @@ fun App(
     navController: NavHostController = rememberNavController(),
     windowActions: WindowActions = WindowActions.Unsupported,
     quickNavRequests: Flow<QuickDestination> = emptyFlow(),
-    onSideWindowRequest: () -> Unit = {}
-) { ProvideKeyMap { AppContent(navController, windowActions, quickNavRequests, onSideWindowRequest) } }
+    appViewModel: AppViewModel = koinViewModel<AppViewModel>(),
+) { ProvideKeyMap { AppContent(navController, windowActions, quickNavRequests, appViewModel) } }
 
 @Composable
 private fun AppContent(
     navController: NavHostController,
     windowActions: WindowActions,
     quickNavRequests: Flow<QuickDestination>,
-    onSideWindowRequest: () -> Unit = {}
+    appViewModel: AppViewModel,
 ) {
     val canvasViewModel = koinViewModel<CanvasViewModel>()
     val chatViewModel = koinViewModel<ChatViewModel>()
     val settingsViewModel = koinViewModel<SettingsViewModel>()
-    val appViewModel = koinViewModel<AppViewModel>()
     val appUiState by appViewModel.uiState.collectAsState()
 
     val focusRequester = remember { FocusRequester() }
     val keyMap: KeyMap = LocalKeyMap.current
     LaunchedEffect(focusRequester) { focusRequester.requestFocus() }
-
-    ///////////////////////////////////////////////
-    // Steam login hand-off
-    ///////////////////////////////////////////////
-    val uriHandler = LocalUriHandler.current
-    LaunchedEffect(appUiState.pendingLoginUrl) {
-        val url = appUiState.pendingLoginUrl ?: return@LaunchedEffect
-        uriHandler.openUri(url)
-        appViewModel.onLoginUrlOpened()
-    }
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val isChatDestination: Boolean = currentBackStackEntry?.destination?.hasRoute<ChatGraph>() == true

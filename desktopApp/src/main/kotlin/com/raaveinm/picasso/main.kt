@@ -1,22 +1,17 @@
 package com.raaveinm.picasso
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,7 +30,8 @@ import androidx.compose.ui.window.v2.WindowBoundsProvider
 import androidx.compose.ui.window.v2.WindowPositionProvider
 import androidx.compose.ui.window.v2.WindowSizeProvider
 import androidx.compose.ui.window.v2.rememberWindowState
-import androidx.compose.ui.zIndex
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
 import com.raaveinm.core.database.DatabaseFactory
 import com.raaveinm.core.database.databaseModule
 import com.raaveinm.core.datastore.auth.AuthDataStoreFactory
@@ -47,6 +43,8 @@ import com.raaveinm.picasso.di.initKoin
 import com.raaveinm.picasso.fragments.AppMenuBar
 import com.raaveinm.picasso.ui.app.QuickDestination
 import com.raaveinm.picasso.ui.app.WindowActions
+import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
+import com.raaveinm.picasso.ui.navigation.SideWindowRequest
 import dev.nucleusframework.composenativetray.tray.api.Tray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,6 +54,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.context.GlobalContext
 import pickusall.desktopapp.generated.resources.Res
 import pickusall.desktopapp.generated.resources.app_name
@@ -78,6 +77,19 @@ fun main() {
     val behaviourSettingsStore: BehaviourSettingsStore = GlobalContext.get().get()
 
     application {
+        val appViewModelOwner: ViewModelStoreOwner = remember {
+            object : ViewModelStoreOwner {
+                override val viewModelStore: ViewModelStore = ViewModelStore()
+            }
+        }
+        DisposableEffect(appViewModelOwner) {
+            onDispose { appViewModelOwner.viewModelStore.clear() }
+        }
+        val appViewModel: AppViewModel = koinViewModel(
+            viewModelStoreOwner = appViewModelOwner,
+        )
+        val appUiState by appViewModel.uiState.collectAsState()
+        val sideWindowRequest: SideWindowRequest? = appUiState.sideWindowRequest
         val behaviourSettings: BehaviourSettingsList by behaviourSettingsStore.settings.collectAsState(
             initial = BehaviourSettingsList(),
         )
@@ -109,8 +121,6 @@ fun main() {
                 OnCloseAction.QUIT -> onQuit()
             }
         }
-
-        var isSecondWindow by remember { mutableStateOf(false) }
 
         val quickNavRequests = remember { Channel<QuickDestination>(Channel.CONFLATED) }
         val quickNavFlow = remember { quickNavRequests.receiveAsFlow() }
@@ -157,17 +167,17 @@ fun main() {
         ) {
             if (System.getProperty("os.name").lowercase().contains("mac"))
             {
-                AppMenuBar(onNavigate = navigate, onOpenSteamWindow = { isSecondWindow = !isSecondWindow })
+                AppMenuBar(onNavigate = navigate, onOpenSteamWindow = appViewModel::login)
             }
 
             App(
                 windowActions = windowActions,
                 quickNavRequests = quickNavFlow,
-                onSideWindowRequest = { isSecondWindow = !isSecondWindow }
+                appViewModel = appViewModel,
             )
         }
 
-        if (isSecondWindow) {
+        if (sideWindowRequest != null) {
             val secondWindowState = rememberWindowState(
                 initialBoundsProvider = WindowBoundsProvider(
                     positionProvider = WindowPositionProvider.CenteredOnScreen,
@@ -176,7 +186,7 @@ fun main() {
             )
 
             Window(
-                onCloseRequest = { isSecondWindow = false },
+                onCloseRequest = { appViewModel.resetSideWindowRequest(sideWindowRequest.id) },
                 state = secondWindowState,
                 title = stringResource(Res.string.app_name),
                 decoration = WindowDecoration.Undecorated(),
@@ -187,23 +197,12 @@ fun main() {
             ) {
                 if (System.getProperty("os.name").lowercase().contains("mac"))
                 {
-                    AppMenuBar(onNavigate = navigate, onOpenSteamWindow = { isSecondWindow = !isSecondWindow })
+                    AppMenuBar(onNavigate = navigate, onOpenSteamWindow = appViewModel::login)
                 }
                 WindowDraggableArea {
                     Box(Modifier.clip(RoundedCornerShape(8.dp)).fillMaxWidth().background(
                         MaterialTheme.colors.primary.copy(alpha = .72f))) {
-                        Box(
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .size(24.dp)
-                                .clip(RoundedCornerShape(50.dp))
-                                .align(Alignment.TopEnd)
-                                .background(MaterialTheme.colors.error)
-                                .zIndex(5f)
-                                .clickable(true) { isSecondWindow = false },
-                            contentAlignment = Alignment.Center
-                        ) { Text("X", color = MaterialTheme.colors.onError) }
-                        AppSideWindow()
+                        AppSideWindow(appViewModel = appViewModel)
                     }
                 }
             }

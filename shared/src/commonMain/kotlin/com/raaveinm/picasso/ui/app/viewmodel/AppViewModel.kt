@@ -6,15 +6,16 @@ import com.raaveinm.core.database.dao.UserDao
 import com.raaveinm.core.database.entities.api.user.toDto
 import com.raaveinm.core.model.user.User
 import com.raaveinm.picasso.data.repository.AuthRepository
-import com.raaveinm.picasso.data.repository.LoginAttempt
+import com.raaveinm.picasso.data.auth.secureNonce
 import com.raaveinm.picasso.data.repository.LoginError
 import com.raaveinm.picasso.data.repository.LoginFailure
 import com.raaveinm.picasso.data.sync.ServerCacheGuard
 import com.raaveinm.picasso.data.sync.SignedOutCacheGuard
 import com.raaveinm.picasso.data.sync.SyncCoordinator
 import com.raaveinm.picasso.ui.actions.ClipboardHelper
+import com.raaveinm.picasso.ui.navigation.SideWindow
+import com.raaveinm.picasso.ui.navigation.SideWindowRequest
 import com.raaveinm.pickusall.core.designsystem.utils.WarnLevel
-import io.ktor.http.cio.Request
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -44,8 +45,7 @@ data class AppUiState(
     val dismissTimer: Boolean = false,
     val user: User? = null,
     val isLoggingIn: Boolean = false,
-    val pendingLoginUrl: String? = null,
-    var sideWindowRequest: Int? = null
+    val sideWindowRequest: SideWindowRequest? = null,
 ) {
     val isLoggedIn: Boolean get() = user != null
 }
@@ -72,6 +72,7 @@ class AppViewModel(
     val uiState = _uiState.asStateFlow()
     private var dismissJob: Job? = null
     private var loginJob: Job? = null
+    private var activeLoginId: String? = null
 
     init {
         signedOutCacheGuard.start()
@@ -97,45 +98,46 @@ class AppViewModel(
     ///////////////////////////////////////////////
 
     /**
-     * Step one of the login: resolves the active server, mints a nonce and puts the
-     * `/auth/steam/begin` URL in [AppUiState.pendingLoginUrl]. The *UI* has to open
-     * it, because Steam's consent page is a browser flow - there is nothing to show
-     * in-app. [onLoginUrlOpened] then starts polling for the token.
+     * Presents the server's Steam login URL in the assistive window while the repository
+     * polls for completion. Closing that presentation cancels this local login attempt.
      */
     fun login() {
         if (_uiState.value.isLoggingIn) return
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoggingIn = true) }
-            authRepository.startLogin()
-                .onSuccess { attempt ->
-                    _uiState.update { it.copy(pendingLoginUrl = attempt.url) }
-                    awaitLogin(attempt)
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(isLoggingIn = false) }
-                    postMessage(WarnLevel.ERROR, error.describe())
-                }
-        }
-    }
-
-    fun onLoginUrlOpened() {
-        _uiState.update { it.copy(pendingLoginUrl = null) }
-    }
-
-    private fun awaitLogin(attempt: LoginAttempt) {
-        loginJob?.cancel()
+        val loginId: String = secureNonce()
+        activeLoginId = loginId
+        _uiState.update { it.copy(isLoggingIn = true) }
         loginJob = viewModelScope.launch {
             try {
-                authRepository.awaitLogin(attempt)
-                    .onFailure { error -> postMessage(WarnLevel.WARN, error.describe()) }
+                authRepository.startLogin()
+                    .onSuccess { attempt ->
+                        val request: SideWindowRequest = SideWindowRequest(
+                            destination = SideWindow.WebAuth(
+                                url = attempt.url,
+                                loginAttemptId = attempt.state,
+                            ),
+                            id = loginId,
+                        )
+                        _uiState.update { it.copy(sideWindowRequest = request) }
+                        authRepository.awaitLogin(attempt)
+                            .onFailure { error -> postMessage(WarnLevel.WARN, error.describe()) }
+                    }
+                    .onFailure { error -> postMessage(WarnLevel.ERROR, error.describe()) }
             } finally {
-                _uiState.update { it.copy(isLoggingIn = false) }
+                if (activeLoginId == loginId) {
+                    activeLoginId = null
+                    _uiState.update { state ->
+                        state.copy(
+                            isLoggingIn = false,
+                            sideWindowRequest = state.sideWindowRequest?.takeUnless { it.id == loginId },
+                        )
+                    }
+                }
             }
         }
     }
 
     fun logout() {
-        loginJob?.cancel()
+        cancelLogin()
         viewModelScope.launch {
             try {
                 authRepository.logout()
@@ -144,7 +146,6 @@ class AppViewModel(
             } catch (_: Exception) {
                 // logout() already cleared the local session; nothing left to undo.
             }
-            _uiState.update { it.copy(isLoggingIn = false, pendingLoginUrl = null) }
         }
     }
 
@@ -194,9 +195,34 @@ class AppViewModel(
     }
 
     ///////////////////////////////////////////////
-    // Side Window req
+    // Side window requests
     ///////////////////////////////////////////////
 
-    fun setWindowRequest(screen: Int) { _uiState.update { it.copy(sideWindowRequest = screen) } }
-    fun resetSideWindowRequest() { _uiState.update { it.copy(sideWindowRequest = null) } }
+    fun setWindowRequest(screen: SideWindow): SideWindowRequest {
+        val request: SideWindowRequest = SideWindowRequest(destination = screen)
+        _uiState.update { it.copy(sideWindowRequest = request) }
+        return request
+    }
+
+    /** Ignores dismissals from a screen that has already been replaced. */
+    fun resetSideWindowRequest(requestId: String) {
+        if (_uiState.value.sideWindowRequest?.id != requestId) return
+        if (activeLoginId == requestId) cancelLogin()
+        _uiState.update { state ->
+            state.copy(sideWindowRequest = state.sideWindowRequest?.takeUnless { it.id == requestId })
+        }
+    }
+
+    private fun cancelLogin() {
+        val loginId: String? = activeLoginId
+        activeLoginId = null
+        loginJob?.cancel()
+        loginJob = null
+        _uiState.update { state ->
+            state.copy(
+                isLoggingIn = false,
+                sideWindowRequest = state.sideWindowRequest?.takeUnless { it.id == loginId },
+            )
+        }
+    }
 }

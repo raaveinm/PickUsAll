@@ -14,6 +14,8 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
+    implementation(libs.koin.compose.viewmodel)
+    implementation(libs.androidx.lifecycle.viewmodelCompose)
 
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutinesSwing)

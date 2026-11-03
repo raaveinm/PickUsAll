@@ -16,6 +16,11 @@ dependencies {
     implementation(project(":core:datastore"))
     implementation(libs.ktor.client.okhttp)
     implementation(libs.koin.android)
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.compose.viewmodel)
+    implementation(libs.androidx.lifecycle.viewmodelCompose)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.ui)
 
     implementation(libs.androidx.activity.compose)
 

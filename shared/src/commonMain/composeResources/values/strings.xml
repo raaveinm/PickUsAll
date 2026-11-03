@@ -116,6 +116,7 @@
     </string-array>
 
     <!--Embedded browser-->
+    <string name="side_window_incoming_call">Incoming call from %1$s</string>
     <string name="webview_back">Back</string>
     <string name="webview_forward">Forward</string>
     <string name="webview_reload">Reload</string>
