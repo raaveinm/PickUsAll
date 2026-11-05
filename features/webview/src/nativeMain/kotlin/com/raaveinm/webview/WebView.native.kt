@@ -4,11 +4,14 @@ package com.raaveinm.webview
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
 import com.raaveinm.webview.wv.AppWebViewState
 import com.raaveinm.webview.wv.WebViewCommands
 import com.raaveinm.webview.wv.WebViewEvent
+import com.raaveinm.webview.wv.WebViewHtmlContent
 import platform.CoreGraphics.CGRectZero
 import kotlinx.cinterop.readValue
 import kotlinx.cinterop.ObjCSignatureOverride
@@ -19,10 +22,14 @@ import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationAction
 import platform.WebKit.WKNavigationActionPolicy
 import platform.WebKit.WKNavigationDelegateProtocol
+import platform.WebKit.WKNavigationTypeLinkActivated
+import platform.WebKit.WKAudiovisualMediaTypeNone
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
+import platform.UIKit.UIColor
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 actual fun PlatformWebView(
     state: AppWebViewState,
@@ -32,14 +39,28 @@ actual fun PlatformWebView(
     val delegate: BrowserNavigationDelegate = remember(state) { BrowserNavigationDelegate(state) }
     UIKitView(
         modifier = modifier,
+        // Default UIKit placement clears the Compose backdrop instead of showing it through the view.
+        properties = UIKitInteropProperties(placedAsOverlay = state.settings.transparentBackground),
         factory = {
             val configuration: WKWebViewConfiguration = WKWebViewConfiguration().apply {
                 defaultWebpagePreferences.allowsContentJavaScript = state.settings.javaScriptEnabled
+                allowsInlineMediaPlayback = true
+                if (!state.settings.mediaPlaybackRequiresUserGesture) {
+                    mediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypeNone
+                }
             }
             WKWebView(
                 frame = CGRectZero.readValue(),
                 configuration = configuration,
             ).apply {
+                if (state.settings.transparentBackground) {
+                    opaque = false
+                    backgroundColor = UIColor.clearColor
+                    scrollView.opaque = false
+                    scrollView.backgroundColor = UIColor.clearColor
+                    // Keep the rubber-band scrolling area transparent as well as the HTML viewport.
+                    underPageBackgroundColor = UIColor.clearColor
+                }
                 navigationDelegate = delegate
                 allowsBackForwardNavigationGestures = state.settings.allowsBackForwardNavigationGestures
                 scrollView.pinchGestureRecognizer?.enabled = state.settings.supportZoom
@@ -70,7 +91,12 @@ actual fun PlatformWebView(
                     }
                 }
                 state.commands = commands
-                commands.loadUrl(state.url)
+                val content: WebViewHtmlContent? = state.htmlContent
+                if (content != null) {
+                    loadHTMLString(content.html, baseURL = NSURL.URLWithString(content.baseUrl))
+                } else {
+                    commands.loadUrl(state.url)
+                }
             }
         },
         onRelease = { webView ->
@@ -121,10 +147,15 @@ private class BrowserNavigationDelegate(
     ) {
         val url: NSURL? = decidePolicyForNavigationAction.request.URL
         if (decidePolicyForNavigationAction.targetFrame?.mainFrame != false) {
-            state.dispatch(WebViewEvent.NavigationRequested(url?.absoluteString.orEmpty()))
+            state.dispatch(WebViewEvent.NavigationRequested(
+                url = url?.absoluteString.orEmpty(),
+                isUserInitiated = decidePolicyForNavigationAction.navigationType ==
+                    WKNavigationTypeLinkActivated,
+            ))
         }
-        val allowed: Boolean = url?.scheme in listOf("http", "https", "about") ||
-            (url?.scheme == "file" && state.settings.allowFileAccess)
+        val allowed: Boolean = state.allowsNavigation(url?.absoluteString.orEmpty()) &&
+            (url?.scheme in listOf("http", "https", "about") ||
+                (url?.scheme == "file" && state.settings.allowFileAccess))
         decisionHandler(
             if (allowed) WKNavigationActionPolicy.WKNavigationActionPolicyAllow
             else WKNavigationActionPolicy.WKNavigationActionPolicyCancel,

@@ -28,5 +28,6 @@ data class BehaviourState(
     val bindings: List<ChordBindings> = emptyList(), // list of hotkeys actions
     val recordingFor: Commands? = null,              // non-null while waiting for the user to press the new chord
     val notice: Notice? = null,
-    val onCloseSelectedAction: OnCloseAction = OnCloseAction.TO_TRAY
+    val onCloseSelectedAction: OnCloseAction = OnCloseAction.TO_TRAY,
+    val isTrayIconHidden: Boolean = false
 )

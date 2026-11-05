@@ -7,5 +7,6 @@ import com.raaveinm.core.model.preferences.OnCloseAction
 //
 
 data class BehaviourSettingsList(
-    val onCloseRequest: OnCloseAction = OnCloseAction.TO_TRAY
+    val onCloseRequest: OnCloseAction = OnCloseAction.TO_TRAY,
+    val isHiddenTrayIcon: Boolean = false
 )

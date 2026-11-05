@@ -22,6 +22,7 @@
     </string-array>
 
     <string name="open_in_store">Open store page</string>
+    <string name="store_details_unavailable">Unable to load store details.</string>
     <string name="add_game_to_complete">Add game for completion</string>
     <string name="game_id_field">Steam Game Id</string>
     <string name="priority_field">Game Priority</string>
@@ -109,6 +110,8 @@
     <string name="status_rejected_taken">%1$s is already used by “%2$s”</string>
 
     <string name="on_close_request">On application close</string>
+    <string name="hide_tray_icon">Hide tray icon</string>
+
     <string-array name="on_close_options">
         <item>to tray</item>
         <item>minimize</item>

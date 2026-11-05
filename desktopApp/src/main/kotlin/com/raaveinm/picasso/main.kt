@@ -132,31 +132,33 @@ fun main() {
             WindowActions(onQuit = onQuit, onMinimize = onMinimize)
         }
 
-        Tray(
-            icon = TrayIcon,
-            tooltip = stringResource(Res.string.app_name),
-        ) {
-            Item(
-                label =
-                    if (isVisible) stringResource(Res.string.minimize_to_tray)
-                    else stringResource(Res.string.restore_application),
-                isEnabled = true,
-                shortcut = null,
-                onClick = onToggleVisibility
-            )
-            Divider()
-            Item(
-                label = stringResource(Res.string.quit_application),
-                isEnabled = true,
-                shortcut = null,
-                onClick = onQuit
-            )
-            Item(
-                label = stringResource(Res.string.minimize_application),
-                isEnabled = true,
-                shortcut = null,
-                onClick = onMinimize
-            )
+        if (!behaviourSettings.isHiddenTrayIcon) {
+            Tray(
+                icon = TrayIcon,
+                tooltip = stringResource(Res.string.app_name),
+            ) {
+                Item(
+                    label =
+                        if (isVisible) stringResource(Res.string.minimize_to_tray)
+                        else stringResource(Res.string.restore_application),
+                    isEnabled = true,
+                    shortcut = null,
+                    onClick = onToggleVisibility
+                )
+                Divider()
+                Item(
+                    label = stringResource(Res.string.quit_application),
+                    isEnabled = true,
+                    shortcut = null,
+                    onClick = onQuit
+                )
+                Item(
+                    label = stringResource(Res.string.minimize_application),
+                    isEnabled = true,
+                    shortcut = null,
+                    onClick = onMinimize
+                )
+            }
         }
 
         Window(

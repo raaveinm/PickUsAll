@@ -14,6 +14,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.raaveinm.webview.wv.AppWebViewState
 import com.raaveinm.webview.wv.WebViewCommands
 import com.raaveinm.webview.wv.WebViewEvent
+import com.raaveinm.webview.wv.WebViewHtmlContent
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -25,9 +26,11 @@ actual fun PlatformWebView(
         modifier = modifier,
         factory = { context ->
             WebView(context).apply {
+                if (state.settings.transparentBackground) setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 settings.javaScriptEnabled = state.settings.javaScriptEnabled
                 settings.domStorageEnabled = state.settings.domStorageEnabled
                 settings.allowFileAccess = state.settings.allowFileAccess
+                settings.mediaPlaybackRequiresUserGesture = state.settings.mediaPlaybackRequiresUserGesture
                 settings.setSupportZoom(state.settings.supportZoom)
                 settings.builtInZoomControls = state.settings.supportZoom
                 settings.displayZoomControls = false
@@ -44,8 +47,9 @@ actual fun PlatformWebView(
                     ): Boolean {
                         if (!request.isForMainFrame) return false
                         val url: String = request.url.toString()
-                        state.dispatch(WebViewEvent.NavigationRequested(url))
-                        return request.url.scheme !in listOf("https", "http", "about")
+                        state.dispatch(WebViewEvent.NavigationRequested(url, request.hasGesture()))
+                        return !state.allowsNavigation(url) ||
+                            request.url.scheme !in listOf("https", "http", "about")
                     }
 
                     override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
@@ -98,7 +102,12 @@ actual fun PlatformWebView(
                         webView.evaluateJavascript(script) { result -> callback?.invoke(result) }
                     }
                 }
-                loadUrl(state.url)
+                val content: WebViewHtmlContent? = state.htmlContent
+                if (content != null) {
+                    loadDataWithBaseURL(content.baseUrl, content.html, "text/html", "UTF-8", null)
+                } else {
+                    loadUrl(state.url)
+                }
             }
         },
         onRelease = { webView ->

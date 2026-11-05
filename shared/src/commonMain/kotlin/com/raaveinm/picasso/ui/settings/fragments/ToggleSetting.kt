@@ -25,12 +25,11 @@ import pickusall.shared.generated.resources.toggle_setting
 // Created by Kirill "Raaveinm" on 10/26/2026.
 //
 
-@Preview
 @Composable
 fun ToggleSetting(
     modifier: Modifier = Modifier,
-    onToggle: () -> Unit = {},
-    isChecked: Boolean = false,
+    onToggle: () -> Unit,
+    isChecked: Boolean,
     isInProgress: Boolean = false,
     settingNameRes: StringResource = Res.string.toggle_setting,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
@@ -59,4 +58,16 @@ fun ToggleSetting(
             )
         }
     }
+}
+
+@Preview
+@Composable
+fun ToggleSettingPreview() {
+    ToggleSetting(
+        modifier = Modifier,
+        onToggle = {},
+        isChecked = true,
+        isInProgress = true,
+        settingNameRes = Res.string.toggle_setting
+    )
 }

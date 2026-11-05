@@ -15,6 +15,7 @@ class AppWebViewState internal constructor(
     initialUrl: String,
     val settings: WebViewSettings,
     val onEvent: (WebViewEvent) -> Unit,
+    val htmlContent: WebViewHtmlContent? = null,
 ) {
     var url: String by mutableStateOf(initialUrl)
         internal set
@@ -31,6 +32,10 @@ class AppWebViewState internal constructor(
 
     internal var commands: WebViewCommands? = null
     val controller: WebViewController = WebViewController(this)
+
+    internal fun allowsNavigation(url: String): Boolean =
+        settings.allowNavigation || url == "about:blank" ||
+            url.substringBefore('#') == htmlContent?.baseUrl?.substringBefore('#')
 
     internal fun dispatch(event: WebViewEvent) {
         when (event) {
@@ -84,4 +89,32 @@ fun rememberAppWebViewState(
         if (state.url != url) state.controller.loadUrl(url)
     }
     return state
+}
+
+/**
+ * An HTML document loaded from memory, with [baseUrl] resolving relative links and media.
+ * Use a dedicated HTTPS origin rather than an authenticated site or a local file URL.
+ */
+data class WebViewHtmlContent(
+    val html: String,
+    val baseUrl: String = "https://picasso.invalid/",
+)
+
+/** Content changes replace the document, including after a browser is detached and mounted again. */
+@Composable
+fun rememberAppHtmlWebViewState(
+    html: String,
+    baseUrl: String = "https://picasso.invalid/",
+    settings: WebViewSettings = WebViewSettings(),
+    onEvent: (WebViewEvent) -> Unit = {},
+): AppWebViewState {
+    val currentOnEvent: (WebViewEvent) -> Unit by rememberUpdatedState(onEvent)
+    return remember(html, baseUrl, settings) {
+        AppWebViewState(
+            initialUrl = baseUrl,
+            settings = settings,
+            onEvent = { event -> currentOnEvent(event) },
+            htmlContent = WebViewHtmlContent(html = html, baseUrl = baseUrl),
+        )
+    }
 }

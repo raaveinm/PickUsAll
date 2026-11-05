@@ -32,6 +32,7 @@ sealed interface WebViewEvent {
     ) : WebViewEvent
 
     data class NavigationRequested(
-        val url: String
+        val url: String,
+        val isUserInitiated: Boolean = false,
     ) : WebViewEvent
 }

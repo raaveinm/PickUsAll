@@ -35,6 +35,7 @@ internal val STEAM_PROFILE_BACKGROUND = booleanPreferencesKey("steam_profile_bac
 
 internal const val KEY_BINDING_PREFIX: String = "key_binding_"
 internal val ON_CLOSE_REQUEST = intPreferencesKey("on_close_request")
+internal val HIDE_TRAY_ICON = booleanPreferencesKey("hide_tray_icon")
 
 ///////////////////////////////////////////////
 /// Server

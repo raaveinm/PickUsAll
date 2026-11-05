@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.raaveinm.core.datastore.HIDE_TRAY_ICON
 import com.raaveinm.core.datastore.KEY_BINDING_PREFIX
 import com.raaveinm.core.datastore.ON_CLOSE_REQUEST
 import com.raaveinm.core.model.preferences.OnCloseAction
@@ -15,7 +16,7 @@ import kotlinx.coroutines.flow.map
 //
 
 /**
- * Persisted Settings / Behaviour. [settings] is the single source of truth: observers re-emit on
+ * Persisted Settings / Behavior. [settings] is the single source of truth: observers re-emit on
  * their own after [saveKeyBinding] / [resetKeyBinding], nothing returns the new value directly.
  */
 class BehaviourSettingsStore(private val dataStore: DataStore<Preferences>) {
@@ -23,14 +24,17 @@ class BehaviourSettingsStore(private val dataStore: DataStore<Preferences>) {
     val chordSettings: Flow<BehaviourSettings> = dataStore.data.map { it.toSettings() }
     val settings: Flow<BehaviourSettingsList> = dataStore.data.map { prefs ->
         BehaviourSettingsList(
-            onCloseRequest = OnCloseAction.entries[prefs[ON_CLOSE_REQUEST]?:0]
+            onCloseRequest = OnCloseAction.entries[prefs[ON_CLOSE_REQUEST]?:0],
+            isHiddenTrayIcon = prefs[HIDE_TRAY_ICON]?:false
         )
     }
 
     suspend fun setOnCloseRequestAction(request: OnCloseAction) {
         dataStore.edit { prefs -> prefs[ON_CLOSE_REQUEST] = request.ordinal }
     }
-
+    suspend fun setHiddenTrayIcon(hidden: Boolean) {
+        dataStore.edit { p -> p[HIDE_TRAY_ICON] = hidden }
+    }
     ///////////////////////////////////////////////
     // Key Bindings
     ///////////////////////////////////////////////

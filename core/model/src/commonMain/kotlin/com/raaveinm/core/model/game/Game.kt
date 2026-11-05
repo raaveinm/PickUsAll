@@ -5,8 +5,15 @@ import kotlinx.serialization.Serializable
 
 //
 // Created by Kirill "Raaveinm" on 9/1/26.
+// Copyright (c) 2026 Retrograde Mercury. All rights reserved.
 //
+//* @sample "https://store.steampowered.com/api/appdetails?appids=1808500&cc=u&l=english"
 
+/**
+ * Store details from Steam's app-details response, nested under the requested app ID.
+ * Descriptions, supported languages, and reviews may contain HTML. Optional collections
+ * default to empty lists; the additional store strings default to empty when Steam omits them.
+ */
 @Serializable
 data class Game(
     @SerialName("steam_appid")
@@ -31,6 +38,14 @@ data class Game(
     val releaseDate: GameApiReleaseDate? = null,
     val screenshots: List<GameApiScreenshot> = emptyList(),
     val categories: List<GameApiCategory> = emptyList(),
+    val dlc: List<Int> = emptyList(),
+    @SerialName("controller_support")
+    val controllerSupport: String = "",
+    val reviews: String = "",
+    val background: String = "",
+    @SerialName("background_raw")
+    val backgroundRaw: String = "",
+    val movies: List<GameApiMovies> = emptyList(),
 )
 
 @Serializable
@@ -73,4 +88,32 @@ data class GameApiScreenshot(
 data class GameApiCategory(
     val id: Int,
     val description: String
+)
+
+///////////////////////////////////////////////
+// Store trailers
+///////////////////////////////////////////////
+
+@Serializable
+data class GameApiMovies(
+    val id: Int,
+    val name: String,
+    val thumbnail: String,
+    val highlight: Boolean = false,
+    val webm: GameApiMovieFiles? = null,
+    val mp4: GameApiMovieFiles? = null,
+    @SerialName("dash_av1")
+    val dashAv1: String? = null,
+    @SerialName("dash_h264")
+    val dashH264: String? = null,
+    @SerialName("hls_h264")
+    val hlsH264: String? = null,
+)
+
+/** Downloadable trailer URLs keyed by quality; the JSON key "480" is not a Kotlin identifier. */
+@Serializable
+data class GameApiMovieFiles(
+    @SerialName("480")
+    val video480: String? = null,
+    val max: String? = null,
 )

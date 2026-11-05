@@ -1,5 +1,7 @@
 package com.raaveinm.picasso.ui.settings.screens
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -7,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -16,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.raaveinm.core.model.preferences.OnCloseAction
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.settings.fragments.SwitchSetting
+import com.raaveinm.picasso.ui.settings.fragments.ToggleSetting
 import com.raaveinm.picasso.ui.settings.fragments.behaviour.KeyBindingsSection
 import com.raaveinm.picasso.ui.settings.viewmodel.BehaviourState
 import com.raaveinm.picasso.ui.settings.viewmodel.SettingsViewModel
@@ -23,6 +27,7 @@ import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 import org.jetbrains.compose.resources.stringArrayResource
 import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.hide_tray_icon
 import pickusall.shared.generated.resources.on_close_options
 import pickusall.shared.generated.resources.on_close_request
 
@@ -51,12 +56,36 @@ actual fun BehaviourScreen(
             /// on close behavior
             ///////////////////////////////////////////////
             item {
+                val backgroundColor by animateColorAsState(
+                    targetValue = if (state.isTrayIconHidden && state.onCloseSelectedAction.ordinal == 0)
+                        MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceContainer,
+                    animationSpec = tween(durationMillis = 400)
+                )
+                val foregroundColor by animateColorAsState(
+                    targetValue = if (state.isTrayIconHidden && state.onCloseSelectedAction.ordinal == 0)
+                        MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurface,
+                    animationSpec = tween(durationMillis = 400)
+                )
                 SwitchSetting(
                     listOfOptions = stringArrayResource(Res.array.on_close_options),
                     selectedOption = state.onCloseSelectedAction.ordinal,
                     onSelected = { selected -> viewModel.setOnCloseRequestAction(OnCloseAction.entries[selected]) },
                     settingNameRes = Res.string.on_close_request,
+                    backgroundColor = backgroundColor,
+                    foregroundColor = foregroundColor,
                     asColumn = true
+                )
+            }
+
+            ///////////////////////////////////////////////
+            /// on close behavior
+            ///////////////////////////////////////////////
+            item {
+                ToggleSetting(
+                    modifier = Modifier,
+                    onToggle = { viewModel.setHiddenTrayIcon(isHidden = !state.isTrayIconHidden) },
+                    isChecked = state.isTrayIconHidden,
+                    settingNameRes = Res.string.hide_tray_icon
                 )
             }
 

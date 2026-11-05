@@ -4,12 +4,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.unit.IntSize
 import com.raaveinm.webview.wv.AppWebViewState
 import com.raaveinm.webview.wv.WebViewCommands
 import com.raaveinm.webview.wv.WebViewEvent
 import com.raaveinm.webview.wv.WebViewSettings
+import com.raaveinm.webview.wv.WebViewHtmlContent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,6 +24,7 @@ import me.friwi.jcefmaven.CefAppBuilder
 import org.cef.CefApp
 import org.cef.CefClient
 import org.cef.browser.CefBrowser
+import org.cef.browser.ComposeCefBrowser
 import org.cef.browser.CefFrame
 import org.cef.browser.CefRequestContext
 import org.cef.browser.CefMessageRouter
@@ -27,10 +35,15 @@ import org.cef.handler.CefLifeSpanHandlerAdapter
 import org.cef.handler.CefLoadHandlerAdapter
 import org.cef.handler.CefMessageRouterHandlerAdapter
 import org.cef.handler.CefRequestHandlerAdapter
+import org.cef.handler.CefResourceHandler
+import org.cef.handler.CefResourceRequestHandler
+import org.cef.handler.CefResourceRequestHandlerAdapter
+import org.cef.misc.BoolRef
 import org.cef.network.CefRequest
 import java.awt.BorderLayout
 import java.io.File
 import java.nio.channels.FileChannel
+import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.UUID
 import javax.swing.JPanel
@@ -58,10 +71,18 @@ actual fun PlatformWebView(
             state.dispatch(WebViewEvent.Error(error.message ?: error.toString()))
         }
     }
-    SwingPanel(
-        modifier = modifier,
-        factory = { host },
-    )
+    if (state.settings.transparentBackground) {
+        TransparentWebView(
+            modifier = modifier,
+            frame = host.frame,
+            onResize = host::resize,
+            onPointer = host::pointerEvent,
+            onKey = host::keyEvent,
+            onFocus = { focused -> host.setBrowserFocus(focused) },
+        )
+    } else {
+        SwingPanel(modifier = modifier, factory = { host })
+    }
 }
 
 /** CEF is process-wide and cannot be initialized again after disposal. Each view owns its client. */
@@ -78,13 +99,14 @@ private object DesktopBrowserRuntime {
             }
             return it
         }
-        val builder: CefAppBuilder = CefAppBuilder()
-        val runtimeDirectory: File = File(System.getProperty("user.home"), ".picasso")
+        val builder = CefAppBuilder()
+        val runtimeDirectory = File(System.getProperty("user.home"), ".picasso")
         check(runtimeDirectory.isDirectory || runtimeDirectory.mkdirs()) {
             "Could not create the Chromium runtime directory."
         }
         builder.setInstallDir(File(runtimeDirectory, "jcef"))
-        builder.cefSettings.windowless_rendering_enabled = false
+        builder.cefSettings.windowless_rendering_enabled = true
+        builder.cefSettings.root_cache_path = Files.createTempDirectory("picasso-chromium-").toString()
         if (!settings.domStorageEnabled) builder.addJcefArgs("--disable-local-storage")
         settings.userAgent?.let { builder.addJcefArgs("--user-agent=$it") }
         // Separate app processes must not delete each other's in-progress native installation.
@@ -111,6 +133,28 @@ private class DesktopBrowserHost(
     private var requestContext: CefRequestContext? = null
     private var closed: Boolean = false
     private val callbacks: MutableMap<String, (String?) -> Unit> = mutableMapOf()
+    var frame: ImageBitmap? by mutableStateOf(null)
+        private set
+    private var viewportSize: IntSize = IntSize(1, 1)
+    private var viewportDensity: Float = 1f
+
+    fun resize(size: IntSize, density: Float) {
+        viewportSize = size
+        viewportDensity = density
+        (browser as? ComposeCefBrowser)?.resize(size.width, size.height, density.toDouble(), 0, 0)
+    }
+
+    fun pointerEvent(event: java.awt.event.MouseEvent, x: Int, y: Int) {
+        (browser as? ComposeCefBrowser)?.pointerEvent(event, x, y)
+    }
+
+    fun keyEvent(event: java.awt.event.KeyEvent) {
+        (browser as? ComposeCefBrowser)?.keyEvent(event)
+    }
+
+    fun setBrowserFocus(focused: Boolean) {
+        browser?.setFocus(focused)
+    }
 
     // CEF callbacks run on its own threads; all Compose state and callbacks belong on the EDT.
     private fun onUi(action: () -> Unit) {
@@ -125,6 +169,7 @@ private class DesktopBrowserHost(
         requestContext = context
         cefClient.addLifeSpanHandler(object : CefLifeSpanHandlerAdapter() {
             override fun onAfterCreated(browser: CefBrowser) {
+                onUi { resize(viewportSize, viewportDensity) }
                 val preferenceError: String? = context.setPreference(
                     "profile.default_content_setting_values.javascript",
                     if (state.settings.javaScriptEnabled) 1 else 2,
@@ -139,7 +184,10 @@ private class DesktopBrowserHost(
                 targetUrl: String,
                 targetFrameName: String,
             ): Boolean {
-                onUi { loadUrl(targetUrl) }
+                onUi {
+                    state.dispatch(WebViewEvent.NavigationRequested(targetUrl, isUserInitiated = true))
+                    if (state.allowsNavigation(targetUrl)) loadUrl(targetUrl)
+                }
                 return true
             }
         })
@@ -207,8 +255,28 @@ private class DesktopBrowserHost(
             ): Boolean {
                 if (!frame.isMain) return false
                 val url: String = request.url
-                onUi { state.dispatch(WebViewEvent.NavigationRequested(url)) }
-                return !isAllowedUrl(url, state.settings.allowFileAccess)
+                onUi { state.dispatch(WebViewEvent.NavigationRequested(url, userGesture)) }
+                return !state.allowsNavigation(url) || !isAllowedUrl(url, state.settings.allowFileAccess)
+            }
+
+            override fun getResourceRequestHandler(
+                browser: CefBrowser,
+                frame: CefFrame,
+                request: CefRequest,
+                isNavigation: Boolean,
+                isDownload: Boolean,
+                requestInitiator: String,
+                disableDefaultHandling: BoolRef,
+            ): CefResourceRequestHandler? {
+                val content: WebViewHtmlContent = state.htmlContent ?: return null
+                if (request.url.substringBefore('#') != content.baseUrl.substringBefore('#')) return null
+                return object : CefResourceRequestHandlerAdapter() {
+                    override fun getResourceHandler(
+                        browser: CefBrowser,
+                        frame: CefFrame,
+                        request: CefRequest,
+                    ): CefResourceHandler = HtmlResourceHandler(content.html)
+                }
             }
         })
         val messageRouter: CefMessageRouter = CefMessageRouter.create(object : CefMessageRouterHandlerAdapter() {
@@ -230,9 +298,20 @@ private class DesktopBrowserHost(
         })
         router = messageRouter
         cefClient.addMessageRouter(messageRouter)
-        val cefBrowser: CefBrowser = cefClient.createBrowser(state.url, false, false, context)
+        val cefBrowser: CefBrowser = if (state.settings.transparentBackground) {
+            ComposeCefBrowser(cefClient, state.url, context) { image ->
+                val bitmap: ImageBitmap = image.toComposeImageBitmap()
+                onUi { frame = bitmap }
+            }
+        } else {
+            cefClient.createBrowser(state.url, false, false, context)
+        }
         browser = cefBrowser
-        add(cefBrowser.uiComponent, BorderLayout.CENTER)
+        if (state.settings.transparentBackground) {
+            cefBrowser.createImmediately()
+        } else {
+            add(cefBrowser.uiComponent, BorderLayout.CENTER)
+        }
         state.commands = this
         revalidate()
         repaint()
@@ -288,6 +367,7 @@ private class DesktopBrowserHost(
         requestContext = null
         removeAll()
         browser = null
+        frame = null
         client = null
         router = null
     }

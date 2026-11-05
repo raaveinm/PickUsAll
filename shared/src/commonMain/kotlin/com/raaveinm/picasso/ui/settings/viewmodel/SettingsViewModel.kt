@@ -69,7 +69,8 @@ class SettingsViewModel(
             },
             recordingFor = recording,
             notice = lastNotice,
-            onCloseSelectedAction = settings.onCloseRequest
+            onCloseSelectedAction = settings.onCloseRequest,
+            isTrayIconHidden = settings.isHiddenTrayIcon
         )
     }.stateIn(
         scope = viewModelScope,
@@ -112,9 +113,10 @@ class SettingsViewModel(
     // Behaviour
     ///////////////////////////////////////////////
 
-    fun setOnCloseRequestAction(action: OnCloseAction) {
+    fun setOnCloseRequestAction(action: OnCloseAction) =
         viewModelScope.launch { behaviourSettingsStore.setOnCloseRequestAction(action) }
-    }
+    fun setHiddenTrayIcon(isHidden: Boolean) =
+        viewModelScope.launch { behaviourSettingsStore.setHiddenTrayIcon(isHidden) }
 
     ///////////////////////////////////////////////
     // Key Bindings

@@ -30,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.raaveinm.core.datastore.settings.VisualSettingsList
 import com.raaveinm.core.datastore.settings.VisualSettingsStore
@@ -200,16 +199,12 @@ private fun WebScreen(
 // Incoming calls
 ///////////////////////////////////////////////
 
-@Preview
 @Composable
 private fun IncomingCallScreen(
-    request: SideWindow.IncomingCall = SideWindow.IncomingCall(
-        callId = "s",
-        peerSteamId = 76561198966516520
-    ),
-    caller: User? = null,
-    onDismiss: () -> Unit = {},
-    onAccept: () -> Unit = {},
+    request: SideWindow.IncomingCall,
+    caller: User?,
+    onDismiss: () -> Unit,
+    onAccept: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CallAccept(

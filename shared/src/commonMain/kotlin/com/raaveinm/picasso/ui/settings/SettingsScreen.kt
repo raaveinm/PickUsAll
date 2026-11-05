@@ -37,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -46,11 +45,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.raaveinm.picasso.ui.app.screens.StoreScreen
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.navigation.Application
 import com.raaveinm.picasso.ui.navigation.Behaviour
 import com.raaveinm.picasso.ui.navigation.OptionList
 import com.raaveinm.picasso.ui.navigation.Server
+import com.raaveinm.picasso.ui.navigation.SideWindow
 import com.raaveinm.picasso.ui.navigation.Visual
 import com.raaveinm.picasso.ui.settings.fragments.SettingsCard
 import com.raaveinm.picasso.ui.settings.screens.BehaviourScreen
@@ -75,7 +76,6 @@ fun SettingsScreen(
     appViewModel: AppViewModel,
     nestedNavController: NavHostController = rememberNavController()
 ) {
-    val uriHandler = LocalUriHandler.current
     val errorServerNotFound = stringResource(Res.string.no_reachable_servers)
     val coroutineScope = rememberCoroutineScope()
 
@@ -100,7 +100,7 @@ fun SettingsScreen(
                         appViewModel.postMessage(WarnLevel.ERROR, errorServerNotFound)
                         return@launch
                     }
-                    uriHandler.openUri("http://${server.url}/docs")
+                    appViewModel.setWindowRequest(SideWindow.Browser(url = "https://${server.url}/docs"))
                 }
             }
         )
@@ -192,6 +192,7 @@ fun SettingsScreen(
                 )
             }
             composable<Application> {
+                StoreScreen(nestedModifier.padding(bottom = 96.dp).sizeIn(maxWidth = maxWidth - (if (isCompact) 0.dp else 164.dp)))
             }
             composable<Visual> {
                 VisualScreen(
