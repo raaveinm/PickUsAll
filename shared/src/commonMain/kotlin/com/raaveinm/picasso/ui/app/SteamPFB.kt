@@ -54,8 +54,7 @@ fun SteamPFB(backgroundOwner: Long?, apiClient: ApiClient) {
                 } else if (item.imageUrl != null) {
                     ImageUtility(
                         modifier = Modifier.fillMaxSize(),
-                        imageUrl = item.imageUrl,
-                        blurPadding = 0.dp,
+                        imageUrl = item.imageUrl
                     )
                 }
             }

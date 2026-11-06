@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
+import androidx.compose.ui.viewinterop.UIKitInteropInteractionMode
 import androidx.compose.ui.viewinterop.UIKitView
 import com.raaveinm.webview.wv.AppWebViewState
 import com.raaveinm.webview.wv.WebViewCommands
@@ -18,12 +19,15 @@ import kotlinx.cinterop.ObjCSignatureOverride
 import platform.Foundation.NSError
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
+import platform.WebKit.WKAudiovisualMediaTypeNone
 import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationAction
 import platform.WebKit.WKNavigationActionPolicy
 import platform.WebKit.WKNavigationDelegateProtocol
 import platform.WebKit.WKNavigationTypeLinkActivated
-import platform.WebKit.WKAudiovisualMediaTypeNone
+import platform.WebKit.WKScriptMessage
+import platform.WebKit.WKScriptMessageHandlerProtocol
+import platform.WebKit.WKUserContentController
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
@@ -37,12 +41,21 @@ actual fun PlatformWebView(
 ) {
     // WKWebView holds its navigation delegate weakly, so Compose retains it for the view's lifetime.
     val delegate: BrowserNavigationDelegate = remember(state) { BrowserNavigationDelegate(state) }
+    val messageHandler: BrowserMessageHandler = remember(state) { BrowserMessageHandler(state) }
     UIKitView(
         modifier = modifier,
         // Default UIKit placement clears the Compose backdrop instead of showing it through the view.
-        properties = UIKitInteropProperties(placedAsOverlay = state.settings.transparentBackground),
+        properties = UIKitInteropProperties(
+            interactionMode = if (state.settings.captureTouchGestures) {
+                UIKitInteropInteractionMode.NonCooperative
+            } else {
+                UIKitInteropInteractionMode.Cooperative()
+            },
+            placedAsOverlay = state.settings.transparentBackground,
+        ),
         factory = {
             val configuration: WKWebViewConfiguration = WKWebViewConfiguration().apply {
+                userContentController.addScriptMessageHandler(messageHandler, name = "picasso")
                 defaultWebpagePreferences.allowsContentJavaScript = state.settings.javaScriptEnabled
                 allowsInlineMediaPlayback = true
                 if (!state.settings.mediaPlaybackRequiresUserGesture) {
@@ -103,8 +116,22 @@ actual fun PlatformWebView(
             state.commands = null
             webView.stopLoading()
             webView.navigationDelegate = null
+            webView.configuration.userContentController.removeScriptMessageHandlerForName("picasso")
         },
     )
+}
+
+private class BrowserMessageHandler(
+    private val state: AppWebViewState,
+) : NSObject(), WKScriptMessageHandlerProtocol {
+    override fun userContentController(
+        userContentController: WKUserContentController,
+        didReceiveScriptMessage: WKScriptMessage,
+    ) {
+        if (!didReceiveScriptMessage.frameInfo.mainFrame) return
+        val message: String = didReceiveScriptMessage.body as? String ?: return
+        state.dispatch(WebViewEvent.MessageReceived(message))
+    }
 }
 
 private class BrowserNavigationDelegate(

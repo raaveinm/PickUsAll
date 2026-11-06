@@ -36,7 +36,8 @@ import pickusall.shared.generated.resources.switch_options
 fun CanvasScreen(
     modifier: Modifier = Modifier,
     topNavModifier: Modifier = Modifier,
-    viewModel: CanvasViewModel = koinViewModel()
+    viewModel: CanvasViewModel = koinViewModel(),
+    onStorePageOpened: (Int) -> Unit = { _ -> {} }
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -79,7 +80,8 @@ fun CanvasScreen(
                                 else -> LibraryOrder.NAME
                             }
                             viewModel.onOrderChanged(newOrder)
-                        }
+                        },
+                        onStorePageOpened = onStorePageOpened
                     )
                 }
             } else {

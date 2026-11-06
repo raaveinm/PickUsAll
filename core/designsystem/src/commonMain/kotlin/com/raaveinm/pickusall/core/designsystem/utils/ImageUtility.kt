@@ -47,7 +47,7 @@ fun ImageUtility(
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
     enableGlowEffect: Boolean = false,
-    blurPadding: Dp = 12.dp,
+    blurPadding: Dp = 0.dp,
     fadeEdgeWidth: Dp = 24.dp,
     errorColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     cornerRadius: Dp = 0.dp

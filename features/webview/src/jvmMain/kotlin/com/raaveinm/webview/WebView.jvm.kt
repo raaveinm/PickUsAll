@@ -289,6 +289,12 @@ private class DesktopBrowserHost(
                 callback: CefQueryCallback,
             ): Boolean {
                 if (!frame.isMain) return false
+                if (request.startsWith("picasso-message:")) {
+                    val message: String = request.removePrefix("picasso-message:")
+                    onUi { state.dispatch(WebViewEvent.MessageReceived(message)) }
+                    callback.success("")
+                    return true
+                }
                 val id: String = request.substringBefore(':')
                 val result: String = request.substringAfter(':', "null")
                 onUi { callbacks.remove(id)?.invoke(result) }

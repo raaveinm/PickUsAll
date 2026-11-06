@@ -19,6 +19,8 @@ package com.raaveinm.webview.wv
  * @property mediaPlaybackRequiresUserGesture Requires a tap before media playback on Android/iOS.
  * Desktop follows Chromium's autoplay policy.
  * @property transparentBackground Lets the Compose background show through transparent HTML.
+ * @property captureTouchGestures Keeps mobile touch gestures in the native WebView when embedded
+ * in a Compose scroller. The page must forward its own boundary movement to the parent.
  */
 data class WebViewSettings(
     val javaScriptEnabled: Boolean = true,
@@ -30,4 +32,5 @@ data class WebViewSettings(
     val allowNavigation: Boolean = true,
     val mediaPlaybackRequiresUserGesture: Boolean = true,
     val transparentBackground: Boolean = false,
+    val captureTouchGestures: Boolean = false,
 )

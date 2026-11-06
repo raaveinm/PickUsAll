@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +55,7 @@ import com.raaveinm.picasso.ui.app.ProvideKeyMap
 import com.raaveinm.picasso.ui.app.QuickDestination
 import com.raaveinm.picasso.ui.app.SteamPFB
 import com.raaveinm.picasso.ui.app.WindowActions
+import com.raaveinm.picasso.ui.app.screens.StoreScreen
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.canvas.CanvasScreen
 import com.raaveinm.picasso.ui.canvas.viewmodel.CanvasViewModel
@@ -65,10 +67,12 @@ import com.raaveinm.picasso.ui.navigation.Behaviour
 import com.raaveinm.picasso.ui.navigation.Canvas
 import com.raaveinm.picasso.ui.navigation.ChatGraph
 import com.raaveinm.picasso.ui.navigation.Friends
+import com.raaveinm.picasso.ui.navigation.GameStore
 import com.raaveinm.picasso.ui.navigation.OptionList
 import com.raaveinm.picasso.ui.navigation.Profile
 import com.raaveinm.picasso.ui.navigation.Server
 import com.raaveinm.picasso.ui.navigation.Settings
+import com.raaveinm.picasso.ui.navigation.SideWindow
 import com.raaveinm.picasso.ui.navigation.Visual
 import com.raaveinm.picasso.ui.profile.ProfileScreen
 import com.raaveinm.picasso.ui.settings.SettingsScreen
@@ -93,6 +97,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.language
 import pickusall.shared.generated.resources.unauthorized
 
 private const val CanvasTab = 0
@@ -226,7 +231,18 @@ private fun AppContent(
                     CanvasScreen(
                         modifier = Modifier,
                         topNavModifier = Modifier.padding(PlatformSpecificDim.systemBarsPadding),
-                        viewModel = canvasViewModel
+                        viewModel = canvasViewModel,
+                        onStorePageOpened = { navController.navigate(GameStore(it)) }
+                    )
+                }
+                composable<GameStore> { backsStackEntry ->
+                    val route = backsStackEntry.toRoute<GameStore>()
+                    StoreScreen(
+                        modifier = Modifier.systemBarsPadding().fillMaxSize(),
+                        appId = route.appId,
+                        language = stringResource(Res.string.language),
+                        devPageOpen = { appViewModel.setWindowRequest(SideWindow.Browser(url = it)) },
+                        navigateBack = { navController.popBackStack() }
                     )
                 }
                 composable<ChatGraph> { backStackEntry ->

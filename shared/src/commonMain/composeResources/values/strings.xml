@@ -8,6 +8,7 @@
     <!--Application-->
     <string name="unauthorized">Unauthorized</string>
     <string name="dismiss">Dismiss</string>
+    <string name="language">english</string>
 
     <!--Canvas-->
     <string-array name="switch_options">

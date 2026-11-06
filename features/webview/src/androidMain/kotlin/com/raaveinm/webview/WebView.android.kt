@@ -1,7 +1,10 @@
 package com.raaveinm.webview
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Bitmap
+import android.view.MotionEvent
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -25,7 +28,16 @@ actual fun PlatformWebView(
     AndroidView(
         modifier = modifier,
         factory = { context ->
-            WebView(context).apply {
+            AppNativeWebView(
+                context = context,
+                captureTouchGestures = state.settings.captureTouchGestures,
+            ).apply {
+                addJavascriptInterface(
+                    WebViewMessageBridge { message ->
+                        post { state.dispatch(WebViewEvent.MessageReceived(message)) }
+                    },
+                    "PicassoWebView",
+                )
                 if (state.settings.transparentBackground) setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 settings.javaScriptEnabled = state.settings.javaScriptEnabled
                 settings.domStorageEnabled = state.settings.domStorageEnabled
@@ -112,10 +124,37 @@ actual fun PlatformWebView(
         },
         onRelease = { webView ->
             state.commands = null
+            webView.removeJavascriptInterface("PicassoWebView")
             webView.stopLoading()
             webView.webChromeClient = null
             webView.webViewClient = WebViewClient()
             webView.destroy()
         },
     )
+}
+
+private class AppNativeWebView(
+    context: Context,
+    private val captureTouchGestures: Boolean,
+) : WebView(context) {
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (captureTouchGestures) parent?.requestDisallowInterceptTouchEvent(true)
+        val handled: Boolean = super.dispatchTouchEvent(event)
+        if (captureTouchGestures) {
+            val continues: Boolean = event.actionMasked != MotionEvent.ACTION_UP &&
+                event.actionMasked != MotionEvent.ACTION_CANCEL
+            parent?.requestDisallowInterceptTouchEvent(continues)
+        }
+        return handled
+    }
+}
+
+/** Page messages are untrusted input; receivers decide which messages they accept. */
+private class WebViewMessageBridge(
+    private val onMessage: (String) -> Unit,
+) {
+    @JavascriptInterface
+    fun postMessage(message: String) {
+        onMessage(message)
+    }
 }

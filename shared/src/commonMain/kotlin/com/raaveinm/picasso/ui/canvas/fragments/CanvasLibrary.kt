@@ -61,7 +61,8 @@ fun CanvasLibrary(
     sortOptions: List<String>,
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
-    onAddToQueue: (gameId: Int) -> Unit = {}
+    onAddToQueue: (gameId: Int) -> Unit = {},
+    onStorePageOpened: (Int) -> Unit = {},
 ) {
     BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.TopCenter) {
         val minCellSize = if (maxWidth < 700.dp) 110.dp else 220.dp
@@ -105,7 +106,10 @@ fun CanvasLibrary(
                             onClickLabel = stringResource(Res.string.game_open_label, game.name),
                             onSideActionLabel = stringResource(Res.string.game_more_actions_label, game.name),
                             onSideAction = { isMenuExpanded = true },
-                            onClick = { libraryRedirect(game.appId, uriHandler) }
+                            onClick = { // todo return platform specific redirect
+//                                libraryRedirect(game.appId, uriHandler)
+                                onStorePageOpened(game.appId)
+                            }
                         ),
                         gameId = game.appId,
                         text = game.name

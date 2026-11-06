@@ -18,11 +18,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.raaveinm.pickusall.core.designsystem.icons.ExtraIcons
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
-import org.jetbrains.compose.resources.vectorResource
-import pickusall.core.designsystem.generated.resources.Res
-import pickusall.core.designsystem.generated.resources.ic_steam_icon
 
 @Composable
 fun UserQuickAction(
@@ -51,7 +49,7 @@ fun UserQuickAction(
         {
             Icon(
                 modifier = Modifier.size(24.dp).clickable{ onSteamProfileRedirectClick() },
-                imageVector = vectorResource(Res.drawable.ic_steam_icon),
+                imageVector = ExtraIcons.SteamIcon,
                 contentDescription = "menu_item_home",
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )

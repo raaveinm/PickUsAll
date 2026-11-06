@@ -22,6 +22,13 @@ data object Settings
 @Serializable
 data object Profile
 
+@Serializable
+data class GameStore(
+    val appId: Int,
+//    val language: String,
+//    val openDevPageReq: (String) -> Unit
+)
+
 ///////////////////////////////////////////////
 // Nested (chat graph)
 ///////////////////////////////////////////////

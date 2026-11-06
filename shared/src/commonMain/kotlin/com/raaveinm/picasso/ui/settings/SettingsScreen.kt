@@ -45,7 +45,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.raaveinm.picasso.ui.app.screens.StoreScreen
 import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.navigation.Application
 import com.raaveinm.picasso.ui.navigation.Behaviour
@@ -192,7 +191,6 @@ fun SettingsScreen(
                 )
             }
             composable<Application> {
-                StoreScreen(nestedModifier.padding(bottom = 96.dp).sizeIn(maxWidth = maxWidth - (if (isCompact) 0.dp else 164.dp)))
             }
             composable<Visual> {
                 VisualScreen(

@@ -24,14 +24,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.raaveinm.pickusall.core.designsystem.icons.ExtraIcons
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import com.raaveinm.pickusall.core.designsystem.theme.SpecialColors
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.vectorResource
 import pickusall.core.designsystem.generated.resources.Res
 import pickusall.core.designsystem.generated.resources.ic_default_icon
-import pickusall.core.designsystem.generated.resources.ic_steam_icon
 
 @Composable
 fun UserMiniProfile(
@@ -142,7 +141,7 @@ fun UserMiniProfile(
                     .clickable { onSteamProfileRedirectClick() }
             ) {
                 Icon(
-                    imageVector = vectorResource(Res.drawable.ic_steam_icon),
+                    imageVector = ExtraIcons.SteamIcon,
                     tint = MaterialTheme.colorScheme.onSurface,
                     contentDescription = "mini_profile/steam",
                     modifier = Modifier.padding(Dimensions.small)
