@@ -9,6 +9,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowDecoration
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.v2.Window
 import androidx.compose.ui.window.v2.WindowBoundsProvider
@@ -189,38 +191,45 @@ fun main() {
         }
 
         if (sideWindowRequest != null) {
-            val secondWindowState = rememberWindowState(
-                initialBoundsProvider = WindowBoundsProvider(
-                    positionProvider = WindowPositionProvider.CenteredOnScreen,
-                    sizeProvider = WindowSizeProvider.Unconstrained
-                )
-            )
-
-            Window(
-                onCloseRequest = { appViewModel.resetSideWindowRequest(sideWindowRequest.id) },
-                state = secondWindowState,
-                title = stringResource(Res.string.app_name),
-                decoration = WindowDecoration.Undecorated(),
-                transparent = true,
-                resizable = true,
-                alwaysOnTop = true,
-                minSize = DpSize(800.dp, 600.dp)
-            ) {
-                if (System.getProperty("os.name").lowercase().contains("mac"))
-                {
-                    AppMenuBar(
-                        onNavigate = navigate,
-                        onOpenSteamWindow = {
-                            appViewModel.setWindowRequest(
-                                SideWindow.Browser(url = "https://google.com"),
-                            )
-                        },
+            key(sideWindowRequest.id) {
+                val isMediaViewer: Boolean = sideWindowRequest.destination is SideWindow.MediaLibraryViewer
+                val secondWindowState = rememberWindowState(
+                    initialPlacement = if (isMediaViewer) WindowPlacement.Fullscreen else WindowPlacement.Floating,
+                    initialBoundsProvider = if (isMediaViewer) WindowBoundsProvider {
+                        windowMetrics.screen.availableBounds
+                    } else WindowBoundsProvider(
+                        positionProvider = WindowPositionProvider.CenteredOnScreen,
+                        sizeProvider = WindowSizeProvider.Unconstrained
                     )
-                }
-                WindowDraggableArea {
-                    Box(Modifier.clip(RoundedCornerShape(8.dp)).fillMaxWidth().background(
-                        MaterialTheme.colors.primary.copy(alpha = .72f))) {
-                        AppSideWindow(appViewModel = appViewModel)
+                )
+
+                Window(
+                    onCloseRequest = { appViewModel.resetSideWindowRequest(sideWindowRequest.id) },
+                    state = secondWindowState,
+                    title = stringResource(Res.string.app_name),
+                    decoration = WindowDecoration.Undecorated(),
+                    transparent = !isMediaViewer,
+                    resizable = true,
+                    alwaysOnTop = true,
+                    minSize = DpSize(800.dp, 600.dp)
+                ) {
+                    if (System.getProperty("os.name").lowercase().contains("mac"))
+                    {
+                        AppMenuBar(
+                            onNavigate = navigate,
+                            onOpenSteamWindow = {
+                                appViewModel.setWindowRequest(
+                                    SideWindow.Browser(url = "https://google.com"),
+                                )
+                            },
+                        )
+                    }
+                    if (isMediaViewer) { AppSideWindow(appViewModel = appViewModel)
+                    } else WindowDraggableArea {
+                        Box(Modifier.clip(RoundedCornerShape(8.dp)).fillMaxWidth().background(
+                            MaterialTheme.colors.primary.copy(alpha = .72f))) {
+                            AppSideWindow(appViewModel = appViewModel)
+                        }
                     }
                 }
             }

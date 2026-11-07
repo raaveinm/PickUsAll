@@ -9,6 +9,18 @@
     <string name="incoming_chat_request">Do you recognize this face?</string>
     <string name="ban_artist_suggestion">Would you like to ban this stranger?</string>
 
+    <!--Media viewer-->
+    <string name="media_image">Image</string>
+    <string name="media_close">Close media viewer</string>
+    <string name="media_next">Next media</string>
+    <string name="media_previous">Previous media</string>
+    <string name="media_play">Play</string>
+    <string name="media_pause">Pause</string>
+    <string name="media_stop">Stop</string>
+    <string name="media_open_fullscreen">Open fullscreen</string>
+    <string name="media_unavailable">Unable to load this media.</string>
+    <string name="media_retry">Retry</string>
+
     <!--settings-->
     <string name="settings_general">General</string>
     <string name="settings_avatar">Avatar</string>

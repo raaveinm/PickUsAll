@@ -85,6 +85,8 @@ kotlin {
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.compose.uiToolingPreview)
                 implementation(libs.compose.uiTooling)
+                runtimeOnly(libs.androidx.media3.exoplayer.dash)
+                runtimeOnly(libs.androidx.media3.exoplayer.hls)
             }
         }
 

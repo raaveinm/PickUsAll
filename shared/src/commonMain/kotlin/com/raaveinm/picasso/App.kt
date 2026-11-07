@@ -242,7 +242,12 @@ private fun AppContent(
                         appId = route.appId,
                         language = stringResource(Res.string.language),
                         devPageOpen = { appViewModel.setWindowRequest(SideWindow.Browser(url = it)) },
-                        navigateBack = { navController.popBackStack() }
+                        navigateBack = { navController.popBackStack() },
+                        onItemClicked = { index, list ->
+                            appViewModel.setWindowRequest(
+                                SideWindow.MediaLibraryViewer(mediaLinks = list, selectedId = index)
+                            )
+                        }
                     )
                 }
                 composable<ChatGraph> { backStackEntry ->

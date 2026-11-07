@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -49,8 +50,10 @@ import com.raaveinm.core.model.game.Game
 import com.raaveinm.core.model.responses.GameStoreInfoEntry
 import com.raaveinm.core.model.responses.GetGameStoreInfoResponse
 import com.raaveinm.pickusall.core.designsystem.animated.UnspecifiedProgressIndicator
+import com.raaveinm.pickusall.core.designsystem.components.ImageGallery
 import com.raaveinm.pickusall.core.designsystem.components.ScrollBar
 import com.raaveinm.pickusall.core.designsystem.icons.ExtraIcons
+import com.raaveinm.pickusall.core.designsystem.obj.MediaGalleryItem
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
 import com.raaveinm.pickusall.core.designsystem.utils.ImageUtility
@@ -69,7 +72,10 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.store_available_on
 import pickusall.shared.generated.resources.store_details_unavailable
+import pickusall.shared.generated.resources.store_developer_website
+import pickusall.shared.generated.resources.store_languages
 import kotlin.uuid.Uuid
 
 //
@@ -86,7 +92,8 @@ fun StoreScreen(
     countryCode: String = "u",
     language: String = "english",
     devPageOpen: (String) -> Unit = { _ -> },
-    navigateBack: () -> Unit = {}
+    navigateBack: () -> Unit = {},
+    onItemClicked: (Int, List<MediaGalleryItem>) -> Unit = { _,_ -> }
 ) {
     val httpClient: HttpClient = koinInject()
     var storeItem: GameStoreInfoEntry? by remember(appId, language, httpClient) { mutableStateOf(null) }
@@ -117,7 +124,9 @@ fun StoreScreen(
     ) {
         when {
             isLoading -> UnspecifiedProgressIndicator(selfSize = 64.dp, widthAngular = 9f)
-            game != null -> PrivateStoreScreen(game = game, devPageOpen = { devPageOpen(it) }, navigateBack = navigateBack)
+            game != null -> key(game.steamAppId) {
+                PrivateStoreScreen(game = game, devPageOpen = devPageOpen, navigateBack = navigateBack, onItemClicked = onItemClicked)
+            }
             else -> {
                 Text(text = stringResource(Res.string.store_details_unavailable))
                 navigateBack()
@@ -140,10 +149,14 @@ private fun PrivateStoreScreen(
     modifier: Modifier = Modifier,
     game: Game,
     devPageOpen: (String) -> Unit = { _ -> },
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    onItemClicked: (Int, List<MediaGalleryItem>) -> Unit = { _, _ -> }
 ) {
     val listState: LazyListState = rememberLazyListState()
     val scrollScope: CoroutineScope = rememberCoroutineScope()
+    val galleryItems: List<MediaGalleryItem> = remember(game.screenshots, game.movies) {
+        game.toGalleryItems()
+    }
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         Row(
             Modifier
@@ -214,11 +227,11 @@ private fun PrivateStoreScreen(
             if (!game.website.isNullOrBlank()) {
                 item {
                     Row(
-                        verticalAlignment = Alignment.Bottom,
+                        verticalAlignment = Alignment.Top,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.medium)
                     ) {
                         Text(
-                            text = "Developer website: ",
+                            text = stringResource(Res.string.store_developer_website),
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold
@@ -246,7 +259,7 @@ private fun PrivateStoreScreen(
             item {
                 Row (modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.medium)) {
                     Text(
-                        text = "Available On: ",
+                        text = stringResource(Res.string.store_available_on),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
@@ -285,7 +298,7 @@ private fun PrivateStoreScreen(
                     modifier = Modifier.padding(horizontal = Dimensions.medium)
                 ) {
                     Text(
-                        text = "Languages",
+                        text = stringResource(Res.string.store_languages),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
@@ -295,6 +308,43 @@ private fun PrivateStoreScreen(
                     }
                 }
             }
+            if (galleryItems.isNotEmpty()) {
+                item {
+                    ImageGallery(
+                        items = galleryItems,
+                        verticalScrollEnabled = true,
+                        onItemClicked = { onItemClicked(it, galleryItems) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun Game.toGalleryItems(): List<MediaGalleryItem> = buildList {
+    for ((_, pathThumbnail, pathFull) in screenshots) {
+        val url: String = pathFull.ifBlank { pathThumbnail }
+        if (url.isNotBlank()) add(MediaGalleryItem.Image(url))
+    }
+    for ((_, name1, thumbnail, _, webm, mp4, dashAv1, dashH264, hlsH264) in movies) {
+        val videoUrls: List<String> = listOfNotNull(
+            mp4?.max,
+            mp4?.video480,
+            hlsH264,
+            dashH264,
+            webm?.max,
+            webm?.video480,
+            dashAv1,
+        ).filter { it.startsWith("https://", ignoreCase = true) || it.startsWith("http://", ignoreCase = true) }
+            .distinct()
+        if (videoUrls.isNotEmpty()) {
+            add(
+                MediaGalleryItem.Movie(
+                    title = name1,
+                    thumbnailUrl = thumbnail.takeIf { it.isNotBlank() },
+                    videoUrls = videoUrls,
+                )
+            )
         }
     }
 }
@@ -388,11 +438,7 @@ private fun WebViewRender(
     )
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         if (state.error == null) {
-            AppWebView(
-                state = state,
-                modifier = Modifier
-                    .sizeIn(minHeight = 1024.dp)
-                    .fillMaxSize())
+            AppWebView(state = state, modifier = Modifier.fillMaxSize())
         } else {
             Text(text = stringResource(Res.string.store_details_unavailable))
         }

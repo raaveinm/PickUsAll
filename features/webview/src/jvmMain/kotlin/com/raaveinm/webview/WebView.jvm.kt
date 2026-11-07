@@ -62,7 +62,7 @@ actual fun PlatformWebView(
         state.dispatch(WebViewEvent.LoadingChanged(true))
         try {
             val app: CefApp = withContext(Dispatchers.IO) { DesktopBrowserRuntime.app(state.settings) }
-            host.open(app)
+            host.scheduleOpen(app)
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {
@@ -132,6 +132,7 @@ private class DesktopBrowserHost(
     private var router: CefMessageRouter? = null
     private var requestContext: CefRequestContext? = null
     private var closed: Boolean = false
+    private var offscreenCreationPending: Boolean = false
     private val callbacks: MutableMap<String, (String?) -> Unit> = mutableMapOf()
     var frame: ImageBitmap? by mutableStateOf(null)
         private set
@@ -161,21 +162,37 @@ private class DesktopBrowserHost(
         SwingUtilities.invokeLater { if (!closed) action() }
     }
 
-    fun open(app: CefApp) {
-        if (closed) return
+    fun scheduleOpen(app: CefApp) {
+        onUi {
+            try {
+                open(app)
+            } catch (exception: Exception) {
+                state.dispatch(WebViewEvent.Error(exception.message ?: exception.toString()))
+            } catch (error: LinkageError) {
+                state.dispatch(WebViewEvent.Error(error.message ?: error.toString()))
+            }
+        }
+    }
+
+    private fun open(app: CefApp) {
         val cefClient: CefClient = app.createClient()
         client = cefClient
         val context: CefRequestContext = CefRequestContext.createContext(null)
         requestContext = context
         cefClient.addLifeSpanHandler(object : CefLifeSpanHandlerAdapter() {
             override fun onAfterCreated(browser: CefBrowser) {
-                onUi { resize(viewportSize, viewportDensity) }
                 val preferenceError: String? = context.setPreference(
                     "profile.default_content_setting_values.javascript",
                     if (state.settings.javaScriptEnabled) 1 else 2,
                 )
-                onUi {
-                    if (preferenceError != null) state.dispatch(WebViewEvent.Error(preferenceError))
+                SwingUtilities.invokeLater {
+                    offscreenCreationPending = false
+                    if (closed) {
+                        releaseBrowser()
+                    } else {
+                        resize(viewportSize, viewportDensity)
+                        if (preferenceError != null) state.dispatch(WebViewEvent.Error(preferenceError))
+                    }
                 }
             }
             override fun onBeforePopup(
@@ -314,7 +331,13 @@ private class DesktopBrowserHost(
         }
         browser = cefBrowser
         if (state.settings.transparentBackground) {
-            cefBrowser.createImmediately()
+            offscreenCreationPending = true
+            try {
+                cefBrowser.createImmediately()
+            } catch (failure: Throwable) {
+                offscreenCreationPending = false
+                throw failure
+            }
         } else {
             add(cefBrowser.uiComponent, BorderLayout.CENTER)
         }
@@ -360,22 +383,36 @@ private class DesktopBrowserHost(
     }
 
     fun close() {
+        if (closed) return
         closed = true
         if (state.commands === this) state.commands = null
         clearCallbacks()
-        browser?.close(true)
-        router?.let { messageRouter ->
-            client?.removeMessageRouter(messageRouter)
-            messageRouter.dispose()
-        }
-        client?.dispose()
-        requestContext?.dispose()
-        requestContext = null
-        removeAll()
-        browser = null
         frame = null
+        // Native creation completes asynchronously. Disposing the client before it registers
+        // the browser can leave CEF without a view rectangle during initialization.
+        SwingUtilities.invokeLater {
+            if (!offscreenCreationPending) releaseBrowser()
+        }
+    }
+
+    private fun releaseBrowser() {
+        val cefBrowser: CefBrowser? = browser
+        val cefRouter: CefMessageRouter? = router
+        val cefClient: CefClient? = client
+        val cefContext: CefRequestContext? = requestContext
+        browser = null
         client = null
         router = null
+        requestContext = null
+
+        cefBrowser?.close(true)
+        if (cefRouter != null) {
+            cefClient?.removeMessageRouter(cefRouter)
+            cefRouter.dispose()
+        }
+        cefClient?.dispose()
+        cefContext?.dispose()
+        removeAll()
     }
 }
 

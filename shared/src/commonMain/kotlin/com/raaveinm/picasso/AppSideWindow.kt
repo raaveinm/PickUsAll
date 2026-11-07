@@ -39,6 +39,7 @@ import com.raaveinm.picasso.ui.app.viewmodel.AppViewModel
 import com.raaveinm.picasso.ui.navigation.SideWindow
 import com.raaveinm.picasso.ui.navigation.SideWindowRequest
 import com.raaveinm.pickusall.core.designsystem.components.CallAccept
+import com.raaveinm.picasso.ui.media.MediaLibraryViewer
 import com.raaveinm.pickusall.core.designsystem.theme.PicassoTheme
 import com.raaveinm.webview.AppWebView
 import com.raaveinm.webview.wv.AppWebViewState
@@ -92,6 +93,7 @@ fun AppSideWindow(
                             url = destination.url,
                             onDismiss = onDismiss,
                         )
+
                         is SideWindow.IncomingCall -> IncomingCallScreen(
                             request = destination,
                             caller = appUiState.incomingCaller?.takeIf { it.steamId == destination.peerSteamId },
@@ -101,6 +103,12 @@ fun AppSideWindow(
 
                         is SideWindow.Browser -> WebScreen(
                             url = destination.url,
+                            onDismiss = onDismiss,
+                        )
+
+                        is SideWindow.MediaLibraryViewer -> MediaLibraryViewer(
+                            items = destination.mediaLinks,
+                            initialSelectedId = destination.selectedId,
                             onDismiss = onDismiss,
                         )
                     }

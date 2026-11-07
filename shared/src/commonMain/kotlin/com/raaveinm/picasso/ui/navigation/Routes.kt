@@ -1,5 +1,6 @@
 package com.raaveinm.picasso.ui.navigation
 
+import com.raaveinm.pickusall.core.designsystem.obj.MediaGalleryItem
 import kotlinx.serialization.Serializable
 
 ///////////////////////////////////////////////
@@ -24,9 +25,11 @@ data object Profile
 
 @Serializable
 data class GameStore(
-    val appId: Int,
-//    val language: String,
-//    val openDevPageReq: (String) -> Unit
+    val appId: Int
+)
+
+data class MediaFullscreen(
+    val url: MediaGalleryItem
 )
 
 ///////////////////////////////////////////////
