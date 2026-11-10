@@ -43,12 +43,17 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.raaveinm.core.model.game.Game
+import com.raaveinm.core.model.game.ProtonDB
 import com.raaveinm.core.model.responses.GameStoreInfoEntry
 import com.raaveinm.core.model.responses.GetGameStoreInfoResponse
+import com.raaveinm.core.model.responses.ProtonDBResponse
+import com.raaveinm.pickusall.core.designsystem.animated.CircleProgressBar
 import com.raaveinm.pickusall.core.designsystem.animated.UnspecifiedProgressIndicator
 import com.raaveinm.pickusall.core.designsystem.components.ImageGallery
 import com.raaveinm.pickusall.core.designsystem.components.ScrollBar
@@ -66,16 +71,27 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.proton_db_description
+import pickusall.shared.generated.resources.proton_db_section_title
 import pickusall.shared.generated.resources.store_available_on
 import pickusall.shared.generated.resources.store_details_unavailable
 import pickusall.shared.generated.resources.store_developer_website
 import pickusall.shared.generated.resources.store_languages
+import pickusall.shared.generated.resources.store_protondb_borked
+import pickusall.shared.generated.resources.store_protondb_bronze
+import pickusall.shared.generated.resources.store_protondb_gold
+import pickusall.shared.generated.resources.store_protondb_pending
+import pickusall.shared.generated.resources.store_protondb_platinum
+import pickusall.shared.generated.resources.store_protondb_rating
+import pickusall.shared.generated.resources.store_protondb_silver
 import kotlin.uuid.Uuid
 
 //
@@ -98,6 +114,7 @@ fun StoreScreen(
     val httpClient: HttpClient = koinInject()
     var storeItem: GameStoreInfoEntry? by remember(appId, language, httpClient) { mutableStateOf(null) }
     var isLoading: Boolean by remember(appId, language, httpClient) { mutableStateOf(true) }
+    var protonSummary: ProtonDBResponse? by remember(appId, httpClient) { mutableStateOf(null) }
 
     LaunchedEffect(appId, language, httpClient) {
         try {
@@ -117,6 +134,18 @@ fun StoreScreen(
         } finally { isLoading = false }
     }
 
+    LaunchedEffect(appId, httpClient) {
+        try {
+            val response: HttpResponse = httpClient.get(
+                urlString = "https://www.protondb.com/data/reports/newSummaries/$appId.json",
+            )
+            if (response.status.isSuccess()) {
+                protonSummary = response.body<ProtonDBResponse>()
+            }
+        } catch (exception: CancellationException) { throw exception
+        } catch (exception: Exception) { println("ProtonDB summary failed for appId=$appId: $exception") }
+    }
+
     val game: Game? = storeItem?.takeIf { it.success }?.data
     Box(
         modifier = modifier.fillMaxSize(),
@@ -125,7 +154,13 @@ fun StoreScreen(
         when {
             isLoading -> UnspecifiedProgressIndicator(selfSize = 64.dp, widthAngular = 9f)
             game != null -> key(game.steamAppId) {
-                PrivateStoreScreen(game = game, devPageOpen = devPageOpen, navigateBack = navigateBack, onItemClicked = onItemClicked)
+                PrivateStoreScreen(
+                    game = game,
+                    protonSummary = protonSummary,
+                    devPageOpen = devPageOpen,
+                    navigateBack = navigateBack,
+                    onItemClicked = onItemClicked,
+                )
             }
             else -> {
                 Text(text = stringResource(Res.string.store_details_unavailable))
@@ -148,6 +183,7 @@ fun StoreScreen(
 private fun PrivateStoreScreen(
     modifier: Modifier = Modifier,
     game: Game,
+    protonSummary: ProtonDBResponse?,
     devPageOpen: (String) -> Unit = { _ -> },
     navigateBack: () -> Unit,
     onItemClicked: (Int, List<MediaGalleryItem>) -> Unit = { _, _ -> }
@@ -248,7 +284,7 @@ private fun PrivateStoreScreen(
                             text = game.website!!,
                             style = MaterialTheme.typography.titleLarge,
                             color = color,
-                            modifier = Modifier.clickable(
+                            modifier = Modifier.padding(start = Dimensions.sMedium).clickable(
                                 interactionSource = source,
                                 indication = null
                             ) { devPageOpen(game.website ?: "https://store.steampowered.com") }
@@ -317,9 +353,83 @@ private fun PrivateStoreScreen(
                     )
                 }
             }
+            if (protonSummary != null) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.medium),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.medium)
+                    ) {
+                        val source = remember { MutableInteractionSource() }
+                        val isHovered by source.collectIsHoveredAsState()
+
+                        Text(
+                            text = stringResource(Res.string.proton_db_section_title) + " ↗",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = if (isHovered) TextDecoration.Underline else TextDecoration.None,
+                            modifier = Modifier.clickable(
+                                interactionSource = source,
+                                indication = null
+                            ) { devPageOpen("https://protondb.com") }
+                        )
+
+                        Text(
+                            text = stringResource(Res.string.proton_db_description),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontStyle = FontStyle.Italic
+                        )
+
+                        Text(
+                            text = stringResource(Res.string.store_protondb_rating,
+                                protonSummary.tier.displayName(), protonSummary.total),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.medium)
+                        ) {
+                            if (protonSummary.score != null) {
+                                Box(contentAlignment = Alignment.Center){
+                                    CircleProgressBar(
+                                        modifier = Modifier.size(128.dp),
+                                        colors = listOf(
+                                            Color.Transparent, Color.Red,
+                                            Color(0xFFDFDF00), Color(0xFFDFDF00),
+                                            Color(0xFF00DF00), Color(0xFF00DF00)
+                                        ),
+                                        progress = protonSummary.score ?: .0f
+                                    )
+                                    Text(
+                                        text = ((protonSummary.score?: 0f) * 100).toInt().toString() + "%",
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
+
+@Composable
+private fun ProtonDB.CompatibilityTier.displayName(): String = stringResource(
+    when (this) {
+        ProtonDB.CompatibilityTier.PLATINUM -> Res.string.store_protondb_platinum
+        ProtonDB.CompatibilityTier.GOLD -> Res.string.store_protondb_gold
+        ProtonDB.CompatibilityTier.SILVER -> Res.string.store_protondb_silver
+        ProtonDB.CompatibilityTier.BRONZE -> Res.string.store_protondb_bronze
+        ProtonDB.CompatibilityTier.BORKED -> Res.string.store_protondb_borked
+        ProtonDB.CompatibilityTier.PENDING -> Res.string.store_protondb_pending
+    },
+)
 
 private fun Game.toGalleryItems(): List<MediaGalleryItem> = buildList {
     for ((_, pathThumbnail, pathFull) in screenshots) {
