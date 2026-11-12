@@ -26,6 +26,15 @@
     <string name="store_details_unavailable">Unable to load store details.</string>
     <string name="store_developer_website">Developer website:</string>
     <string name="store_available_on">Available On:</string>
+    <string name="proton_db_section_title">Proton DB compatibility rating</string>
+    <string name="store_protondb_rating">Overall Rating: %1$s, based on %2$d reports</string>
+    <string name="proton_db_description">* ProtonDB is a community-driven website that tracks how well Windows games run on Linux using Proton, a compatibility layer developed by Valve.</string>
+    <string name="store_protondb_platinum">Platinum</string>
+    <string name="store_protondb_gold">Gold</string>
+    <string name="store_protondb_silver">Silver</string>
+    <string name="store_protondb_bronze">Bronze</string>
+    <string name="store_protondb_borked">Borked</string>
+    <string name="store_protondb_pending">Pending</string>
     <string name="store_languages">Languages</string>
     <string name="store_screenshot">Screenshot %1$d</string>
     <string name="media_position">%1$d / %2$d</string>
