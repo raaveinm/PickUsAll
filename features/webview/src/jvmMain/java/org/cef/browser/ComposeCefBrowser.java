@@ -6,6 +6,7 @@ import org.cef.handler.CefRenderHandler;
 import org.cef.handler.CefScreenInfo;
 
 import java.awt.Component;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
@@ -27,30 +28,48 @@ public final class ComposeCefBrowser extends CefBrowser_N implements CefRenderHa
     private static final double PIXELS_PER_SCROLL_UNIT = 16.0;
     private final JPanel eventSource = new JPanel();
     private final Consumer<BufferedImage> onFrame;
+    private final boolean transparent;
     private volatile Rectangle viewport = new Rectangle(0, 0, 1, 1);
     private volatile Point screenOrigin = new Point();
     private volatile double scale = 1.0;
     private volatile BufferedImage image;
+    private BufferedImage viewImage;
+    private BufferedImage popupImage;
+    private Rectangle popupBounds;
+    private boolean settingFocus;
     private double scrollRemainder = 0.0;
 
     public ComposeCefBrowser(
         CefClient client,
         String url,
         CefRequestContext context,
+        boolean transparent,
         Consumer<BufferedImage> onFrame
     ) {
         super(client, url, context, null, null, null);
+        this.transparent = transparent;
         this.onFrame = onFrame;
     }
 
     @Override
     public void createImmediately() {
-        createBrowser(getClient(), 0L, getUrl(), true, true, null, getRequestContext());
+        createBrowser(getClient(), 0L, getUrl(), true, transparent, null, getRequestContext());
     }
 
-    public void resize(int width, int height, double scale, int screenX, int screenY) {
+    @Override
+    public void setFocus(boolean enable) {
+        // CefClient.onGotFocus calls back into setFocus while CEF is still granting focus.
+        if (settingFocus) return;
+        settingFocus = true;
+        try {
+            super.setFocus(enable);
+        } finally {
+            settingFocus = false;
+        }
+    }
+
+    public void resize(int width, int height, double scale) {
         this.scale = scale;
-        this.screenOrigin = new Point(screenX, screenY);
         this.viewport = new Rectangle(
             0, 0, Math.max(1, (int) Math.ceil((double) width / scale)),
             Math.max(1, (int) Math.ceil((double) height / scale))
@@ -59,6 +78,7 @@ public final class ComposeCefBrowser extends CefBrowser_N implements CefRenderHa
     }
 
     public void pointerEvent(MouseEvent original, int x, int y) {
+        screenOrigin = new Point(original.getXOnScreen() - x, original.getYOnScreen() - y);
         if (original instanceof MouseWheelEvent) {
             MouseWheelEvent wheel = (MouseWheelEvent) original;
             // AWT and CEF use opposite wheel directions. Retain fractional trackpad movement;
@@ -77,6 +97,7 @@ public final class ComposeCefBrowser extends CefBrowser_N implements CefRenderHa
         } else {
             sendMouseEvent(new MouseEvent(
                 eventSource, original.getID(), original.getWhen(), original.getModifiersEx(), x, y,
+                original.getXOnScreen(), original.getYOnScreen(),
                 original.getClickCount(), original.isPopupTrigger(), original.getButton()
             ));
         }
@@ -123,11 +144,36 @@ public final class ComposeCefBrowser extends CefBrowser_N implements CefRenderHa
     public void onPaint(
         CefBrowser browser, boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height
     ) {
-        if (popup || width <= 0 || height <= 0) return;
+        if (width <= 0 || height <= 0) return;
         // CEF supplies premultiplied BGRA pixels; preserve their alpha when copying out of native memory.
         BufferedImage frame = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB_PRE);
         int[] pixels = ((DataBufferInt) frame.getRaster().getDataBuffer()).getData();
         buffer.duplicate().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(pixels);
+        if (popup) {
+            if (popupBounds == null) return;
+            popupImage = frame;
+        } else {
+            viewImage = frame;
+        }
+        publishFrame();
+    }
+
+    // CEF paints form dropdowns separately from the page.
+    private void publishFrame() {
+        BufferedImage frame = viewImage;
+        if (frame == null) return;
+        if (popupBounds != null && popupImage != null) {
+            frame = new BufferedImage(viewImage.getWidth(), viewImage.getHeight(), BufferedImage.TYPE_INT_ARGB_PRE);
+            Graphics2D graphics = frame.createGraphics();
+            try {
+                graphics.drawImage(viewImage, 0, 0, null);
+                int x = (int) Math.round(popupBounds.x * scale);
+                int y = (int) Math.round(popupBounds.y * scale);
+                graphics.drawImage(popupImage, x, y, null);
+            } finally {
+                graphics.dispose();
+            }
+        }
         image = frame;
         onFrame.accept(frame);
     }
@@ -137,8 +183,19 @@ public final class ComposeCefBrowser extends CefBrowser_N implements CefRenderHa
         return CompletableFuture.completedFuture(image);
     }
 
-    @Override public void onPopupShow(CefBrowser browser, boolean show) {}
-    @Override public void onPopupSize(CefBrowser browser, Rectangle size) {}
+    @Override
+    public void onPopupShow(CefBrowser browser, boolean show) {
+        if (show) return;
+        popupBounds = null;
+        popupImage = null;
+        publishFrame();
+    }
+
+    @Override
+    public void onPopupSize(CefBrowser browser, Rectangle size) {
+        popupBounds = new Rectangle(size);
+        popupImage = null;
+    }
     @Override public void addOnPaintListener(Consumer<CefPaintEvent> listener) {}
     @Override public void setOnPaintListener(Consumer<CefPaintEvent> listener) {}
     @Override public void removeOnPaintListener(Consumer<CefPaintEvent> listener) {}

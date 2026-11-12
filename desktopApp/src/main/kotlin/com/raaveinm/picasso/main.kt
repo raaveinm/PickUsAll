@@ -192,7 +192,10 @@ fun main() {
 
         if (sideWindowRequest != null) {
             key(sideWindowRequest.id) {
-                val isMediaViewer: Boolean = sideWindowRequest.destination is SideWindow.MediaLibraryViewer
+                val destination: SideWindow = sideWindowRequest.destination
+                val isMediaViewer: Boolean = destination is SideWindow.MediaLibraryViewer
+                val usesWebView: Boolean = destination is SideWindow.Browser || destination is SideWindow.WebAuth
+                val isLinux: Boolean = System.getProperty("os.name").equals("Linux", ignoreCase = true)
                 val secondWindowState = rememberWindowState(
                     initialPlacement = if (isMediaViewer) WindowPlacement.Fullscreen else WindowPlacement.Floating,
                     initialBoundsProvider = if (isMediaViewer) WindowBoundsProvider {
@@ -208,7 +211,8 @@ fun main() {
                     state = secondWindowState,
                     title = stringResource(Res.string.app_name),
                     decoration = WindowDecoration.Undecorated(),
-                    transparent = !isMediaViewer,
+                    // Use an opaque Linux host for both the native child and off-screen browser.
+                    transparent = !isMediaViewer && !(isLinux && usesWebView),
                     resizable = true,
                     alwaysOnTop = true,
                     minSize = DpSize(800.dp, 600.dp)

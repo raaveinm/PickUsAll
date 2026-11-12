@@ -54,7 +54,12 @@ actual fun PlatformWebView(
     state: AppWebViewState,
     modifier: Modifier,
 ) {
-    val host: DesktopBrowserHost = remember(state) { DesktopBrowserHost(state) }
+    val host: DesktopBrowserHost = remember(state) {
+        // The native Chromium child can paint under XWayland while dropping browser input.
+        val useOffscreenRendering: Boolean = state.settings.transparentBackground ||
+            DesktopBrowserRuntime.IS_WAYLAND_SESSION
+        DesktopBrowserHost(state, useOffscreenRendering)
+    }
     DisposableEffect(host) {
         onDispose { host.close() }
     }
@@ -71,7 +76,7 @@ actual fun PlatformWebView(
             state.dispatch(WebViewEvent.Error(error.message ?: error.toString()))
         }
     }
-    if (state.settings.transparentBackground) {
+    if (host.useOffscreenRendering) {
         TransparentWebView(
             modifier = modifier,
             frame = host.frame,
@@ -87,6 +92,11 @@ actual fun PlatformWebView(
 
 /** CEF is process-wide and cannot be initialized again after disposal. Each view owns its client. */
 private object DesktopBrowserRuntime {
+    private val IS_LINUX: Boolean = System.getProperty("os.name").equals("Linux", ignoreCase = true)
+    val IS_WAYLAND_SESSION: Boolean = IS_LINUX &&
+        (System.getenv("XDG_SESSION_TYPE").equals("wayland", ignoreCase = true) ||
+            !System.getenv("WAYLAND_DISPLAY").isNullOrBlank()
+        )
     private var cefApp: CefApp? = null
     private var runtimeOptions: Pair<Boolean, String?>? = null
 
@@ -107,6 +117,13 @@ private object DesktopBrowserRuntime {
         builder.setInstallDir(File(runtimeDirectory, "jcef"))
         builder.cefSettings.windowless_rendering_enabled = true
         builder.cefSettings.root_cache_path = Files.createTempDirectory("picasso-chromium-").toString()
+        // The temporary profile is new on every launch. Skip standalone browser setup.
+        builder.addJcefArgs("--no-first-run")
+        val hasX11Display: Boolean = !System.getenv("DISPLAY").isNullOrBlank()
+        if (IS_LINUX && hasX11Display) {
+            // Keep Chromium on the same X11 backend as the Linux AWT host.
+            builder.addJcefArgs("--ozone-platform=x11")
+        }
         if (!settings.domStorageEnabled) builder.addJcefArgs("--disable-local-storage")
         settings.userAgent?.let { builder.addJcefArgs("--user-agent=$it") }
         // Separate app processes must not delete each other's in-progress native installation.
@@ -126,6 +143,7 @@ private object DesktopBrowserRuntime {
 
 private class DesktopBrowserHost(
     private val state: AppWebViewState,
+    val useOffscreenRendering: Boolean,
 ) : JPanel(BorderLayout()), WebViewCommands {
     private var client: CefClient? = null
     private var browser: CefBrowser? = null
@@ -142,7 +160,7 @@ private class DesktopBrowserHost(
     fun resize(size: IntSize, density: Float) {
         viewportSize = size
         viewportDensity = density
-        (browser as? ComposeCefBrowser)?.resize(size.width, size.height, density.toDouble(), 0, 0)
+        (browser as? ComposeCefBrowser)?.resize(size.width, size.height, density.toDouble())
     }
 
     fun pointerEvent(event: java.awt.event.MouseEvent, x: Int, y: Int) {
@@ -321,8 +339,13 @@ private class DesktopBrowserHost(
         })
         router = messageRouter
         cefClient.addMessageRouter(messageRouter)
-        val cefBrowser: CefBrowser = if (state.settings.transparentBackground) {
-            ComposeCefBrowser(cefClient, state.url, context) { image ->
+        val cefBrowser: CefBrowser = if (useOffscreenRendering) {
+            ComposeCefBrowser(
+                cefClient,
+                state.url,
+                context,
+                state.settings.transparentBackground,
+            ) { image ->
                 val bitmap: ImageBitmap = image.toComposeImageBitmap()
                 onUi { frame = bitmap }
             }
@@ -330,7 +353,7 @@ private class DesktopBrowserHost(
             cefClient.createBrowser(state.url, false, false, context)
         }
         browser = cefBrowser
-        if (state.settings.transparentBackground) {
+        if (useOffscreenRendering) {
             offscreenCreationPending = true
             try {
                 cefBrowser.createImmediately()
