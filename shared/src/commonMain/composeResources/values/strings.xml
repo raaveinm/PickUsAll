@@ -34,7 +34,9 @@
     <string name="store_protondb_silver">Silver</string>
     <string name="store_protondb_bronze">Bronze</string>
     <string name="store_protondb_borked">Borked</string>
-    <string name="store_protondb_pending">Pending</string>
+    <string name="store_protondb_pending">Unavailable</string>
+    <string name="stema_deck_compatibility">Steam Deck</string>
+    <string name="overall_rating">Overall</string>
     <string name="store_languages">Languages</string>
     <string name="store_screenshot">Screenshot %1$d</string>
     <string name="media_position">%1$d / %2$d</string>

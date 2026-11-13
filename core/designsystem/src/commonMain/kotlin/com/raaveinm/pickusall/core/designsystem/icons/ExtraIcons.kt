@@ -7,6 +7,7 @@ import pickusall.core.designsystem.generated.resources.Res
 import pickusall.core.designsystem.generated.resources.ic_apple_icon
 import pickusall.core.designsystem.generated.resources.ic_arch_icon
 import pickusall.core.designsystem.generated.resources.ic_steam_icon
+import pickusall.core.designsystem.generated.resources.ic_steamdeck_icon
 import pickusall.core.designsystem.generated.resources.ic_win_icon
 
 //
@@ -29,4 +30,8 @@ object ExtraIcons {
     val ArchIcon: ImageVector
         @Composable
         get() = vectorResource(Res.drawable.ic_arch_icon)
+
+    val SteamDeckIcon: ImageVector
+        @Composable
+        get() = vectorResource(Res.drawable.ic_steamdeck_icon)
 }

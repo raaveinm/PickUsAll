@@ -19,7 +19,8 @@ object ProtonDB { // The overall compatibility medal
         @SerialName("pending") PENDING,
     }
 
-    @Serializable // ProtonDB's confidence in the summary
+    @Suppress("unused")     // not implemented in ui, used for deserialization API only
+    @Serializable           // ProtonDB's confidence in the summary
     enum class Confidence {
         @SerialName("strong") STRONG,
         @SerialName("good") GOOD,

@@ -15,4 +15,8 @@ actual object PlatformSpecificDim {
         get() = 144.dp
     actual val contentPaddingAdvanced: Dp
         get() = 232.dp
+    actual val paddingStoreScreen: Dp
+        get() = 0.dp
+    actual val storeNavPadding: Dp
+        get() = Dimensions.paddingAverage
 }

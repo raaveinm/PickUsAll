@@ -14,4 +14,6 @@ expect object PlatformSpecificDim {
     val contentPaddingMedium: Dp
     val contentPaddingLarge: Dp
     val contentPaddingAdvanced: Dp
+    val paddingStoreScreen: Dp
+    val storeNavPadding: Dp
 }

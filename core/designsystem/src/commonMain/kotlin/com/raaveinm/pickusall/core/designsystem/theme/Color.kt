@@ -1,5 +1,6 @@
 package com.raaveinm.pickusall.core.designsystem.theme
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 
 // ==================== LIGHT SCHEME ====================
@@ -80,4 +81,12 @@ object SpecialColors {
     val onlineColor = Color(0xFF78B159)
     val offlineColor = Color(0xFFEB4646)
     val errorColor = Color(0xFF9FD8E5)
+
+    val unspecified = Color(37, 62, 85)
+
+    val statusPlatinum = Color(184,188,218)
+    val statusGold = Color(203,182,82)
+    val statusSilver = Color(166,166,166)
+    val statusBronze = Color(194,141,66)
+    val statusBorked = Color(202,24,24)
 }

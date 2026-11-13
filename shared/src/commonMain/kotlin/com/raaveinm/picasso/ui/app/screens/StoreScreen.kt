@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.Troubleshoot
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -60,7 +61,9 @@ import com.raaveinm.pickusall.core.designsystem.components.ScrollBar
 import com.raaveinm.pickusall.core.designsystem.icons.ExtraIcons
 import com.raaveinm.pickusall.core.designsystem.obj.MediaGalleryItem
 import com.raaveinm.pickusall.core.designsystem.theme.Dimensions
+import com.raaveinm.pickusall.core.designsystem.theme.PlatformSpecificDim
 import com.raaveinm.pickusall.core.designsystem.theme.Shapes
+import com.raaveinm.pickusall.core.designsystem.theme.SpecialColors
 import com.raaveinm.pickusall.core.designsystem.utils.ImageUtility
 import com.raaveinm.webview.AppWebView
 import com.raaveinm.webview.wv.AppWebViewState
@@ -79,8 +82,10 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import pickusall.shared.generated.resources.Res
+import pickusall.shared.generated.resources.overall_rating
 import pickusall.shared.generated.resources.proton_db_description
 import pickusall.shared.generated.resources.proton_db_section_title
+import pickusall.shared.generated.resources.stema_deck_compatibility
 import pickusall.shared.generated.resources.store_available_on
 import pickusall.shared.generated.resources.store_details_unavailable
 import pickusall.shared.generated.resources.store_developer_website
@@ -101,6 +106,8 @@ import kotlin.uuid.Uuid
 // https://store.steampowered.com/api/appdetails?appids=1808500&cc=ua&l=english
 // https://store.steampowered.com/api/appdetails?appids=$appId&cc=u&l=$language
 
+// im really sorry, but this screen is pure spaghetti 🍝
+
 @Composable
 fun StoreScreen(
     modifier: Modifier = Modifier,
@@ -112,9 +119,12 @@ fun StoreScreen(
     onItemClicked: (Int, List<MediaGalleryItem>) -> Unit = { _,_ -> }
 ) {
     val httpClient: HttpClient = koinInject()
-    var storeItem: GameStoreInfoEntry? by remember(appId, language, httpClient) { mutableStateOf(null) }
-    var isLoading: Boolean by remember(appId, language, httpClient) { mutableStateOf(true) }
-    var protonSummary: ProtonDBResponse? by remember(appId, httpClient) { mutableStateOf(null) }
+    var storeItem: GameStoreInfoEntry? by remember(appId, language, httpClient)
+    { mutableStateOf(null) }
+    var isLoading: Boolean by remember(appId, language, httpClient)
+    { mutableStateOf(true) }
+    var protonSummary: ProtonDBResponse? by remember(appId, httpClient)
+    { mutableStateOf(null) }
 
     LaunchedEffect(appId, language, httpClient) {
         try {
@@ -179,6 +189,9 @@ fun StoreScreen(
     }
 }
 
+///////////////////////////////////////////////
+// Main Column
+///////////////////////////////////////////////
 @Composable
 private fun PrivateStoreScreen(
     modifier: Modifier = Modifier,
@@ -229,18 +242,24 @@ private fun PrivateStoreScreen(
             modifier = Modifier
                 .sizeIn(maxWidth = 728.dp)
                 .align(Alignment.Center)
+                .padding(PlatformSpecificDim.paddingStoreScreen)
                 .clip(Shapes.roundedAverage)
                 .background(color = MaterialTheme.colorScheme.surface.copy(alpha = .64f)),
-            contentPadding = PaddingValues(vertical = Dimensions.paddingAboveAverage)
+            contentPadding = PaddingValues(
+                bottom = Dimensions.paddingAboveAverage,
+                top = PlatformSpecificDim.storeNavPadding
+            )
         ) {
             item {
-                Box(Modifier.padding(horizontal = Dimensions.medium)){
+                Box(Modifier.padding(horizontal = Dimensions.medium)) {
                     ImageUtility(
                         imageUrl = game.headerImage ?: "",
-                        modifier = Modifier.clip(Shapes.roundedSmoother)
+                        modifier = Modifier.clip(Shapes.roundedAverage)
                     )
                 }
             }
+
+            // WebView
 
             item {
                 val description: String? = game.aboutGame?.takeIf { it.isNotBlank() }
@@ -260,6 +279,9 @@ private fun PrivateStoreScreen(
                     )
                 }
             }
+
+            // Game Website
+
             if (!game.website.isNullOrBlank()) {
                 item {
                     Row(
@@ -292,8 +314,11 @@ private fun PrivateStoreScreen(
                     }
                 }
             }
+
+            // Available Platforms
+
             item {
-                Row (modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.medium)) {
+                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.medium)) {
                     Text(
                         text = stringResource(Res.string.store_available_on),
                         style = MaterialTheme.typography.titleLarge,
@@ -328,6 +353,9 @@ private fun PrivateStoreScreen(
                     }
                 }
             }
+
+            // languages
+
             item {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(Dimensions.medium),
@@ -353,69 +381,155 @@ private fun PrivateStoreScreen(
                     )
                 }
             }
+
+            ///////////////////////////////////////////////
+            // Proton DB
+            ///////////////////////////////////////////////
+
             if (protonSummary != null) {
                 item {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.medium),
-                        verticalArrangement = Arrangement.spacedBy(Dimensions.medium)
+                    val source = remember { MutableInteractionSource() }
+                    val isHovered by source.collectIsHoveredAsState()
+
+                    Text(
+                        text = stringResource(Res.string.proton_db_section_title) + " ↗",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = if (isHovered) TextDecoration.Underline else TextDecoration.None,
+                        modifier = Modifier.fillMaxWidth().clickable(
+                            interactionSource = source,
+                            indication = null
+                        ) { devPageOpen("https://protondb.com") }
+                            .padding(horizontal = Dimensions.medium)
+                    )
+                }
+
+                item {
+                    Text(
+                        text = stringResource(Res.string.proton_db_description),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontStyle = FontStyle.Italic,
+                        modifier = Modifier.fillMaxWidth().padding(Dimensions.medium)
+                    )
+                }
+
+                item {
+                    Text(
+                        text = stringResource(
+                            Res.string.store_protondb_rating,
+                            protonSummary.tier.displayName(), protonSummary.total
+                        ),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                item {
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(
+                            space = Dimensions.medium,
+                            alignment = Alignment.CenterHorizontally
+                        ),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.medium)
                     ) {
-                        val source = remember { MutableInteractionSource() }
-                        val isHovered by source.collectIsHoveredAsState()
+                        if (protonSummary.score != null) {
+                            val items = listOf<Triple<String, @Composable () -> Unit, String>>(
+                                Triple(
+                                    stringResource(Res.string.overall_rating),
+                                    @Composable {
+                                        CircleProgressBar(
+                                            modifier = Modifier.size(64.dp),
+                                            colors = listOf(
+                                                Color.Transparent,
+                                                MaterialTheme.colorScheme.errorContainer,
+                                                MaterialTheme.colorScheme.primaryContainer,
+                                                MaterialTheme.colorScheme.primary,
+                                                MaterialTheme.colorScheme.onSurfaceVariant,
+                                                MaterialTheme.colorScheme.surfaceContainer
+                                            ),
+                                            progress = protonSummary.score ?: .0f
+                                        )
+                                    },
+                                    ((protonSummary.score ?: 0f) * 100).toInt().toString() + "%"
+                                ),
+                                Triple(
+                                    stringResource(Res.string.stema_deck_compatibility),
+                                    @Composable {
+                                        Icon(
+                                            imageVector = ExtraIcons.SteamDeckIcon,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(64.dp),
+                                            tint = protonSummary.numberTiers?.deck.asColor()
+                                        )
+                                    },
+                                    protonSummary.numberTiers?.deck.asString()
+                                ),
+                                Triple(
+                                    "tinkering",
+                                    @Composable {
+                                        Icon(
+                                            imageVector = Icons.Filled.Troubleshoot,
+                                            contentDescription = null,
+                                            modifier = Modifier.padding(vertical = 4.dp).size(56.dp),
+                                            tint = protonSummary.numberTiers?.tinker.asColor()
+                                        )
+                                    },
+                                    protonSummary.numberTiers?.tinker.asString()
+                                )
+                            )
 
-                        Text(
-                            text = stringResource(Res.string.proton_db_section_title) + " ↗",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Bold,
-                            textDecoration = if (isHovered) TextDecoration.Underline else TextDecoration.None,
-                            modifier = Modifier.clickable(
-                                interactionSource = source,
-                                indication = null
-                            ) { devPageOpen("https://protondb.com") }
-                        )
-
-                        Text(
-                            text = stringResource(Res.string.proton_db_description),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontStyle = FontStyle.Italic
-                        )
-
-                        Text(
-                            text = stringResource(Res.string.store_protondb_rating,
-                                protonSummary.tier.displayName(), protonSummary.total),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.medium)
-                        ) {
-                            if (protonSummary.score != null) {
-                                Box(contentAlignment = Alignment.Center){
-                                    CircleProgressBar(
-                                        modifier = Modifier.size(128.dp),
-                                        colors = listOf(
-                                            Color.Transparent, Color.Red,
-                                            Color(0xFFDFDF00), Color(0xFFDFDF00),
-                                            Color(0xFF00DF00), Color(0xFF00DF00)
-                                        ),
-                                        progress = protonSummary.score ?: .0f
-                                    )
+                            items.forEach { (title, content, desc) ->
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
-                                        text = ((protonSummary.score?: 0f) * 100).toInt().toString() + "%",
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        text = title,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.padding(Dimensions.small)
+                                    )
+                                    content()
+                                    Text(
+                                        text = desc,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.padding(Dimensions.small)
                                     )
                                 }
-
                             }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+///////////////////////////////////////////////
+// Assistive Functions
+///////////////////////////////////////////////
+
+private fun ProtonDB.Tier?.asColor(): Color {
+    return when (this) {
+        ProtonDB.Tier.T1 -> SpecialColors.statusPlatinum
+        ProtonDB.Tier.T2 -> SpecialColors.statusGold
+        ProtonDB.Tier.T3 -> SpecialColors.statusSilver
+        ProtonDB.Tier.T4 -> SpecialColors.statusBronze
+        ProtonDB.Tier.T5 -> SpecialColors.statusBorked
+        ProtonDB.Tier.NULL -> SpecialColors.unspecified
+        null -> SpecialColors.unspecified
+    }
+}
+
+@Composable
+private fun ProtonDB.Tier?.asString(): String {
+    return when (this) {
+        ProtonDB.Tier.T1 -> stringResource(Res.string.store_protondb_platinum)
+        ProtonDB.Tier.T2 -> stringResource(Res.string.store_protondb_gold)
+        ProtonDB.Tier.T3 -> stringResource(Res.string.store_protondb_silver)
+        ProtonDB.Tier.T4 -> stringResource(Res.string.store_protondb_bronze)
+        ProtonDB.Tier.T5 -> stringResource(Res.string.store_protondb_borked)
+        ProtonDB.Tier.NULL -> stringResource(Res.string.store_protondb_pending)
+        null -> stringResource(Res.string.store_protondb_pending)
     }
 }
 
@@ -445,8 +559,10 @@ private fun Game.toGalleryItems(): List<MediaGalleryItem> = buildList {
             webm?.max,
             webm?.video480,
             dashAv1,
-        ).filter { it.startsWith("https://", ignoreCase = true) || it.startsWith("http://", ignoreCase = true) }
-            .distinct()
+        ).filter {
+            it.startsWith("https://", ignoreCase = true) ||
+                    it.startsWith("http://", ignoreCase = true)
+        }.distinct()
         if (videoUrls.isNotEmpty()) {
             add(
                 MediaGalleryItem.Movie(
