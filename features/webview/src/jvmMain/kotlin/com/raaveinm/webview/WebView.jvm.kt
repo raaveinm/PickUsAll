@@ -57,6 +57,7 @@ actual fun PlatformWebView(
     val host: DesktopBrowserHost = remember(state) {
         // The native Chromium child can paint under XWayland while dropping browser input.
         val useOffscreenRendering: Boolean = state.settings.transparentBackground ||
+            DesktopBrowserRuntime.IS_WINDOWS ||
             DesktopBrowserRuntime.IS_WAYLAND_SESSION
         DesktopBrowserHost(state, useOffscreenRendering)
     }
@@ -92,6 +93,7 @@ actual fun PlatformWebView(
 
 /** CEF is process-wide and cannot be initialized again after disposal. Each view owns its client. */
 private object DesktopBrowserRuntime {
+    val IS_WINDOWS: Boolean = System.getProperty("os.name").startsWith("Windows", ignoreCase = true)
     private val IS_LINUX: Boolean = System.getProperty("os.name").equals("Linux", ignoreCase = true)
     val IS_WAYLAND_SESSION: Boolean = IS_LINUX &&
         (System.getenv("XDG_SESSION_TYPE").equals("wayland", ignoreCase = true) ||
