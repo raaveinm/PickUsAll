@@ -162,7 +162,7 @@ fun StoreScreen(
         contentAlignment = Alignment.Center,
     ) {
         when {
-            isLoading -> UnspecifiedProgressIndicator(selfSize = 64.dp, widthAngular = 9f)
+            isLoading -> UnspecifiedProgressIndicator(selfSize = 64.dp)
             game != null -> key(game.steamAppId) {
                 PrivateStoreScreen(
                     game = game,
