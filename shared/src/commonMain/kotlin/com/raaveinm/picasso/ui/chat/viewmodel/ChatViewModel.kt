@@ -419,10 +419,7 @@ class ChatViewModel(
 
     fun copyMessageChord(messages: List<MessageData>) {
         val text: String = messages.reversed().joinToString(separator = "\n\n") { message: MessageData ->
-                    "<message>\n" +
-                    "  <author>${message.user.personaName} : ${message.timestamp}</author>\n" +
-                    "  <text>${message.textMessage}</text>\n" +
-                    "</message>"
+            "[${message.user.personaName} : ${message.timestamp}] :\n[${message.textMessage}]"
         }
         ClipboardHelper.setText(text)
     }
@@ -505,7 +502,7 @@ class ChatViewModel(
     /** A request that is only waiting for the other side says so - otherwise the button looks dead. */
     private fun reportRequest(result: SocialResult) {
         if (result == SocialResult.PENDING) {
-            warn(WarnLevel.INFO, "Ally request sent - it takes effect once it is accepted")
+            warn(WarnLevel.INFO, "Ally request sent - it takes effect once it is accepted") //TODO(string resй)
         }
     }
 

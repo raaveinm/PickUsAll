@@ -2,6 +2,7 @@ package com.raaveinm.pickusall.core.designsystem.animated
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,7 +33,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun UnspecifiedProgressIndicator(
     selfSize: Dp = 48.dp,
-    color: Color = Color.Cyan
+    color: Color = MaterialTheme.colorScheme.primary
 ) {
     val degrees = listOf(
         -90f, -60f, -30f, 0f, 30f, 60f, 90f, 120f, 150f, 180f, 210f, 240f
@@ -43,7 +44,7 @@ fun UnspecifiedProgressIndicator(
     LaunchedEffect(Unit) {
         while (true) {
             currentIndex = (currentIndex + 1) % degrees.size
-            delay(100.milliseconds)
+            delay(60.milliseconds)
         }
     }
 
