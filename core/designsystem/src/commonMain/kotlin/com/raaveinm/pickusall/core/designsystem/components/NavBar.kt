@@ -84,7 +84,7 @@ fun NavBar(
                 .padding(horizontal = Dimensions.medium),
         ) {
             val slotWidth: Dp = 48.dp
-            val indicatorSize: Dp = 48.dp
+            val indicatorSize: Dp = 40.dp
             val indicatorInset: Dp = (slotWidth - indicatorSize) / 2
             val selectedSlot: Int = selectedId.coerceIn(elements.indices)
             var animationFlag by remember { mutableStateOf(false) }
@@ -125,7 +125,7 @@ fun NavBar(
                 elements.forEachIndexed { index, content ->
                     Box(
                         Modifier
-                            .padding(vertical = Dimensions.medium)
+                            .padding(vertical = Dimensions.small)
                             .size(slotWidth)
                             .clip(RoundedCornerShape(50.dp))
                             .clickable { onItemClick(index) },
